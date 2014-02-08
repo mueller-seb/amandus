@@ -7,8 +7,8 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include "apps.h"
-#include "laplace_polynomial.h"
-#include "matrix_laplace.h"
+#include "laplace/polynomial.h"
+#include "laplace/matrix.h"
 
 // Exact polynomial solution to the Laplace problem
 // Homogeneous no-slip boundary condition
