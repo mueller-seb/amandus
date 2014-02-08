@@ -18,7 +18,7 @@ template <int dim>
 void
 verify_residual(unsigned int n_refinements,
 		AmandusApplication<dim> &app,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& residual)
+		const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 {
   dealii::Vector<double> seed;
   dealii::Vector<double> diff;
@@ -30,16 +30,18 @@ verify_residual(unsigned int n_refinements,
 
   app.notify(dealii::Algorithms::Events::remesh);
   app.setup_system();
-  app.setup_vector(res);
-  app.setup_vector(sol);
+  app.setup_vector(seed);
+  app.setup_vector(diff);
       
   dealii::NamedData<dealii::Vector<double>* > diff_data;
   dealii::Vector<double>* p = &diff;
-  solution_data.add(p, "diff");
+  diff_data.add(p, "diff");
       
   dealii::NamedData<dealii::Vector<double>* > data;
-  dealii::Vector<double>* rhs = &res;
+  dealii::Vector<double>* rhs = &seed;
   data.add(rhs, "Newton iterate");
-  app(diff_data, data);
-  app.output_results(n_refinements, &solution_data);
+  app.verify_residual(integrator, diff_data, data);
+  app.output_results(n_refinements, &diff_data);
 }
+
+#endif

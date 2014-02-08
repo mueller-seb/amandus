@@ -10,7 +10,7 @@ ADD_LIBRARY(amandus
 
 DEAL_II_SETUP_TARGET(amandus)  
 
-FOREACH(file cc_01 st_01 st_01n da_01n la_01n ac_01)
+FOREACH(file cc_01 st_01 st_01n da_01n la_01n ac_01 residual_darcy_01)
   ADD_EXECUTABLE(${file} ${file}.cc)
   DEAL_II_SETUP_TARGET(${file})
   TARGET_LINK_LIBRARIES(${file} amandus)
