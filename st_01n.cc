@@ -7,8 +7,8 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include "apps.h"
-#include "stokes_polynomial.h"
-#include "matrix_stokes.h"
+#include "stokes/polynomial.h"
+#include "stokes/matrix.h"
 
 // Exact polynomial solution to the Stokes problem
 // Homogeneous no-slip boundary condition
