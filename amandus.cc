@@ -51,20 +51,15 @@ using namespace dealii;
 template <int dim>
 AmandusApplication<dim>::AmandusApplication(
   Triangulation<dim>& triangulation,
-  const FiniteElement<dim>& fe,
-  const MeshWorker::LocalIntegrator<dim>& matrix_integrator,
-  const MeshWorker::LocalIntegrator<dim>& rhs_integrator)
+  const FiniteElement<dim>& fe)
 		:
 		control(100, 1.e-20, 1.e-2),
 		triangulation(triangulation),
 		fe(fe),
 		mg_dof_handler(triangulation),
 		dof_handler(mg_dof_handler),
-		matrix_integrator(matrix_integrator),
-		rhs_integrator(rhs_integrator),
 	        estimates(1),
-		mg_transfer(constraints, mg_constraints)
-		
+		mg_transfer(constraints, mg_constraints)		
 {}
 
 
@@ -143,7 +138,6 @@ void AmandusApplication<dim>::setup_constraints()
 template <int dim>
 void
 AmandusApplication<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-					 dealii::NamedData<dealii::Vector<double> *> &out,
 					 const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   matrix = 0.;
@@ -167,7 +161,7 @@ AmandusApplication<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrat
 
   MeshWorker::integration_loop<dim, dim>(
     dof_handler.begin_active(), dof_handler.end(),
-    dof_info, info_box, matrix_integrator, assembler);
+    dof_info, info_box, integrator, assembler);
   
   for (unsigned int i=0;i<matrix.m();++i)
     if (constraints.is_constrained(i))
@@ -178,7 +172,6 @@ AmandusApplication<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrat
 template <int dim>
 void
 AmandusApplication<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-					    dealii::NamedData<dealii::Vector<double> *> &out,
 					    const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   mg_matrix = 0.;
@@ -207,7 +200,7 @@ AmandusApplication<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalInteg
 
   MeshWorker::integration_loop<dim, dim> (
     mg_dof_handler.begin(), mg_dof_handler.end(),
-    dof_info, info_box, matrix_integrator, assembler);
+    dof_info, info_box, integrator, assembler);
 }
 
 
@@ -275,31 +268,6 @@ AmandusApplication<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrat
   (*out(0)) *= -1.;
 
   matrix.vmult_add(*out(0), *in(0));
-}
-
-
-template <int dim>
-void
-AmandusApplication<dim>::assemble_right_hand_side(Vector<double>& v)
-{
-  MeshWorker::IntegrationInfoBox<dim> info_box;
-  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
-  info_box.add_update_flags_all(update_flags);
-  info_box.initialize(this->fe, this->mapping);
-  
-  MeshWorker::DoFInfo<dim> dof_info(this->dof_handler);
-
-  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;  
-  assembler.initialize(this->constraints);
-  NamedData<Vector<double>* > data;
-  Vector<double>* rhs = &v;
-  data.add(rhs, "RHS");
-  assembler.initialize(data);
-  
-  MeshWorker::integration_loop<dim, dim>(
-    this->dof_handler.begin_active(), this->dof_handler.end(),
-    dof_info, info_box,
-    rhs_integrator, assembler);
 }
 
 
@@ -421,28 +389,6 @@ void AmandusApplication<dim>::refine_mesh (const bool global)
 	  << triangulation.n_active_cells() << " cells, "
 	  << triangulation.n_levels() << " levels" << std::endl;
 }
-
-
-template <int dim>
-void
-AmandusApplication<dim>::operator() (NamedData<Vector<double> *> &out,
-				     const NamedData<Vector<double> *> &in)
-{
-  if (this->notifications.test(Algorithms::Events::initial)
-      || this->notifications.test(Algorithms::Events::remesh)
-      || this->notifications.test(Algorithms::Events::bad_derivative))
-    {
-      dealii::deallog << "Assemble matrices" << std::endl;
-      assemble_matrix(matrix_integrator, out, in);
-      //dealii::deallog << "Assemble multilevel matrix" << std::endl;
-      assemble_mg_matrix(matrix_integrator, out, in);
-      this->clear_events();
-    }
-  dealii::deallog << "Solve" << std::endl;
-  solve(*out(0), *in(0));
-}
-
-
 
 
 template <int dim>
@@ -571,9 +517,9 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
       || this->notifications.test(Algorithms::Events::bad_derivative))
     {
       dealii::deallog << "Assemble matrices" << std::endl;
-      application->assemble_matrix(*integrator, out, in);
+      application->assemble_matrix(*integrator, in);
       //dealii::deallog << "Assemble multilevel matrix" << std::endl;
-      application->assemble_mg_matrix(*integrator, out, in);
+      application->assemble_mg_matrix(*integrator, in);
     }
   dealii::deallog << "Solve" << std::endl;
   application->solve(*out(0), *in(0));

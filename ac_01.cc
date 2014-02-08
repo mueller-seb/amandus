@@ -41,13 +41,14 @@ int main()
   AllenCahnPolynomialResidual<d> rhs_integrator(.05, solution1d, solution1d);
   AllenCahnPolynomialError<d> error_integrator(solution1d, solution1d);
   
-  AmandusApplication<d> app(tr, fe, matrix_integrator, rhs_integrator);
+  AmandusApplication<d> app(tr, fe);
+  AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
   
-  Algorithms::Newton<Vector<double> > newton(residual, app);
+  Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);
   newton.control.set_reduction(1.e-14);
   newton.threshold(.1);

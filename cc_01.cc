@@ -26,9 +26,10 @@ int main()
   CurlCurlMatrix<d> matrix_integrator;
   RhsOne<d> rhs_integrator;
   
-  AmandusApplication<d> app(tr, fe, matrix_integrator, rhs_integrator);
+  AmandusApplication<d> app(tr, fe);
+  AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(5, app, residual);
+  global_refinement_linear_loop(5, app, solver, residual);
 }

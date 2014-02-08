@@ -39,9 +39,10 @@ int main()
   StokesPolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
   StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
   
-  AmandusApplication<d> app(tr, fe, matrix_integrator, rhs_integrator);
+  AmandusApplication<d> app(tr, fe);
+  AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(5, app, residual, &error_integrator);
+  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
 }

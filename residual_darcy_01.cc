@@ -28,7 +28,7 @@ int main()
   DarcyMatrix<d> matrix_integrator;
   DarcyNoForceResidual<d> rhs_integrator;
   
-  AmandusApplication<d> app(tr, fe, matrix_integrator, rhs_integrator);
+  AmandusApplication<d> app(tr, fe);
   
-  verify_residual(5, app, rhs_integrator);
+  verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

@@ -53,16 +53,14 @@
 
 
 template <int dim>
-class AmandusApplication : public dealii::Algorithms::Operator<dealii::Vector<double> >
+class AmandusApplication : public dealii::Subscriptor
   
 {
-  public:
+public:
   typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
-    
-    AmandusApplication(dealii::Triangulation<dim>& triangulation,
-		const dealii::FiniteElement<dim>& fe,
-		const dealii::MeshWorker::LocalIntegrator<dim>& matrix_integrator,
-		const dealii::MeshWorker::LocalIntegrator<dim>& rhs_integrator);
+  
+  AmandusApplication(dealii::Triangulation<dim>& triangulation,
+		     const dealii::FiniteElement<dim>& fe);
 
 				     /**
 				      * Initialize the vector <code>v</code> to the
@@ -81,27 +79,17 @@ class AmandusApplication : public dealii::Algorithms::Operator<dealii::Vector<do
 				      * discrete right hand side of
 				      * the problem.
 				      */
-    void assemble_right_hand_side(dealii::Vector<double>& rhs);
     void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 				  dealii::NamedData<dealii::Vector<double> *> &out,
 				  const dealii::NamedData<dealii::Vector<double> *> &in) const;
-    
-				     /**
-				      * The solution operator which is
-				      * consistent with other algorithms.
-				      */
-    virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
     
     void refine_mesh (const bool global = false);
     
   public:
     void setup_constraints ();
     void assemble_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			  dealii::NamedData<dealii::Vector<double> *> &out,
 			  const dealii::NamedData<dealii::Vector<double> *> &in);
     void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			     dealii::NamedData<dealii::Vector<double> *> &out,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
     double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
     void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
@@ -122,9 +110,6 @@ class AmandusApplication : public dealii::Algorithms::Operator<dealii::Vector<do
     const dealii::FiniteElement<dim>& fe;
     dealii::MGDoFHandler<dim>         mg_dof_handler;
     dealii::DoFHandler<dim>&          dof_handler;
-
-    const dealii::MeshWorker::LocalIntegrator<dim>& matrix_integrator;
-    const dealii::MeshWorker::LocalIntegrator<dim>& rhs_integrator;
 
     dealii::ConstraintMatrix     constraints;
     dealii::MGConstrainedDoFs    mg_constraints;

@@ -18,6 +18,7 @@ template <int dim>
 void
 global_refinement_linear_loop(unsigned int n_steps,
 			      AmandusApplication<dim> &app,
+			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
 			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0)
 {
@@ -28,7 +29,7 @@ global_refinement_linear_loop(unsigned int n_steps,
     {
       dealii::deallog << "Step " << s << std::endl;
       app.refine_mesh(true);
-      app.notify(dealii::Algorithms::Events::remesh);
+      solver.notify(dealii::Algorithms::Events::remesh);
       app.setup_system();
       app.setup_vector(res);
       app.setup_vector(sol);
@@ -43,7 +44,7 @@ global_refinement_linear_loop(unsigned int n_steps,
       dealii::NamedData<dealii::Vector<double>* > residual_data;
       residual(data, residual_data);
       dealii::deallog << "Residual " << res.l2_norm() << std::endl;
-      app(solution_data, data);
+      solver(solution_data, data);
       if (error != 0)
 	{
 	  app.error(*error, solution_data, 5);
@@ -72,7 +73,7 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
     {
       dealii::deallog << "Step " << s << std::endl;
       app.refine_mesh(true);
-      app.notify(dealii::Algorithms::Events::remesh);
+      solve.notify(dealii::Algorithms::Events::remesh);
       app.setup_system();
       app.setup_vector(sol);
       sol = 0.;
