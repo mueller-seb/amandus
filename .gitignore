@@ -1,0 +1,9 @@
+**/CMakeCache.txt
+**/CMakeFiles/
+**/cmake*
+**/Makefile
+
+Newton*
+*.gpl
+*.a
+deallog
