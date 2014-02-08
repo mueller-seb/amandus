@@ -1,4 +1,4 @@
-// $Id: st_01.cc 1392 2014-01-14 08:16:17Z kanschat $
+// $Id$
 
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>

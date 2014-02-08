@@ -1,4 +1,4 @@
-// $Id: matrix_laplace.h 1394 2014-01-31 18:43:06Z kanschat $
+// $Id$
 
 #ifndef __matrix_laplace_h
 #define __matrix_laplace_h

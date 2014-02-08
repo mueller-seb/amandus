@@ -1,4 +1,4 @@
-// $Id: matrix_stokes.h 1392 2014-01-14 08:16:17Z kanschat $
+// $Id$
 
 #ifndef __matrix_stokes_h
 #define __matrix_stokes_h

@@ -1,4 +1,4 @@
-// $Id: matrix_allen_cahn.h 1397 2014-02-02 22:42:29Z kanschat $
+// $Id$
 
 #ifndef __matrix_allen_cahn_h
 #define __matrix_allen_cahn_h

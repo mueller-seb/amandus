@@ -1,4 +1,4 @@
-// $Id: curl_curl.h 1385 2014-01-10 15:12:00Z kanschat $
+// $Id$
 
 #ifndef __curl_curl_h
 #define __curl_curl_h

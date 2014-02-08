@@ -1,4 +1,4 @@
-// $Id: rhs_one.h 1384 2014-01-10 14:04:00Z kanschat $
+// $Id$
 
 #ifndef __rhs_one_h
 #define __rhs_one_h

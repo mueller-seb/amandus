@@ -1,4 +1,4 @@
-// $Id: matrix_curl_curl.h 1384 2014-01-10 14:04:00Z kanschat $
+// $Id$
 
 #ifndef __matrix_curl_curl_h
 #define __matrix_curl_curl_h
