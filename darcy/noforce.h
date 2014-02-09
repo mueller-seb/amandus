@@ -5,8 +5,8 @@
  *
  **********************************************************************/
 
-#ifndef __darcy_polynomial_h
-#define __darcy_polynomial_h
+#ifndef __darcy_noforce_h
+#define __darcy_noforce_h
 
 #include <deal.II/base/polynomial.h>
 #include <deal.II/base/tensor.h>
