@@ -205,9 +205,9 @@ void StokesPolynomialResidual<dim>::cell(
   Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
 			 make_slice(info.gradients[0], 0, dim));
   Divergence::gradient_residual(dinfo.vector(0).block(0), info.fe_values(0),
-  				info.gradients[0][dim], -1.);
+  				info.values[0][dim], -1.);
   Divergence::cell_residual(dinfo.vector(0).block(1), info.fe_values(1),
-  			    make_slice(info.gradients[0], 0, dim), -1.);
+  			    make_slice(info.gradients[0], 0, dim), 1.);
 }
 
 
@@ -295,11 +295,16 @@ void StokesPolynomialError<dim>::cell(
       Dp[0] += px[1]*py[0];
       Dp[1] += px[0]*py[1];
       unsigned int i=0;
+      // 0. L^2(u)
       dinfo.value(i++) += (u0*u0+u1*u1) * dx;
+      // 1. H^1(u)
       dinfo.value(i++) += ((Du0*Du0)+(Du1*Du1)) * dx;
+      // 2. div u
       dinfo.value(i++) =
 	Divergence::norm(info.fe_values(0), make_slice(info.gradients[0], 0, dim));
+      // 3. L^2(p) up to mean value
       dinfo.value(i++) += p*p * dx;
+      // 4. H^1(p)
       dinfo.value(i++) += Dp*Dp * dx;
     }
 }

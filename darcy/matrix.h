@@ -32,11 +32,21 @@ template <int dim>
 class DarcyMatrix : public MeshWorker::LocalIntegrator<dim>
 {
 public:
+    DarcyMatrix ();
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
 		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
 };
+
+
+template <int dim>
+DarcyMatrix<dim>::DarcyMatrix ()
+{
+  this->use_boundary = false;
+  this->use_face = false;
+}
+
 
 
 template <int dim>

@@ -520,8 +520,8 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
       application->assemble_matrix(*integrator, in);
       //dealii::deallog << "Assemble multilevel matrix" << std::endl;
       application->assemble_mg_matrix(*integrator, in);
+      this->notifications.clear();
     }
-  dealii::deallog << "Solve" << std::endl;
   application->solve(*out(0), *in(0));
 }
 

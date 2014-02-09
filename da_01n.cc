@@ -25,7 +25,7 @@ int main()
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(3);
   
-  const unsigned int degree = 1;
+  const unsigned int degree = 3;
   FE_RaviartThomas<d> vec(degree);
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
@@ -47,15 +47,10 @@ int main()
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
-  Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.initialize(app.dof_handler);
-  
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);
   newton.control.set_reduction(1.e-14);
-  newton.initialize(newout);
-  newton.debug_vectors = true;
-  newton.debug = 2;
+  newton.threshold(.1);
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }
