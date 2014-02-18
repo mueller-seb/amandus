@@ -123,6 +123,9 @@ void AmandusApplicationBase<dim>::setup_constraints()
 {
   constraints.clear();
   constraints.close();
+  
+  this->mg_constraints.clear();
+  this->mg_constraints.initialize(this->mg_dof_handler);
 }
 
 
@@ -495,7 +498,7 @@ void AmandusApplication<dim>::setup_constraints()
 //----------------------------------------------------------------------//
 
 template <int dim>
-AmandusResidual<dim>::AmandusResidual(const AmandusApplication<dim>& application,
+AmandusResidual<dim>::AmandusResidual(const AmandusApplicationBase<dim>& application,
 				      const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 		:
 		application(&application),
@@ -516,7 +519,7 @@ AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &o
 //----------------------------------------------------------------------//
 
 template <int dim>
-AmandusSolve<dim>::AmandusSolve(AmandusApplication<dim>& application,
+AmandusSolve<dim>::AmandusSolve(AmandusApplicationBase<dim>& application,
 				const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 		:
 		application(&application),
