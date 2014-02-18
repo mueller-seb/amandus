@@ -49,7 +49,7 @@
 using namespace dealii;
 
 template <int dim>
-AmandusApplication<dim>::AmandusApplication(
+AmandusApplicationBase<dim>::AmandusApplicationBase(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
@@ -65,7 +65,7 @@ AmandusApplication<dim>::AmandusApplication(
 
 template <int dim>
 void
-AmandusApplication<dim>::setup_vector(Vector<double>& v) const
+AmandusApplicationBase<dim>::setup_vector(Vector<double>& v) const
 {
   v.reinit(dof_handler.n_dofs());
 }
@@ -73,7 +73,7 @@ AmandusApplication<dim>::setup_vector(Vector<double>& v) const
 
 template <int dim>
 void
-AmandusApplication<dim>::setup_system()
+AmandusApplicationBase<dim>::setup_system()
 {
   mg_dof_handler.distribute_dofs(fe);
   mg_dof_handler.initialize_local_block_info();
@@ -119,25 +119,16 @@ AmandusApplication<dim>::setup_system()
 
 
 template <int dim>
-void AmandusApplication<dim>::setup_constraints()
+void AmandusApplicationBase<dim>::setup_constraints()
 {
   constraints.clear();
-
-  typename FunctionMap<dim>::type homogen_bc;
-  ZeroFunction<dim> zero_function (dim);
-  homogen_bc[0] = &zero_function;
-
-  DoFTools::make_zero_boundary_constraints(dof_handler, constraints);
   constraints.close();
-
-  mg_constraints.clear();
-  mg_constraints.initialize(mg_dof_handler, homogen_bc);
 }
 
 
 template <int dim>
 void
-AmandusApplication<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationBase<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					 const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   matrix = 0.;
@@ -171,7 +162,7 @@ AmandusApplication<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrat
 
 template <int dim>
 void
-AmandusApplication<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationBase<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					    const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   mg_matrix = 0.;
@@ -206,7 +197,7 @@ AmandusApplication<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalInteg
 
 template <int dim>
 void
-AmandusApplication<dim>::assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationBase<dim>::assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 						  NamedData<Vector<double> *> &out,
 						  const NamedData<Vector<double> *> &in) const
 {
@@ -238,7 +229,7 @@ AmandusApplication<dim>::assemble_right_hand_side(const dealii::MeshWorker::Loca
 
 template <int dim>
 void
-AmandusApplication<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationBase<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					 NamedData<Vector<double> *> &out,
 					 const NamedData<Vector<double> *> &in) const
 {
@@ -273,7 +264,7 @@ AmandusApplication<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrat
 
 template <int dim>
 void
-AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
   const unsigned int minlevel = 0;
   SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
@@ -334,7 +325,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 
 ////
 template <int dim>
-double AmandusApplication<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
+double AmandusApplicationBase<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
 {
 estimates.block(0).reinit(triangulation.n_active_cells());
 unsigned int i=0;
@@ -377,7 +368,7 @@ return estimates.block(0).l2_norm();
 
 ////
 template <int dim>
-void AmandusApplication<dim>::refine_mesh (const bool global)
+void AmandusApplicationBase<dim>::refine_mesh (const bool global)
 {
   bool cell_refined = false;
   if (global || !cell_refined)
@@ -393,7 +384,7 @@ void AmandusApplication<dim>::refine_mesh (const bool global)
 
 template <int dim>
 void
-AmandusApplication<dim>::error(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationBase<dim>::error(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 const dealii::NamedData<dealii::Vector<double> *> &solution_data,
 unsigned int num_errs)
 {
@@ -434,7 +425,7 @@ unsigned int num_errs)
 
 
 template <int dim>
-void AmandusApplication<dim>::output_results (const unsigned int cycle,
+void AmandusApplicationBase<dim>::output_results (const unsigned int cycle,
 					      const NamedData<Vector<double>*>* in) const
 {
   DataOut<dim> data_out;
@@ -472,6 +463,32 @@ void AmandusApplication<dim>::output_results (const unsigned int cycle,
   
   // std::ofstream output (filename.str().c_str());
   // data_out.write_svg (output);
+}
+template <int dim>
+AmandusApplication<dim>::AmandusApplication(
+  Triangulation<dim>& triangulation,
+  const FiniteElement<dim>& fe)
+		:
+  AmandusApplicationBase<dim>(triangulation, fe)
+{}
+
+
+
+
+template <int dim>
+void AmandusApplication<dim>::setup_constraints()
+{
+  this->constraints.clear();
+
+  typename FunctionMap<dim>::type homogen_bc;
+  ZeroFunction<dim> zero_function (dim);
+  homogen_bc[0] = &zero_function;
+
+  DoFTools::make_zero_boundary_constraints(this->dof_handler, this->constraints);
+  this->constraints.close();
+
+  this->mg_constraints.clear();
+  this->mg_constraints.initialize(this->mg_dof_handler, homogen_bc);
 }
 
 
@@ -526,6 +543,9 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
 }
 
 
+
+template class AmandusApplicationBase<2>;
+template class AmandusApplicationBase<3>;
 
 template class AmandusApplication<2>;
 template class AmandusApplication<3>;
