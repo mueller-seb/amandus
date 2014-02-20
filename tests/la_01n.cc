@@ -34,12 +34,9 @@ int main()
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
   
-  Polynomials::Polynomial<double> solution1dp(1);
-//  solution1dp += Polynomials::Monomial<double>(3, 1.);
-  
   LaplaceMatrix<d> matrix_integrator;
-  LaplacePolynomialResidual<d> rhs_integrator(solution1d, solution1d);
-  LaplacePolynomialError<d> error_integrator(solution1d, solution1d);
+  LaplacePolynomialResidual<d> rhs_integrator(solution1d);
+  LaplacePolynomialError<d> error_integrator(solution1d);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);

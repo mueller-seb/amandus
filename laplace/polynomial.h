@@ -27,8 +27,7 @@ template <int dim>
 class LaplacePolynomialRHS : public LocalIntegrator<dim>
 {
   public:
-    LaplacePolynomialRHS(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+    LaplacePolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -39,8 +38,7 @@ class LaplacePolynomialRHS : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
   private:
-    Polynomials::Polynomial<double> curl_potential_1d;
-    Polynomials::Polynomial<double> grad_potential_1d;
+    Polynomials::Polynomial<double> solution_1d;
 };
 
 
@@ -53,8 +51,7 @@ template <int dim>
 class LaplacePolynomialResidual : public LocalIntegrator<dim>
 {
   public:
-    LaplacePolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+    LaplacePolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -65,8 +62,7 @@ class LaplacePolynomialResidual : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
   private:
-    Polynomials::Polynomial<double> curl_potential_1d;
-    Polynomials::Polynomial<double> grad_potential_1d;
+    Polynomials::Polynomial<double> solution_1d;
 };
 
 
@@ -74,8 +70,7 @@ template <int dim>
 class LaplacePolynomialError : public LocalIntegrator<dim>
 {
   public:
-    LaplacePolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+    LaplacePolynomialError(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -86,19 +81,16 @@ class LaplacePolynomialError : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
   private:
-    Polynomials::Polynomial<double> curl_potential_1d;
-    Polynomials::Polynomial<double> grad_potential_1d;
+    Polynomials::Polynomial<double> solution_1d;
 };
 
 //----------------------------------------------------------------------//
 
 template <int dim>
 LaplacePolynomialRHS<dim>::LaplacePolynomialRHS(
-  const Polynomials::Polynomial<double> curl_potential_1d,
-  const Polynomials::Polynomial<double> grad_potential_1d)
+  const Polynomials::Polynomial<double> solution_1d)
 		:
-		curl_potential_1d(curl_potential_1d),
-		grad_potential_1d(grad_potential_1d)
+		solution_1d(solution_1d)
 {
   this->use_boundary = false;
   this->use_face = false;
@@ -110,26 +102,18 @@ void LaplacePolynomialRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-  std::vector<std::vector<double> > rhs (dim,
-					 std::vector<double>(info.fe_values(0).n_quadrature_points));
+  std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
 
-  std::vector<double> px(4);
-  std::vector<double> py(4);
+  std::vector<double> px(3);
+  std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
       const double x = info.fe_values(0).quadrature_point(k)(0);
       const double y = info.fe_values(0).quadrature_point(k)(1);
-      curl_potential_1d.value(x, px);
-      curl_potential_1d.value(y, py);
+      solution_1d.value(x, px);
+      solution_1d.value(y, py);
       
-      rhs[0][k] = -px[2]*py[1]-px[0]*py[3];
-
-				       // Add a gradient part to the
-				       // right hand side to test for
-				       // pressure
-      grad_potential_1d.value(x, px);
-      grad_potential_1d.value(y, py);
-      rhs[0][k] += px[1]*py[0];
+      rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
   
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
@@ -155,11 +139,9 @@ void LaplacePolynomialRHS<dim>::face(
 
 template <int dim>
 LaplacePolynomialResidual<dim>::LaplacePolynomialResidual(
-  const Polynomials::Polynomial<double> curl_potential_1d,
-  const Polynomials::Polynomial<double> grad_potential_1d)
+  const Polynomials::Polynomial<double> solution_1d)
 		:
-		curl_potential_1d(curl_potential_1d),
-		grad_potential_1d(grad_potential_1d)
+		solution_1d(solution_1d)
 {
   this->use_boundary = true;
   this->use_face = true;
@@ -175,26 +157,18 @@ void LaplacePolynomialResidual<dim>::cell(
   Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   
-  std::vector<std::vector<double> > rhs (1,
-					 std::vector<double>(info.fe_values(0).n_quadrature_points));
+  std::vector<double> rhs (info.fe_values(0).n_quadrature_points, 0.);
 
-  std::vector<double> px(4);
-  std::vector<double> py(4);
+  std::vector<double> px(3);
+  std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
       const double x = info.fe_values(0).quadrature_point(k)(0);
       const double y = info.fe_values(0).quadrature_point(k)(1);
-      curl_potential_1d.value(x, px);
-      curl_potential_1d.value(y, py);
+      solution_1d.value(x, px);
+      solution_1d.value(y, py);
       
-      rhs[0][k] = -px[2]*py[1]-px[0]*py[3];
-
-				       // Add a gradient part to the
-				       // right hand side to test for
-				       // pressure
-      grad_potential_1d.value(x, px);
-      grad_potential_1d.value(y, py);
-      rhs[0][k] += px[1]*py[0];
+      rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
   
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -1.);
@@ -240,11 +214,9 @@ void LaplacePolynomialResidual<dim>::face(
 
 template <int dim>
 LaplacePolynomialError<dim>::LaplacePolynomialError(
-  const Polynomials::Polynomial<double> curl_potential_1d,
-  const Polynomials::Polynomial<double> grad_potential_1d)
+  const Polynomials::Polynomial<double> solution_1d)
 		:
-		curl_potential_1d(curl_potential_1d),
-		grad_potential_1d(grad_potential_1d)
+		solution_1d(solution_1d)
 {
   this->use_boundary = false;
   this->use_face = false;
@@ -256,7 +228,29 @@ void LaplacePolynomialError<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-//  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
+  Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
+  
+  std::vector<double> px(3);
+  std::vector<double> py(3);
+  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
+    {
+      const double x = info.fe_values(0).quadrature_point(k)(0);
+      const double y = info.fe_values(0).quadrature_point(k)(1);
+      solution_1d.value(x, px);
+      solution_1d.value(y, py);
+      const double dx = info.fe_values(0).JxW(k);
+      
+      Tensor<1,dim> Du = info.gradients[0][0][k];
+      Du[0] -= px[1]*py[0];
+      Du[1] -= px[0]*py[1];
+      double u = info.values[0][0][k];
+      u -= px[0]*py[0];
+
+      // 0. L^2(u)
+      dinfo.value(0) += (u*u) * dx;
+      // 1. H^1(u)
+      dinfo.value(1) += (Du*Du) * dx;
+    }
 }
 
 
