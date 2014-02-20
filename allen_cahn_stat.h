@@ -79,7 +79,7 @@ AllenCahnPolynomialResidual<dim>::AllenCahnPolynomialResidual(
 		curl_potential_1d(curl_potential_1d),
 		grad_potential_1d(grad_potential_1d)
 {
-  this->use_boundary = true;
+  this->use_boundary = false;
   this->use_face = true;
   this->input_vector_names.push_back("Newton iterate");
 }

@@ -51,16 +51,17 @@
 #include <iostream>
 #include <fstream>
 
-
+/**
+ * An application class with solvers based on local Schwarz smoothers.
+ */
 template <int dim>
-class AmandusApplication : public dealii::Subscriptor
-  
+class AmandusApplicationBase : public dealii::Subscriptor  
 {
 public:
   typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
   
-  AmandusApplication(dealii::Triangulation<dim>& triangulation,
-		     const dealii::FiniteElement<dim>& fe);
+  AmandusApplicationBase(dealii::Triangulation<dim>& triangulation,
+			 const dealii::FiniteElement<dim>& fe);
 
 				     /**
 				      * Initialize the vector <code>v</code> to the
@@ -86,7 +87,7 @@ public:
     void refine_mesh (const bool global = false);
     
   public:
-    void setup_constraints ();
+    virtual void setup_constraints ();
     void assemble_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 			  const dealii::NamedData<dealii::Vector<double> *> &in);
     void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
@@ -129,18 +130,33 @@ public:
 };
 
 
+/**
+ * The same as AmandusApplicationBase, but with multigrid constraints
+ * and homogeneous Dirichlet boundary conditions.
+ */
+template <int dim>
+class AmandusApplication : public AmandusApplicationBase<dim>
+{
+ public:
+  AmandusApplication(dealii::Triangulation<dim>& triangulation,
+		     const dealii::FiniteElement<dim>& fe);
+ private:
+  virtual void setup_constraints ();
+};
+
+
 template <int dim>
 class AmandusResidual
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
   public:
-    AmandusResidual(const AmandusApplication<dim>& application,
+    AmandusResidual(const AmandusApplicationBase<dim>& application,
 		    const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
 		    
     virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
   private:
-    dealii::SmartPointer<const AmandusApplication<dim>, AmandusResidual<dim> > application;
+    dealii::SmartPointer<const AmandusApplicationBase<dim>, AmandusResidual<dim> > application;
     dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
@@ -150,13 +166,13 @@ class AmandusSolve
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
   public:
-    AmandusSolve(AmandusApplication<dim>& application,
+    AmandusSolve(AmandusApplicationBase<dim>& application,
 		 const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
 		    
     virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
   private:
-    dealii::SmartPointer<AmandusApplication<dim>, AmandusSolve<dim> > application;
+    dealii::SmartPointer<AmandusApplicationBase<dim>, AmandusSolve<dim> > application;
     dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
 

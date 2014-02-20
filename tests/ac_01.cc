@@ -41,7 +41,7 @@ int main()
   AllenCahnPolynomialResidual<d> rhs_integrator(.05, solution1d, solution1d);
   AllenCahnPolynomialError<d> error_integrator(solution1d, solution1d);
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusApplicationBase<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   
@@ -51,7 +51,7 @@ int main()
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);
   newton.control.set_reduction(1.e-14);
-  newton.threshold(.1);
+  newton.threshold(.2);
   
   // newton.initialize(newout);
   // newton.debug_vectors = true;

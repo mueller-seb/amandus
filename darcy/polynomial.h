@@ -180,8 +180,8 @@ void DarcyPolynomialResidual<dim>::cell(
   std::vector<std::vector<double> > rhs (dim,
 					 std::vector<double>(info.fe_values(0).n_quadrature_points));
 
-  std::vector<double> px(4);
-  std::vector<double> py(4);
+  std::vector<double> px(2);
+  std::vector<double> py(2);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
       const double x = info.fe_values(0).quadrature_point(k)(0);
@@ -189,8 +189,8 @@ void DarcyPolynomialResidual<dim>::cell(
       curl_potential_1d.value(x, px);
       curl_potential_1d.value(y, py);
       
-      rhs[0][k] = -px[2]*py[1]-px[0]*py[3];
-      rhs[1][k] =  px[3]*py[0]+px[1]*py[2];
+      rhs[0][k] = px[0]*py[1];
+      rhs[1][k] =-px[1]*py[0];
 
 				       // Add a gradient part to the
 				       // right hand side to test for

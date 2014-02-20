@@ -37,6 +37,7 @@ AllenCahnMatrix<dim>::AllenCahnMatrix(double diffusion)
 		:
 		D(diffusion)
 {
+  this->use_boundary = false;
   this->input_vector_names.push_back("Newton iterate");
 }
 
