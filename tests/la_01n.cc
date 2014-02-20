@@ -25,7 +25,7 @@ int main()
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(3);
   
-  const unsigned int degree = 1;
+  const unsigned int degree = 4;
   FE_DGQ<d> fe(degree);
 
   Polynomials::Polynomial<double> solution1d;
