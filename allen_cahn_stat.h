@@ -1,7 +1,7 @@
 /**********************************************************************
  * $Id$
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
+ * Copyright Guido Kanschat, 2014
  *
  **********************************************************************/
 
@@ -29,8 +29,7 @@ class AllenCahnPolynomialResidual : public LocalIntegrator<dim>
   public:
     AllenCahnPolynomialResidual(
       double difusion,
-      const Polynomials::Polynomial<double> curl_potential_1d,
-      const Polynomials::Polynomial<double> grad_potential_1d);
+      const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -42,8 +41,7 @@ class AllenCahnPolynomialResidual : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info2) const;
   private:
     double D;
-    Polynomials::Polynomial<double> curl_potential_1d;
-    Polynomials::Polynomial<double> grad_potential_1d;
+    Polynomials::Polynomial<double> solution_1d;
 };
 
 
@@ -51,8 +49,7 @@ template <int dim>
 class AllenCahnPolynomialError : public LocalIntegrator<dim>
 {
   public:
-    AllenCahnPolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+    AllenCahnPolynomialError(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -63,8 +60,7 @@ class AllenCahnPolynomialError : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
   private:
-    Polynomials::Polynomial<double> curl_potential_1d;
-    Polynomials::Polynomial<double> grad_potential_1d;
+    Polynomials::Polynomial<double> solution_1d;
 };
 
 //----------------------------------------------------------------------//
@@ -72,12 +68,10 @@ class AllenCahnPolynomialError : public LocalIntegrator<dim>
 template <int dim>
 AllenCahnPolynomialResidual<dim>::AllenCahnPolynomialResidual(
   double diffusion,
-  const Polynomials::Polynomial<double> curl_potential_1d,
-  const Polynomials::Polynomial<double> grad_potential_1d)
+  const Polynomials::Polynomial<double> solution_1d)
 		:
 		D(diffusion),
-		curl_potential_1d(curl_potential_1d),
-		grad_potential_1d(grad_potential_1d)
+		solution_1d(solution_1d)
 {
   this->use_boundary = false;
   this->use_face = true;
@@ -93,30 +87,24 @@ void AllenCahnPolynomialResidual<dim>::cell(
   Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   
-  std::vector<std::vector<double> > rhs (1,
-					 std::vector<double>(info.fe_values(0).n_quadrature_points));
+  std::vector<double> rhs (info.fe_values(0).n_quadrature_points, 0.);
 
-  std::vector<double> px(4);
-  std::vector<double> py(4);
+  std::vector<double> px(3);
+  std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
       const double x = info.fe_values(0).quadrature_point(k)(0);
       const double y = info.fe_values(0).quadrature_point(k)(1);
-      curl_potential_1d.value(x, px);
-      curl_potential_1d.value(y, py);
+      solution_1d.value(x, px);
+      solution_1d.value(y, py);
       
-      rhs[0][k] = -px[2]*py[1]-px[0]*py[3];
-
-				       // Add a gradient part to the
-				       // right hand side to test for
-				       // pressure
-      grad_potential_1d.value(x, px);
-      grad_potential_1d.value(y, py);
-      rhs[0][k] += px[1]*py[0];
+      // negative Laplacian
+      rhs[k] = D*px[2]*py[0]+D*px[0]*py[2];
+      // nonlinearity of true solution
+      rhs[k] -= px[0]*py[0]*(px[0]*py[0]*px[0]*py[0]-1.);
 
       const double u = info.values[0][0][k];
-      rhs[0][k] += u*(u*u-1.);
-      
+      rhs[k] += u*(u*u-1.);
     }
   
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
@@ -162,11 +150,9 @@ void AllenCahnPolynomialResidual<dim>::face(
 
 template <int dim>
 AllenCahnPolynomialError<dim>::AllenCahnPolynomialError(
-  const Polynomials::Polynomial<double> curl_potential_1d,
-  const Polynomials::Polynomial<double> grad_potential_1d)
+  const Polynomials::Polynomial<double> solution_1d)
 		:
-		curl_potential_1d(curl_potential_1d),
-		grad_potential_1d(grad_potential_1d)
+		solution_1d(solution_1d)
 {
   this->use_boundary = false;
   this->use_face = false;
@@ -179,6 +165,28 @@ void AllenCahnPolynomialError<dim>::cell(
   IntegrationInfo<dim>& info) const
 {
 //  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
+
+  std::vector<double> px(2);
+  std::vector<double> py(2);
+  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
+    {
+      const double x = info.fe_values(0).quadrature_point(k)(0);
+      const double y = info.fe_values(0).quadrature_point(k)(1);
+      solution_1d.value(x, px);
+      solution_1d.value(y, py);
+      const double dx = info.fe_values(0).JxW(k);
+      
+      Tensor<1,dim> Du = info.gradients[0][0][k];
+      Du[0] -= px[1]*py[0];
+      Du[1] -= px[0]*py[1];
+      double u = info.values[0][0][k];
+      u -= px[0]*py[0];
+      unsigned int i=0;
+      // 0. L^2(u)
+      dinfo.value(i++) += u*u * dx;
+      // 1. H^1(u)
+      dinfo.value(i++) += (Du*Du) * dx;
+    }
 }
 
 

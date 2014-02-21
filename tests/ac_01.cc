@@ -29,17 +29,13 @@ int main()
   FE_DGQ<d> fe(degree);
 
   Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
+  solution1d += Polynomials::Monomial<double>(3, -1.);
+  solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
   
-  Polynomials::Polynomial<double> solution1dp(1);
-//  solution1dp += Polynomials::Monomial<double>(3, 1.);
-  
-  AllenCahnMatrix<d> matrix_integrator(.05);
-  AllenCahnPolynomialResidual<d> rhs_integrator(.05, solution1d, solution1d);
-  AllenCahnPolynomialError<d> error_integrator(solution1d, solution1d);
+  AllenCahnMatrix<d> matrix_integrator(.1);
+  AllenCahnPolynomialResidual<d> rhs_integrator(.1, solution1d);
+  AllenCahnPolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparse<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
@@ -57,5 +53,5 @@ int main()
   // newton.debug_vectors = true;
   // newton.debug = 2;
   
-  global_refinement_nonlinear_loop(5, app, newton);
+  global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }
