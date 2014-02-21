@@ -1,6 +1,6 @@
 # Doxyfile 1.7.6.1
 
-PROJECT_NAME           = "Cochain Simulator"
+PROJECT_NAME           = "Amandus: Simulations based on multilevel Schwarz methods"
 FULL_PATH_NAMES        = NO
 STRIP_FROM_PATH        =
 STRIP_FROM_INC_PATH    =

@@ -54,8 +54,8 @@ AmandusApplicationBase<dim>::AmandusApplicationBase(
   const FiniteElement<dim>& fe)
 		:
 		control(100, 1.e-20, 1.e-2),
-		triangulation(triangulation),
-		fe(fe),
+		triangulation(&triangulation),
+		fe(&fe),
 		mg_dof_handler(triangulation),
 		dof_handler(mg_dof_handler),
 	        estimates(1),
@@ -75,28 +75,28 @@ template <int dim>
 void
 AmandusApplicationBase<dim>::setup_system()
 {
-  mg_dof_handler.distribute_dofs(fe);
+  mg_dof_handler.distribute_dofs(*fe);
   mg_dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
   setup_vector(solution);
   setup_vector(right_hand_side);
   
   deallog << "DoFHandler " << this->dof_handler.n_dofs() << " dofs, level dofs";
-  for (unsigned int l=0;l<this->triangulation.n_levels();++l)
-    deallog << ' ' << this->mg_dof_handler.n_dofs(l);
+  for (unsigned int l=0;l<this->triangulation->n_levels();++l)
+    deallog << ' ' << this->dof_handler.n_dofs(l);
   deallog << std::endl;
 
   mg_transfer.clear();
   setup_constraints ();
   mg_transfer.initialize_constraints(constraints, mg_constraints);
-  mg_transfer.build_matrices(mg_dof_handler);
+  mg_transfer.build_matrices(dof_handler);
 
   CompressedSparsityPattern c_sparsity(n_dofs);
   DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints);
   sparsity.copy_from(c_sparsity);
   matrix.reinit(sparsity);
   
-  const unsigned int n_levels = triangulation.n_levels();
+  const unsigned int n_levels = triangulation->n_levels();
   mg_matrix.resize(0, n_levels-1);
   mg_matrix.clear();
   mg_matrix_up.resize(0, n_levels-1);
@@ -108,8 +108,8 @@ AmandusApplicationBase<dim>::setup_system()
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
     {
-      CompressedSparsityPattern c_sparsity(mg_dof_handler.n_dofs(level));      
-      MGTools::make_flux_sparsity_pattern(mg_dof_handler, c_sparsity, level);
+      CompressedSparsityPattern c_sparsity(dof_handler.n_dofs(level));      
+      MGTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, level);
       mg_sparsity[level].copy_from(c_sparsity);
       mg_matrix[level].reinit(mg_sparsity[level]);
       mg_matrix_up[level].reinit(mg_sparsity[level]);
@@ -125,7 +125,7 @@ void AmandusApplicationBase<dim>::setup_constraints()
   constraints.close();
   
   this->mg_constraints.clear();
-  this->mg_constraints.initialize(this->mg_dof_handler);
+  this->mg_constraints.initialize(this->dof_handler);
 }
 
 
@@ -144,7 +144,7 @@ AmandusApplicationBase<dim>::assemble_matrix(const dealii::MeshWorker::LocalInte
     }
   UpdateFlags update_flags = update_values | update_gradients | update_hessians | update_quadrature_points;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(fe, mapping, in, &dof_handler.block_info());
+  info_box.initialize(*fe, mapping, in, &dof_handler.block_info());
 
   MeshWorker::DoFInfo<dim> dof_info(dof_handler.block_info());
 
@@ -182,7 +182,7 @@ AmandusApplicationBase<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalI
   MeshWorker::IntegrationInfoBox<dim> info_box;
   UpdateFlags update_flags = update_values | update_gradients | update_hessians;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(fe, mapping, &dof_handler.block_info());
+  info_box.initialize(*fe, mapping, &dof_handler.block_info());
 
   MeshWorker::DoFInfo<dim> dof_info(dof_handler.block_info());
   
@@ -193,7 +193,7 @@ AmandusApplicationBase<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalI
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
 
   MeshWorker::integration_loop<dim, dim> (
-    mg_dof_handler.begin(), mg_dof_handler.end(),
+    dof_handler.begin_mg(), dof_handler.end_mg(),
     dof_info, info_box, integrator, assembler);
 }
 
@@ -215,7 +215,7 @@ AmandusApplicationBase<dim>::assemble_right_hand_side(const dealii::MeshWorker::
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(this->fe, this->mapping, in, &dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, in, &dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
@@ -247,7 +247,7 @@ AmandusApplicationBase<dim>::verify_residual(const dealii::MeshWorker::LocalInte
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(this->fe, this->mapping, in, &dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, in, &dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
@@ -287,7 +287,7 @@ AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rh
 
   for (unsigned int l=minlevel+1;l<=smoother_data.max_level();++l)
     {
-      DoFTools::make_vertex_patches(smoother_data[l].block_list, mg_dof_handler, l, true);
+      DoFTools::make_vertex_patches(smoother_data[l].block_list, dof_handler, l, true);
       smoother_data[l].block_list.compress();
       smoother_data[l].relaxation = 1.;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
@@ -308,7 +308,7 @@ AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rh
   MGMatrix<SparseMatrix<double>, Vector<double> > mgdown(&mg_matrix_down);
   MGMatrix<SparseMatrix<double>, Vector<double> > mgup(&mg_matrix_up);
   
-  Multigrid<Vector<double> > mg(mg_dof_handler, mgmatrix,
+  Multigrid<Vector<double> > mg(dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
@@ -316,7 +316,7 @@ AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rh
   
   PreconditionMG<dim, Vector<double>,
     MGTransferPrebuilt<Vector<double> > >
-    preconditioner(mg_dof_handler, mg, mg_transfer);
+    preconditioner(dof_handler, mg, mg_transfer);
   try 
     {
       solver.solve(matrix, sol, rhs, preconditioner);
@@ -330,10 +330,10 @@ AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rh
 template <int dim>
 double AmandusApplicationBase<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
 {
-estimates.block(0).reinit(triangulation.n_active_cells());
+estimates.block(0).reinit(triangulation->n_active_cells());
 unsigned int i=0;
-for(typename Triangulation<dim>::active_cell_iterator cell=triangulation.begin_active();
-cell != triangulation.end() ; ++cell, ++i)
+for(typename Triangulation<dim>::active_cell_iterator cell=triangulation->begin_active();
+cell != triangulation->end() ; ++cell, ++i)
 cell->set_user_index(i);
 MeshWorker::IntegrationInfoBox<dim> info_box;
 
@@ -349,7 +349,7 @@ info_box.boundary_selector.add("solution", true, true, false);
 UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
   info_box.add_update_flags_all(update_flags);
 
-info_box.initialize(fe, mapping, solution_data);
+info_box.initialize(*fe, mapping, solution_data);
 
 MeshWorker::DoFInfo<dim> dof_info(dof_handler);
 
@@ -375,13 +375,13 @@ void AmandusApplicationBase<dim>::refine_mesh (const bool global)
 {
   bool cell_refined = false;
   if (global || !cell_refined)
-    triangulation.refine_global(1);
+    triangulation->refine_global(1);
   else
-    triangulation.execute_coarsening_and_refinement ();
+    triangulation->execute_coarsening_and_refinement ();
   
   deallog << "Triangulation "
-	  << triangulation.n_active_cells() << " cells, "
-	  << triangulation.n_levels() << " levels" << std::endl;
+	  << triangulation->n_active_cells() << " cells, "
+	  << triangulation->n_levels() << " levels" << std::endl;
 }
 
 
@@ -393,10 +393,10 @@ unsigned int num_errs)
 {
   BlockVector<double> errors(num_errs);
   for (unsigned int i=0;i<num_errs;++i)
-    errors.block(i).reinit(triangulation.n_active_cells());
+    errors.block(i).reinit(triangulation->n_active_cells());
   unsigned int i=0;
-  for (typename Triangulation<dim>::active_cell_iterator cell = triangulation.begin_active();
-       cell != triangulation.end(); ++cell,++i)
+  for (typename Triangulation<dim>::active_cell_iterator cell = triangulation->begin_active();
+       cell != triangulation->end(); ++cell,++i)
     cell->set_user_index(i);
 
   MeshWorker::IntegrationInfoBox<dim> info_box;
@@ -406,7 +406,7 @@ unsigned int num_errs)
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(this->fe, this->mapping, solution_data, &this->dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, solution_data, &this->dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
   
@@ -491,7 +491,7 @@ void AmandusApplication<dim>::setup_constraints()
   this->constraints.close();
 
   this->mg_constraints.clear();
-  this->mg_constraints.initialize(this->mg_dof_handler, homogen_bc);
+  this->mg_constraints.initialize(this->dof_handler, homogen_bc);
 }
 
 
