@@ -52,7 +52,8 @@
 #include <fstream>
 
 /**
- * An application class with solvers based on local Schwarz smoothers.
+ * An application class with solvers based on local Schwarz smoothers
+ * without strong boundary conditions.
  *
  * This class provides storage for the DoFHandler object and the
  * matrices associated with a finite element discretization and its
@@ -202,6 +203,9 @@ class AmandusApplication : public AmandusApplicationBase<dim>
 };
 
 
+/**
+ * A residual operator using AmandusApplicationBase::assemble_right_hand_side().
+ */
 template <int dim>
 class AmandusResidual
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
@@ -217,20 +221,31 @@ class AmandusResidual
     dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
-
+/**
+ * A solution operator using AmandusApplicationBase::solve().
+ */
 template <int dim>
 class AmandusSolve
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
-  public:
-    AmandusSolve(AmandusApplicationBase<dim>& application,
-		 const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
-		    
-    virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
-  private:
-    dealii::SmartPointer<AmandusApplicationBase<dim>, AmandusSolve<dim> > application;
-    dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
+public:
+  /**
+   * Constructor of the operator, taking the <code>application</code>
+   * and the <code>integrator</code> which is used to assemble the
+   * matrices.
+   */
+  AmandusSolve(AmandusApplicationBase<dim>& application,
+	       const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+  /**
+   * Apply the solution operator. If indecated by events, reassemble matrices 
+   */
+  virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
+			   const dealii::NamedData<dealii::Vector<double> *> &in);
+private:
+  /// The pointer to the application object.
+  dealii::SmartPointer<AmandusApplicationBase<dim>, AmandusSolve<dim> > application;
+  /// The pointer to the local integrator for assembling matrices
+  dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
 
 
