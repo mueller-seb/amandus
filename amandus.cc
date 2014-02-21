@@ -49,7 +49,7 @@
 using namespace dealii;
 
 template <int dim>
-AmandusApplicationBase<dim>::AmandusApplicationBase(
+AmandusApplicationSparse<dim>::AmandusApplicationSparse(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
@@ -65,7 +65,7 @@ AmandusApplicationBase<dim>::AmandusApplicationBase(
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::setup_vector(Vector<double>& v) const
+AmandusApplicationSparse<dim>::setup_vector(Vector<double>& v) const
 {
   v.reinit(dof_handler.n_dofs());
 }
@@ -73,7 +73,7 @@ AmandusApplicationBase<dim>::setup_vector(Vector<double>& v) const
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::setup_system()
+AmandusApplicationSparse<dim>::setup_system()
 {
   mg_dof_handler.distribute_dofs(*fe);
   mg_dof_handler.initialize_local_block_info();
@@ -119,7 +119,7 @@ AmandusApplicationBase<dim>::setup_system()
 
 
 template <int dim>
-void AmandusApplicationBase<dim>::setup_constraints()
+void AmandusApplicationSparse<dim>::setup_constraints()
 {
   constraints.clear();
   constraints.close();
@@ -131,7 +131,7 @@ void AmandusApplicationBase<dim>::setup_constraints()
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationSparse<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					 const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   matrix = 0.;
@@ -165,7 +165,7 @@ AmandusApplicationBase<dim>::assemble_matrix(const dealii::MeshWorker::LocalInte
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationSparse<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					    const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   mg_matrix = 0.;
@@ -200,7 +200,7 @@ AmandusApplicationBase<dim>::assemble_mg_matrix(const dealii::MeshWorker::LocalI
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationSparse<dim>::assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 						  NamedData<Vector<double> *> &out,
 						  const NamedData<Vector<double> *> &in) const
 {
@@ -232,7 +232,7 @@ AmandusApplicationBase<dim>::assemble_right_hand_side(const dealii::MeshWorker::
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationSparse<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 					 NamedData<Vector<double> *> &out,
 					 const NamedData<Vector<double> *> &in) const
 {
@@ -267,7 +267,7 @@ AmandusApplicationBase<dim>::verify_residual(const dealii::MeshWorker::LocalInte
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
   const unsigned int minlevel = 0;
   SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
@@ -328,7 +328,7 @@ AmandusApplicationBase<dim>::solve(Vector<double>& sol, const Vector<double>& rh
 
 ////
 template <int dim>
-double AmandusApplicationBase<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
+double AmandusApplicationSparse<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
 {
 estimates.block(0).reinit(triangulation->n_active_cells());
 unsigned int i=0;
@@ -371,7 +371,7 @@ return estimates.block(0).l2_norm();
 
 ////
 template <int dim>
-void AmandusApplicationBase<dim>::refine_mesh (const bool global)
+void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 {
   bool cell_refined = false;
   if (global || !cell_refined)
@@ -387,7 +387,7 @@ void AmandusApplicationBase<dim>::refine_mesh (const bool global)
 
 template <int dim>
 void
-AmandusApplicationBase<dim>::error(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+AmandusApplicationSparse<dim>::error(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 const dealii::NamedData<dealii::Vector<double> *> &solution_data,
 unsigned int num_errs)
 {
@@ -428,7 +428,7 @@ unsigned int num_errs)
 
 
 template <int dim>
-void AmandusApplicationBase<dim>::output_results (const unsigned int cycle,
+void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
 					      const NamedData<Vector<double>*>* in) const
 {
   DataOut<dim> data_out;
@@ -472,7 +472,7 @@ AmandusApplication<dim>::AmandusApplication(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
-  AmandusApplicationBase<dim>(triangulation, fe)
+  AmandusApplicationSparse<dim>(triangulation, fe)
 {}
 
 
@@ -498,7 +498,7 @@ void AmandusApplication<dim>::setup_constraints()
 //----------------------------------------------------------------------//
 
 template <int dim>
-AmandusResidual<dim>::AmandusResidual(const AmandusApplicationBase<dim>& application,
+AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& application,
 				      const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 		:
 		application(&application),
@@ -519,7 +519,7 @@ AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &o
 //----------------------------------------------------------------------//
 
 template <int dim>
-AmandusSolve<dim>::AmandusSolve(AmandusApplicationBase<dim>& application,
+AmandusSolve<dim>::AmandusSolve(AmandusApplicationSparse<dim>& application,
 				const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 		:
 		application(&application),
@@ -547,8 +547,8 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
 
 
 
-template class AmandusApplicationBase<2>;
-template class AmandusApplicationBase<3>;
+template class AmandusApplicationSparse<2>;
+template class AmandusApplicationSparse<3>;
 
 template class AmandusApplication<2>;
 template class AmandusApplication<3>;

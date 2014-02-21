@@ -17,7 +17,7 @@
 template <int dim>
 void
 global_refinement_linear_loop(unsigned int n_steps,
-			      AmandusApplicationBase<dim> &app,
+			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
 			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0)
@@ -62,7 +62,7 @@ global_refinement_linear_loop(unsigned int n_steps,
 template <int dim>
 void
 global_refinement_nonlinear_loop(unsigned int n_steps,
-			      AmandusApplicationBase<dim> &app,
+			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
 			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0)
 {

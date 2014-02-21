@@ -41,7 +41,7 @@ int main()
   AllenCahnPolynomialResidual<d> rhs_integrator(.05, solution1d, solution1d);
   AllenCahnPolynomialError<d> error_integrator(solution1d, solution1d);
   
-  AmandusApplicationBase<d> app(tr, fe);
+  AmandusApplicationSparse<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   

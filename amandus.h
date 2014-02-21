@@ -61,6 +61,15 @@
  * Triangulation and the FiniteElement, which are provided to the
  * constructor.
  *
+ * The purpose of this class is not so much implementing an
+ * application program, but providing the data structures used by all
+ * application programs with the following characteristics:
+ * <ol>
+ * <li>Single vector and single matrix, no block structures; this does not exclude systems.</li>
+ * <li>A single sparse matrix and accordingly single sparse matrices for for each level.</li>
+ * <li>A multigrid smoother based on the inversion of vertex patches.</li>
+ * </ol>
+ *
  * @todo: Straighten up the interface, make private things private
  *
  * @todo: Create interface for ParameterHandler to set parameters for
@@ -70,7 +79,7 @@
  * @date 2014
  */
 template <int dim>
-class AmandusApplicationBase : public dealii::Subscriptor  
+class AmandusApplicationSparse : public dealii::Subscriptor  
 {
 public:
   typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
@@ -81,7 +90,7 @@ public:
    * of freedom or initialize sparsity patterns, which has to be
    * achieved by calling setup_system().
    */
-  AmandusApplicationBase(dealii::Triangulation<dim>& triangulation,
+  AmandusApplicationSparse(dealii::Triangulation<dim>& triangulation,
 			 const dealii::FiniteElement<dim>& fe);
 
   /**
@@ -164,9 +173,9 @@ public:
    */
   dealii::ReductionControl control;
   //  protected:
-  dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationBase<dim> > triangulation;
+  dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim> > triangulation;
   const dealii::MappingQ1<dim>      mapping;
-  dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationBase<dim> > fe;
+  dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationSparse<dim> > fe;
   dealii::MGDoFHandler<dim>         mg_dof_handler;
   dealii::DoFHandler<dim>&          dof_handler;
   
@@ -189,11 +198,11 @@ public:
 
 
 /**
- * The same as AmandusApplicationBase, but with multigrid constraints
+ * The same as AmandusApplicationSparse, but with multigrid constraints
  * and homogeneous Dirichlet boundary conditions.
  */
 template <int dim>
-class AmandusApplication : public AmandusApplicationBase<dim>
+class AmandusApplication : public AmandusApplicationSparse<dim>
 {
  public:
   AmandusApplication(dealii::Triangulation<dim>& triangulation,
@@ -204,25 +213,25 @@ class AmandusApplication : public AmandusApplicationBase<dim>
 
 
 /**
- * A residual operator using AmandusApplicationBase::assemble_right_hand_side().
+ * A residual operator using AmandusApplicationSparse::assemble_right_hand_side().
  */
 template <int dim>
 class AmandusResidual
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
   public:
-    AmandusResidual(const AmandusApplicationBase<dim>& application,
+    AmandusResidual(const AmandusApplicationSparse<dim>& application,
 		    const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
 		    
     virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
   private:
-    dealii::SmartPointer<const AmandusApplicationBase<dim>, AmandusResidual<dim> > application;
+    dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
     dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
 /**
- * A solution operator using AmandusApplicationBase::solve().
+ * A solution operator using AmandusApplicationSparse::solve().
  */
 template <int dim>
 class AmandusSolve
@@ -234,7 +243,7 @@ public:
    * and the <code>integrator</code> which is used to assemble the
    * matrices.
    */
-  AmandusSolve(AmandusApplicationBase<dim>& application,
+  AmandusSolve(AmandusApplicationSparse<dim>& application,
 	       const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
   /**
    * Apply the solution operator. If indecated by events, reassemble matrices 
@@ -243,7 +252,7 @@ public:
 			   const dealii::NamedData<dealii::Vector<double> *> &in);
 private:
   /// The pointer to the application object.
-  dealii::SmartPointer<AmandusApplicationBase<dim>, AmandusSolve<dim> > application;
+  dealii::SmartPointer<AmandusApplicationSparse<dim>, AmandusSolve<dim> > application;
   /// The pointer to the local integrator for assembling matrices
   dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
