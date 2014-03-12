@@ -5,6 +5,18 @@ FULL_PATH_NAMES        = NO
 STRIP_FROM_PATH        =
 STRIP_FROM_INC_PATH    =
 BUILTIN_STL_SUPPORT    = YES
+
 EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = YES
-INPUT                  = ..
+
+EXTERNAL_GROUPS	       = NO
+EXTERNAL_PAGES	       = NO
+
+USE_MATHJAX            = YES
+MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
+DOT_IMAGE_FORMAT       = svg
+
+GENERATE_LATEX	       = NO
+EXTRA_PACKAGES	       = amsmath
+
+INPUT                  = .. ../stokes ../darcy ../laplace

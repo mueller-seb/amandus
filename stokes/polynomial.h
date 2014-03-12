@@ -19,9 +19,16 @@ using namespace LocalIntegrators;
 using namespace MeshWorker;
 
 /**
- * Integrate the right hand side for a Stokes problem, where the
- * solution is the curl of the symmetric tensor product of a given
- * polynomial, plus the gradient of another.
+ * Provide the right hand side for a Stokes problem with polynomial
+ * solution. This class is matched by StokesPolynomialError and
+ * StokesPolynomialResidual, which all operate on the same polynomial
+ * solutions. The solution obtained is described in
+ * StokesPolynomialError.
+ * 
+ * @note No reasonable iplementation for three dimensions is provided.
+ *
+ * @author Guido Kanschat
+ * @date 2014
  */
 template <int dim>
 class StokesPolynomialRHS : public LocalIntegrator<dim>
@@ -45,16 +52,28 @@ class StokesPolynomialRHS : public LocalIntegrator<dim>
 
 
 /**
- * Integrate the residual for a Stokes problem, where the
- * solution is the curl of the symmetric tensor product of a given
- * polynomial, plus the gradient of another.
+ * Integrate the residual for a Stokes problem, where the solution is
+ * the curl of the symmetric tensor product of a given polynomial,
+ * plus the gradient of another. The solution is described in the
+ * documentation of StokesPolynomialError.
+ *
+ * The integration functions of this class compute the difference of
+ * the corresponding function in StokesPolynomialRHS and the weak
+ * Stokes operator applied to the current solution in "Newton
+ * iterate". Thus, their Frechet derivative is in the integration
+ * functions of MatrixStokes.
+ *
+ * @note No reasonable iplementation for three dimensions is provided.
+ *
+ * @author Guido Kanschat
+ * @date 2014
  */
 template <int dim>
 class StokesPolynomialResidual : public LocalIntegrator<dim>
 {
   public:
     StokesPolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+			     const Polynomials::Polynomial<double> grad_potential_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -69,13 +88,43 @@ class StokesPolynomialResidual : public LocalIntegrator<dim>
     Polynomials::Polynomial<double> grad_potential_1d;
 };
 
-
+/**
+ * Computes the error between a numerical solution and a known exact
+ * polynomial solution of a Stokes problem.
+ *
+ * For two dimensions, the two constructor arguments are two
+ * one-dimensional polynomials \f$\psi(t)\f$ and \f$\phi(t)\f$. The
+ * solution to such the Stokes problem is then determined as
+ *
+ * \f{alignat*}{{2}
+ * \mathbf u &= \nabla\times \Psi \qquad\qquad
+ * & \Psi((x_1,\ldots,x_d) &= \prod \psi(x_i) \\
+ * p &= \Phi
+ * & \Phi((x_1,\ldots,x_d) &= \prod \phi(x_i)
+ * \f}
+ *
+ * The according right hand sides of the Stokes equations and the
+ * residuals are integrated by the functions of the classes
+ * StokesPolynomialRHS and StokesPolynomialResidual.
+ *
+ * If computing on a square, say \f$[-1,1]^2\f$, the boundary
+ * conditions of the Stokes problem are determined as follows: if
+ * \f$\psi(-1)=\psi(1)=0\f$, the velocity has the boundary condition
+ * \f$\mathbf u\cdot \mathbf n=0\f$ (slip). If in addition
+ * \f$\psi'(-1)=\psi'(1)=0\f$, then there holds on the boundary
+ * \f$\mathbf u=0\f$ (no-slip).
+ *
+ * @note No reasonable iplementation for three dimensions is provided.
+ *
+ * @author Guido Kanschat
+ * @date 2014
+ */
 template <int dim>
 class StokesPolynomialError : public LocalIntegrator<dim>
 {
   public:
     StokesPolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
-			const Polynomials::Polynomial<double> grad_potential_1d);
+			  const Polynomials::Polynomial<double> grad_potential_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
