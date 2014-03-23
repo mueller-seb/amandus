@@ -6,7 +6,7 @@ DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(cell-matrices)
 
 ADD_LIBRARY(amandus
-  amandus.cc)
+  amandus.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
 
 DEAL_II_SETUP_TARGET(amandus)  
 
