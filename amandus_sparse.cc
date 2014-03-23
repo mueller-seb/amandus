@@ -29,12 +29,6 @@
 #include <deal.II/meshworker/output.h>
 #include <deal.II/meshworker/loop.h>
 
-#include <deal.II/multigrid/mg_tools.h>
-#include <deal.II/multigrid/multigrid.h>
-#include <deal.II/multigrid/mg_matrix.h>
-#include <deal.II/multigrid/mg_coarse.h>
-#include <deal.II/multigrid/mg_smoother.h>
-
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -51,12 +45,14 @@ using namespace dealii;
 template <int dim>
 AmandusApplicationSparse<dim>::AmandusApplicationSparse(
   Triangulation<dim>& triangulation,
-  const FiniteElement<dim>& fe)
+  const FiniteElement<dim>& fe,
+  bool use_umfpack)
 		:
 		control(100, 1.e-20, 1.e-2),
 		triangulation(&triangulation),
 		fe(&fe),
 		dof_handler(triangulation),
+		use_umfpack(use_umfpack),
 	        estimates(1)		
 {}
 
@@ -130,6 +126,11 @@ AmandusApplicationSparse<dim>::assemble_matrix(const dealii::MeshWorker::LocalIn
   for (unsigned int i=0;i<matrix.m();++i)
     if (constraints.is_constrained(i))
       matrix.diag_element(i) = 1.;
+
+  if (use_umfpack)
+    {
+      inverse.initialize(matrix);
+    }
 }
 
 

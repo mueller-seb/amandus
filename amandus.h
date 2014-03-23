@@ -9,6 +9,7 @@
 #define __amandus_h
 
 #include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/sparse_direct.h>
 #include <deal.II/lac/compressed_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
@@ -52,10 +53,10 @@
 #include <fstream>
 
 /**
- * An application class with a plain GMRES solver. This is mostly to
+ * An application class with a plain GMRES solver and optional UMFPack
+ * as a preconditioner (see constructor arguments). This is mostly to
  * test discretizations and it sould be improved by a derived class
- * with either a multigrid solver like
- * AmandusApplicationSparseMultigrid or with a direct solver.
+ * with a multigrid solver like AmandusApplicationSparseMultigrid.
  *
  * This class provides storage for the DoFHandler object and the
  * matrix associated with a finite element discretization. The basic
@@ -82,109 +83,116 @@
 template <int dim>
 class AmandusApplicationSparse : public dealii::Subscriptor  
 {
-public:
-  typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
+  public:
+    typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
   
-  /**
-   * Constructor, setting the finite element and the
-   * triangulation. This constructor does not distribute the degrees
-   * of freedom or initialize sparsity patterns, which has to be
-   * achieved by calling setup_system().
-   */
-  AmandusApplicationSparse(dealii::Triangulation<dim>& triangulation,
-			 const dealii::FiniteElement<dim>& fe);
+    /**
+     * Constructor, setting the finite element and the
+     * triangulation. This constructor does not distribute the degrees
+    * of freedom or initialize sparsity patterns, which has to be
+    * achieved by calling setup_system().
+    *
+    * If the argument <tt>use_umfpack</tt> is true, assemble_matrix() not only generates a matrix,
+    * but also the inverse, using SparseDirectUMFPACK.
+    */
+    AmandusApplicationSparse(dealii::Triangulation<dim>& triangulation,
+			     const dealii::FiniteElement<dim>& fe,
+			     bool use_umfpack = false);
 
-  /**
-   * Initialize the vector <code>v</code> to the size matching the
-   * DoFHandler. This requires that setup_system() is called before.
-   */
-  virtual void setup_vector (dealii::Vector<double>& v) const;
+    /**
+     * Initialize the vector <code>v</code> to the size matching the
+     * DoFHandler. This requires that setup_system() is called before.
+     */
+    virtual void setup_vector (dealii::Vector<double>& v) const;
   
-  /**
-   * Initialize the finite element system on the current mesh.  This
-   * involves distributing degrees of freedom for the leaf mesh and
-   * the levels as well as setting up sparsity patterns for the matrices.
-   *
-   * @note This function calls the virtual function setup_constraints().
-   */
-  virtual void setup_system ();
+    /**
+     * Initialize the finite element system on the current mesh.  This
+     * involves distributing degrees of freedom for the leaf mesh and
+     * the levels as well as setting up sparsity patterns for the matrices.
+     *
+     * @note This function calls the virtual function setup_constraints().
+     */
+    virtual void setup_system ();
   
-  /**
-   * Apply the local operator <code>integrator</code> to the vectors
-   * in <code>in</code> and write the result to the first vector in
-   * <code>out</code>.
-   */
-  void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-				dealii::NamedData<dealii::Vector<double> *> &out,
-				const dealii::NamedData<dealii::Vector<double> *> &in) const;
+    /**
+     * Apply the local operator <code>integrator</code> to the vectors
+     * in <code>in</code> and write the result to the first vector in
+     * <code>out</code>.
+     */
+    void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+				  dealii::NamedData<dealii::Vector<double> *> &out,
+				  const dealii::NamedData<dealii::Vector<double> *> &in) const;
   
-  void refine_mesh (const bool global = false);
+    void refine_mesh (const bool global = false);
   
-public:
-  /**
-   * Set up hanging node constraints for leaf mesh and for level
-   * meshes. Use redefinition in derived classes to add boundary
-   * constraints.
-   */
-  virtual void setup_constraints ();
-  /**
-   * Use the integrator to build the matrix for the leaf mesh.
-   */
-  void assemble_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			const dealii::NamedData<dealii::Vector<double> *> &in);
-  /**
-   * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
-   */
-  virtual void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
+  public:
+    /**
+     * Set up hanging node constraints for leaf mesh and for level
+     * meshes. Use redefinition in derived classes to add boundary
+     * constraints.
+     */
+    virtual void setup_constraints ();
+    /**
+     * Use the integrator to build the matrix for the leaf mesh.
+     */
+    void assemble_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+			  const dealii::NamedData<dealii::Vector<double> *> &in);
+    /**
+     * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
+     */
+    virtual void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+				     const dealii::NamedData<dealii::Vector<double> *> &in);
 
-  /**
-   * Currently disabled.
-   *
-   * \todo: Make sure it takes an AnyData with a vector called "solution".
-   */
-  double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
-  /**
-   * Compute several error values using the integrator. The number
-   * of errors computed is given as the last argument.
-   *
-   * @todo Improve the interface to determine the number of errors from the integrator.
-   */
-  void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-	      const dealii::NamedData<dealii::Vector<double> *> &in,
-	      unsigned int num_errs);
-  /**
-   * Solve the linear system stored in #matrix with the right hand
-   * side given. Uses the multigrid preconditioner.
-   */
-  virtual void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
-  void output_results(unsigned int refinement_cycle,
-		      const dealii::NamedData<dealii::Vector<double>*>* data = 0) const;
+    /**
+     * Currently disabled.
+     *
+     * \todo: Make sure it takes an AnyData with a vector called "solution".
+     */
+    double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+    /**
+     * Compute several error values using the integrator. The number
+     * of errors computed is given as the last argument.
+     *
+     * @todo Improve the interface to determine the number of errors from the integrator.
+     */
+    void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+		const dealii::NamedData<dealii::Vector<double> *> &in,
+		unsigned int num_errs);
+    /**
+     * Solve the linear system stored in #matrix with the right hand
+     * side given. Uses the multigrid preconditioner.
+     */
+    virtual void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
+    void output_results(unsigned int refinement_cycle,
+			const dealii::NamedData<dealii::Vector<double>*>* data = 0) const;
   
-  /**
-   * For testing purposes compare the residual operator applied to to
-   * the vectors in <code>in</code> with the result of the matrix
-   * vector multiplication.
-   */
-  void verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-		       dealii::NamedData<dealii::Vector<double> *> &out,
-		       const dealii::NamedData<dealii::Vector<double> *> &in) const;
+    /**
+     * For testing purposes compare the residual operator applied to to
+     * the vectors in <code>in</code> with the result of the matrix
+     * vector multiplication.
+     */
+    void verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+			 dealii::NamedData<dealii::Vector<double> *> &out,
+			 const dealii::NamedData<dealii::Vector<double> *> &in) const;
   
-  /**
-   * The object controlling the iteration in solve().
-   */
-  dealii::ReductionControl control;
-  //  protected:
-  dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim> > triangulation;
-  const dealii::MappingQ1<dim>      mapping;
-  dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationSparse<dim> > fe;
+    /**
+     * The object controlling the iteration in solve().
+     */
+    dealii::ReductionControl control;
+    //  protected:
+    dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim> > triangulation;
+    const dealii::MappingQ1<dim>      mapping;
+    dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationSparse<dim> > fe;
     dealii::DoFHandler<dim> dof_handler;
     
-  dealii::ConstraintMatrix     constraints;
+    dealii::ConstraintMatrix     constraints;
   
-  dealii::SparsityPattern      sparsity;
-  dealii::SparseMatrix<double> matrix;
-  dealii::BlockVector<double>  estimates;
+    dealii::SparsityPattern      sparsity;
+    dealii::SparseMatrix<double> matrix;
+    const bool use_umfpack;
+    dealii::SparseDirectUMFPACK inverse;
+    
+    dealii::BlockVector<double>  estimates;
 };
 
 
@@ -220,80 +228,80 @@ template <int dim>
 class AmandusApplicationSparseMultigrid
   : public AmandusApplicationSparse<dim>
 {
-public:
-  typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
+  public:
+    typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
   
-  /**
-   * Constructor, setting the finite element and the
-   * triangulation. This constructor does not distribute the degrees
-   * of freedom or initialize sparsity patterns, which has to be
-   * achieved by calling setup_system().
-   */
-  AmandusApplicationSparseMultigrid(dealii::Triangulation<dim>& triangulation,
-			 const dealii::FiniteElement<dim>& fe);
+    /**
+     * Constructor, setting the finite element and the
+     * triangulation. This constructor does not distribute the degrees
+     * of freedom or initialize sparsity patterns, which has to be
+     * achieved by calling setup_system().
+     */
+    AmandusApplicationSparseMultigrid(dealii::Triangulation<dim>& triangulation,
+				      const dealii::FiniteElement<dim>& fe);
 
-  /**
-   * Initialize the finite element system on the current mesh.  This
-   * involves distributing degrees of freedom for the leaf mesh and
-   * the levels as well as setting up sparsity patterns for the matrices.
-   *
-   * @note This function calls the virtual function setup_constraints().
-   */
-  void setup_system ();
+    /**
+     * Initialize the finite element system on the current mesh.  This
+     * involves distributing degrees of freedom for the leaf mesh and
+     * the levels as well as setting up sparsity patterns for the matrices.
+     *
+     * @note This function calls the virtual function setup_constraints().
+     */
+    void setup_system ();
   
-  /**
-   * Apply the local operator <code>integrator</code> to the vectors
-   * in <code>in</code> and write the result to the first vector in
-   * <code>out</code>.
-   */
-  void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-				dealii::NamedData<dealii::Vector<double> *> &out,
-				const dealii::NamedData<dealii::Vector<double> *> &in) const;
+    /**
+     * Apply the local operator <code>integrator</code> to the vectors
+     * in <code>in</code> and write the result to the first vector in
+     * <code>out</code>.
+     */
+    void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+				  dealii::NamedData<dealii::Vector<double> *> &out,
+				  const dealii::NamedData<dealii::Vector<double> *> &in) const;
     
   public:
-  /**
-   * Set up hanging node constraints for leaf mesh and for level
-   * meshes. Use redefinition in derived classes to add boundary
-   * constraints.
-   */
-  virtual void setup_constraints ();
-  /**
-   * Use the integrator to build the matrix for the level meshes. This
-   * also automatically generates the transfer matrices needed for
-   * multigrid with local smoothing on locally refined meshes.
-   */
+    /**
+     * Set up hanging node constraints for leaf mesh and for level
+     * meshes. Use redefinition in derived classes to add boundary
+     * constraints.
+     */
+    virtual void setup_constraints ();
+    /**
+     * Use the integrator to build the matrix for the level meshes. This
+     * also automatically generates the transfer matrices needed for
+     * multigrid with local smoothing on locally refined meshes.
+     */
     void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
-  /**
-   * Currently disabled.
-   */
-  double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
-  /**
-   * Compute several error values using the integrator. The number
-   * of errors computed is given as the last argument.
-   *
-   * @todo Improve the interface to determine the number of errors from the integrator.
-   */
-  void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-	      const dealii::NamedData<dealii::Vector<double> *> &in,
-	      unsigned int num_errs);
-  /**
-   * Solve the linear system stored in #matrix with the right hand
-   * side given. Uses the multigrid preconditioner.
-   */
-  void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
+    /**
+     * Currently disabled.
+     */
+    double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+    /**
+     * Compute several error values using the integrator. The number
+     * of errors computed is given as the last argument.
+     *
+     * @todo Improve the interface to determine the number of errors from the integrator.
+     */
+    void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+		const dealii::NamedData<dealii::Vector<double> *> &in,
+		unsigned int num_errs);
+    /**
+     * Solve the linear system stored in #matrix with the right hand
+     * side given. Uses the multigrid preconditioner.
+     */
+    void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
     
-  //  protected:
+    //  protected:
 
     dealii::MGConstrainedDoFs    mg_constraints;
   
-  dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
-  dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
+    dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
   
-  dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
-  dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
   
-  dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
+    dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
 };
 
 
@@ -304,11 +312,11 @@ public:
 template <int dim>
 class AmandusApplication : public AmandusApplicationSparseMultigrid<dim>
 {
- public:
-  AmandusApplication(dealii::Triangulation<dim>& triangulation,
-		     const dealii::FiniteElement<dim>& fe);
- private:
-  virtual void setup_constraints ();
+  public:
+    AmandusApplication(dealii::Triangulation<dim>& triangulation,
+		       const dealii::FiniteElement<dim>& fe);
+  private:
+    virtual void setup_constraints ();
 };
 
 
@@ -337,24 +345,24 @@ template <int dim>
 class AmandusSolve
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
-public:
-  /**
-   * Constructor of the operator, taking the <code>application</code>
-   * and the <code>integrator</code> which is used to assemble the
-   * matrices.
-   */
-  AmandusSolve(AmandusApplicationSparse<dim>& application,
-	       const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
-  /**
-   * Apply the solution operator. If indecated by events, reassemble matrices 
-   */
-  virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			   const dealii::NamedData<dealii::Vector<double> *> &in);
-private:
-  /// The pointer to the application object.
-  dealii::SmartPointer<AmandusApplicationSparse<dim>, AmandusSolve<dim> > application;
-  /// The pointer to the local integrator for assembling matrices
-  dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
+  public:
+    /**
+     * Constructor of the operator, taking the <code>application</code>
+     * and the <code>integrator</code> which is used to assemble the
+     * matrices.
+     */
+    AmandusSolve(AmandusApplicationSparse<dim>& application,
+		 const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+    /**
+     * Apply the solution operator. If indecated by events, reassemble matrices 
+     */
+    virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
+			     const dealii::NamedData<dealii::Vector<double> *> &in);
+  private:
+    /// The pointer to the application object.
+    dealii::SmartPointer<AmandusApplicationSparse<dim>, AmandusSolve<dim> > application;
+    /// The pointer to the local integrator for assembling matrices
+    dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
 
 
