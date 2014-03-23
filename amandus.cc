@@ -118,17 +118,12 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
     {
       dealii::deallog << "Assemble matrices" << std::endl;
       application->assemble_matrix(*integrator, in);
-      //dealii::deallog << "Assemble multilevel matrix" << std::endl;
       application->assemble_mg_matrix(*integrator, in);
       this->notifications.clear();
     }
   application->solve(*out(0), *in(0));
 }
 
-
-
-template class AmandusApplicationSparse<2>;
-template class AmandusApplicationSparse<3>;
 
 template class AmandusApplication<2>;
 template class AmandusApplication<3>;

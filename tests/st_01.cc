@@ -41,7 +41,7 @@ int main()
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator);
+  AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
   global_refinement_linear_loop(5, app, solver, residual, &error_integrator);

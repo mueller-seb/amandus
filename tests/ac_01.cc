@@ -37,7 +37,7 @@ int main()
   AllenCahnPolynomialResidual<d> rhs_integrator(.1, solution1d);
   AllenCahnPolynomialError<d> error_integrator(solution1d);
   
-  AmandusApplicationSparse<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   

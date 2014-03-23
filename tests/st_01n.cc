@@ -23,8 +23,7 @@ int main()
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
-  tr.refine_global(3);
-  
+
   const unsigned int degree = 3;
   FE_RaviartThomas<d> vec(degree);
   FE_DGQ<d> scal(degree);
@@ -37,11 +36,11 @@ int main()
   solution1d.print(std::cout);
   
   Polynomials::Polynomial<double> solution1dp(1);
-//  solution1dp += Polynomials::Monomial<double>(3, 1.);
+  solution1dp += Polynomials::Monomial<double>(3, 1.);
   
   StokesMatrix<d> matrix_integrator;
-  StokesPolynomialResidual<d> rhs_integrator(solution1d, solution1d);
-  StokesPolynomialError<d> error_integrator(solution1d, solution1d);
+  StokesPolynomialResidual<d> rhs_integrator(solution1d, solution1dp);
+  StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
