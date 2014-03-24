@@ -52,7 +52,7 @@ AmandusApplicationSparseMultigrid<dim>::AmandusApplicationSparseMultigrid(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
-  AmandusApplicationSparse<dim>(triangulation, fe),
+		AmandusApplicationSparse<dim>(triangulation, fe, false),
   mg_transfer(this->constraints, mg_constraints)
 {}
 
@@ -64,7 +64,12 @@ AmandusApplicationSparseMultigrid<dim>::setup_system()
   this->dof_handler.distribute_mg_dofs(*this->fe);
   mg_transfer.clear();
   AmandusApplicationSparse<dim>::setup_system();
-  
+
+  deallog << "DoFHandler levels: ";
+  for (unsigned int l=0;l<this->triangulation->n_levels();++l)
+    deallog << ' ' << this->dof_handler.n_dofs(l);
+  deallog << std::endl;
+
   mg_transfer.initialize_constraints(this->constraints, mg_constraints);
   mg_transfer.build_matrices(this->dof_handler);
   

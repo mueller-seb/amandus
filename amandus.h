@@ -321,6 +321,21 @@ class AmandusApplication : public AmandusApplicationSparseMultigrid<dim>
 
 
 /**
+ * The same as AmandusApplicationSparse, but with multigrid constraints
+ * and homogeneous Dirichlet boundary conditions.
+ */
+template <int dim>
+class AmandusUMFPACK : public AmandusApplicationSparse<dim>
+{
+  public:
+    AmandusUMFPACK(dealii::Triangulation<dim>& triangulation,
+		   const dealii::FiniteElement<dim>& fe);
+  private:
+    virtual void setup_constraints ();
+};
+
+
+/**
  * A residual operator using AmandusApplicationSparse::assemble_right_hand_side().
  */
 template <int dim>

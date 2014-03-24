@@ -73,10 +73,8 @@ AmandusApplicationSparse<dim>::setup_system()
   dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
   
-  deallog << "DoFHandler " << this->dof_handler.n_dofs() << " dofs, level dofs";
-  for (unsigned int l=0;l<this->triangulation->n_levels();++l)
-    deallog << ' ' << this->dof_handler.n_dofs(l);
-  deallog << std::endl;
+  deallog << "DoFHandler: " << this->dof_handler.n_dofs()
+	  << std::endl;
 
   setup_constraints ();
 
@@ -215,15 +213,14 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
-  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(40);
   SolverGMRES<Vector<double> > solver(control, solver_data);
 
-  PreconditionIdentity preconditioner;
-  try 
-    {
-      solver.solve(matrix, sol, rhs, preconditioner);
-    }
-  catch(...) {}
+  PreconditionIdentity identity;
+  if (use_umfpack)
+    solver.solve(matrix, sol, rhs, this->inverse);
+  else
+    solver.solve(matrix, sol, rhs, identity);
   constraints.distribute(sol);
 }
 

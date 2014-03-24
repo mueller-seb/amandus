@@ -77,6 +77,27 @@ void AmandusApplication<dim>::setup_constraints()
 
 //----------------------------------------------------------------------//
 
+
+template <int dim>
+AmandusUMFPACK<dim>::AmandusUMFPACK(
+  Triangulation<dim>& triangulation,
+  const FiniteElement<dim>& fe)
+		:
+		AmandusApplicationSparse<dim>(triangulation, fe, true)
+{}
+
+
+template <int dim>
+void AmandusUMFPACK<dim>::setup_constraints()
+{
+  this->constraints.clear();
+  DoFTools::make_zero_boundary_constraints(this->dof_handler, this->constraints);
+  this->constraints.close();
+}
+
+
+//----------------------------------------------------------------------//
+
 template <int dim>
 AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& application,
 				      const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
@@ -127,6 +148,9 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
 
 template class AmandusApplication<2>;
 template class AmandusApplication<3>;
+
+template class AmandusUMFPACK<2>;
+template class AmandusUMFPACK<3>;
 
 template class AmandusResidual<2>;
 template class AmandusResidual<3>;
