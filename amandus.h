@@ -119,9 +119,9 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * in <code>in</code> and write the result to the first vector in
      * <code>out</code>.
      */
-    void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-				  dealii::NamedData<dealii::Vector<double> *> &out,
-				  const dealii::NamedData<dealii::Vector<double> *> &in) const;
+    void assemble_right_hand_side(dealii::NamedData<dealii::Vector<double> *> &out,
+				  const dealii::NamedData<dealii::Vector<double> *> &in,
+				  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const;
   
     void refine_mesh (const bool global = false);
   
@@ -135,34 +135,36 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     /**
      * Use the integrator to build the matrix for the leaf mesh.
      */
-    void assemble_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			  const dealii::NamedData<dealii::Vector<double> *> &in);
+    void assemble_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+			  const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
     /**
      * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
      */
-    virtual void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-				     const dealii::NamedData<dealii::Vector<double> *> &in);
+    virtual void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+				     const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
 
     /**
      * Currently disabled.
      *
      * \todo: Make sure it takes an AnyData with a vector called "solution".
      */
-    double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+    double estimate(const dealii::NamedData<dealii::Vector<double> *> &in,
+		    const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
     /**
      * Compute several error values using the integrator. The number
      * of errors computed is given as the last argument.
      *
      * @todo Improve the interface to determine the number of errors from the integrator.
      */
-    void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-		const dealii::NamedData<dealii::Vector<double> *> &in,
+    void error (const dealii::NamedData<dealii::Vector<double> *> &in,
+		const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
 		unsigned int num_errs);
     /**
      * Solve the linear system stored in #matrix with the right hand
      * side given. Uses the multigrid preconditioner.
      */
     virtual void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
+    
     void output_results(unsigned int refinement_cycle,
 			const dealii::NamedData<dealii::Vector<double>*>* data = 0) const;
   
@@ -171,9 +173,9 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * the vectors in <code>in</code> with the result of the matrix
      * vector multiplication.
      */
-    void verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			 dealii::NamedData<dealii::Vector<double> *> &out,
-			 const dealii::NamedData<dealii::Vector<double> *> &in) const;
+    void verify_residual(dealii::NamedData<dealii::Vector<double> *> &out,
+			 const dealii::NamedData<dealii::Vector<double> *> &in,
+			 const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const;
   
     /**
      * The object controlling the iteration in solve().
@@ -249,15 +251,6 @@ class AmandusApplicationSparseMultigrid
      */
     void setup_system ();
   
-    /**
-     * Apply the local operator <code>integrator</code> to the vectors
-     * in <code>in</code> and write the result to the first vector in
-     * <code>out</code>.
-     */
-    void assemble_right_hand_side(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-				  dealii::NamedData<dealii::Vector<double> *> &out,
-				  const dealii::NamedData<dealii::Vector<double> *> &in) const;
-    
   public:
     /**
      * Set up hanging node constraints for leaf mesh and for level
@@ -270,21 +263,9 @@ class AmandusApplicationSparseMultigrid
      * also automatically generates the transfer matrices needed for
      * multigrid with local smoothing on locally refined meshes.
      */
-    void assemble_mg_matrix (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
-    /**
-     * Currently disabled.
-     */
-    double estimate(const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
-    /**
-     * Compute several error values using the integrator. The number
-     * of errors computed is given as the last argument.
-     *
-     * @todo Improve the interface to determine the number of errors from the integrator.
-     */
-    void error (const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-		const dealii::NamedData<dealii::Vector<double> *> &in,
-		unsigned int num_errs);
+    void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+			     const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+    
     /**
      * Solve the linear system stored in #matrix with the right hand
      * side given. Uses the multigrid preconditioner.

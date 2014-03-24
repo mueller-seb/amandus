@@ -95,8 +95,9 @@ void AmandusApplicationSparse<dim>::setup_constraints()
 
 template <int dim>
 void
-AmandusApplicationSparse<dim>::assemble_matrix(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-					 const dealii::NamedData<dealii::Vector<double> *> &in)
+AmandusApplicationSparse<dim>::assemble_matrix(
+  const dealii::NamedData<dealii::Vector<double> *> &in,
+  const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
 {
   matrix = 0.;
 
@@ -135,8 +136,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(const dealii::MeshWorker::LocalIn
 template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_mg_matrix(
-  const dealii::MeshWorker::LocalIntegrator<dim>&,
-  const dealii::NamedData<dealii::Vector<double> *> &)
+  const dealii::NamedData<dealii::Vector<double> *> &,
+  const dealii::MeshWorker::LocalIntegrator<dim>&)
 {
 }
 
@@ -144,9 +145,9 @@ AmandusApplicationSparse<dim>::assemble_mg_matrix(
 template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_right_hand_side(
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
   NamedData<Vector<double> *> &out,
-  const NamedData<Vector<double> *> &in) const
+  const NamedData<Vector<double> *> &in,
+  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -176,9 +177,10 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
 
 template <int dim>
 void
-AmandusApplicationSparse<dim>::verify_residual(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-					 NamedData<Vector<double> *> &out,
-					 const NamedData<Vector<double> *> &in) const
+AmandusApplicationSparse<dim>::verify_residual(
+  NamedData<Vector<double> *> &out,
+  const NamedData<Vector<double> *> &in,
+  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -227,44 +229,43 @@ AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& 
 
 ////
 template <int dim>
-double AmandusApplicationSparse<dim>::estimate(const MeshWorker::LocalIntegrator<dim>& integrator)
+double AmandusApplicationSparse<dim>::estimate(
+  const NamedData<Vector<double> *> &in,
+  const MeshWorker::LocalIntegrator<dim>& integrator)
 {
-  // estimates.block(0).reinit(triangulation->n_active_cells());
-  // unsigned int i=0;
-  // for(typename Triangulation<dim>::active_cell_iterator cell=triangulation->begin_active();
-  //     cell != triangulation->end() ; ++cell, ++i)
-  //   cell->set_user_index(i);
-  // MeshWorker::IntegrationInfoBox<dim> info_box;
+  estimates.block(0).reinit(triangulation->n_active_cells());
+  unsigned int i=0;
+  for(typename Triangulation<dim>::active_cell_iterator cell=triangulation->begin_active();
+      cell != triangulation->end() ; ++cell, ++i)
+    cell->set_user_index(i);
+  MeshWorker::IntegrationInfoBox<dim> info_box;
   
-  // const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+1;
-  // info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
+  const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+1;
+  info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
   
-  // NamedData<Vector<double>*> solution_data ;
-  // solution_data.add(&solution, "solution");
+  info_box.cell_selector.add("solution", false, true,true);
+  info_box.face_selector.add("solution",true,true,true);
+  info_box.boundary_selector.add("solution", true, true, false);
+  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
+  info_box.add_update_flags_all(update_flags);
   
-  // info_box.cell_selector.add("solution", false, true,true);
-  // info_box.face_selector.add("solution",true,true,true);
-  // info_box.boundary_selector.add("solution", true, true, false);
-  // UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
-  // info_box.add_update_flags_all(update_flags);
+  info_box.initialize(*fe, mapping, in);
   
-  // info_box.initialize(*fe, mapping, solution_data);
+  MeshWorker::DoFInfo<dim> dof_info(dof_handler);
   
-  // MeshWorker::DoFInfo<dim> dof_info(dof_handler);
+  MeshWorker::Assembler::CellsAndFaces<double> assembler ;
+  NamedData< BlockVector<double>* > out_data;
+  BlockVector<double>* est =&estimates ;
+  out_data.add (est,"cells" ); 
   
-  // MeshWorker::Assembler::CellsAndFaces<double> assembler ;
-  // NamedData< BlockVector<double>* > out_data;
-  // BlockVector<double>* est =&estimates ;
-  // out_data.add (est,"cells" ); 
+  assembler.initialize(out_data, false);
   
-  // assembler.initialize(out_data, false);
+  MeshWorker::integration_loop< dim , dim >(
+    dof_handler.begin_active(), dof_handler.end(),
+    dof_info, info_box,
+    integrator, assembler);
   
-  // MeshWorker::integration_loop< dim , dim >(
-  //   dof_handler.begin_active(), dof_handler.end(),
-  //   dof_info, info_box,
-  //   integrator, assembler);
-  
-  // return estimates.block(0).l2_norm();
+  return estimates.block(0).l2_norm();
 }
 
 
@@ -286,9 +287,10 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 
 template <int dim>
 void
-AmandusApplicationSparse<dim>::error(const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
-const dealii::NamedData<dealii::Vector<double> *> &solution_data,
-unsigned int num_errs)
+AmandusApplicationSparse<dim>::error(
+  const dealii::NamedData<dealii::Vector<double> *> &solution_data,
+  const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+  unsigned int num_errs)
 {
   BlockVector<double> errors(num_errs);
   for (unsigned int i=0;i<num_errs;++i)

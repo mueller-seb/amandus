@@ -113,7 +113,7 @@ AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &o
 			     const dealii::NamedData<dealii::Vector<double> *> &in)
 {
   *out(0) = 0.;
-  application->assemble_right_hand_side(*integrator, out, in);
+  application->assemble_right_hand_side(out, in, *integrator);
 }
 
 
@@ -138,8 +138,8 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
       || this->notifications.test(Algorithms::Events::bad_derivative))
     {
       dealii::deallog << "Assemble matrices" << std::endl;
-      application->assemble_matrix(*integrator, in);
-      application->assemble_mg_matrix(*integrator, in);
+      application->assemble_matrix(in, *integrator);
+      application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }
   application->solve(*out(0), *in(0));

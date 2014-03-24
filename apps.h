@@ -20,7 +20,8 @@ global_refinement_linear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0)
+			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
+			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -47,12 +48,16 @@ global_refinement_linear_loop(unsigned int n_steps,
       solver(solution_data, data);
       if (error != 0)
 	{
-	  app.error(*error, solution_data, 5);
+	  app.error(solution_data, *error, 5);
        	}
+
+      if (estimator != 0)
+	{
+	  dealii::deallog << "Error::Estimate: "
+			  << app.estimate(solution_data, *estimator)
+			  << std::endl;
+	}
       
-      // deallog << "Error::Estimate: " << 
-      // app.estimate(estimator)
-      // << std::endl;
       app.output_results(s, &solution_data);
     }
 
@@ -64,7 +69,8 @@ void
 global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0)
+			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
+			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -86,12 +92,16 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       solve(solution_data, data);
       if (error != 0)
 	{
-	  app.error(*error, solution_data, 5);
+	  app.error(solution_data, *error, 5);
        	}
       
-      // deallog << "Error::Estimate: " << 
-      // app.estimate(estimator)
-      // << std::endl;
+      if (estimator != 0)
+	{
+	  dealii::deallog << "Error::Estimate: "
+			  << app.estimate(solution_data, *estimator)
+			  << std::endl;
+	}
+      
       app.output_results(s, &solution_data);
     }
 }

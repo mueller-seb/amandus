@@ -44,9 +44,11 @@ verify_residual(unsigned int n_refinements,
       dealii::Vector<double>* rhs = &seed;
       data.add(rhs, "Newton iterate");
       
-      app.assemble_matrix(matrix_integrator, data);
-      app.verify_residual(residual_integrator, diff_data, data);
+      app.assemble_matrix(data, matrix_integrator);
+      app.verify_residual(diff_data, data, residual_integrator);
       app.output_results(s, &diff_data);
+
+      dealii::deallog << "Difference " << diff.l2_norm() << std::endl;
     }
 }
 
