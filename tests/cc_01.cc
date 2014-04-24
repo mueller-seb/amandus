@@ -4,7 +4,7 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_system.h>
 #include "apps.h"
-#include "matrix_curl_curl.h"
+#include "maxwell/matrix.h"
 #include "rhs_one.h"
 
 
@@ -16,7 +16,7 @@ int main()
   deallog.attach(logfile);
   
   Triangulation<d> tr;
-  GridGenerator::hyper_L (tr, -1, 1);
+  GridGenerator::hyper_cube (tr, -1, 1);
 
   const unsigned int degree = 1;
   FE_Nedelec<d> vec(degree);
@@ -28,7 +28,7 @@ int main()
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator);
+  AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
   global_refinement_linear_loop(5, app, solver, residual);
