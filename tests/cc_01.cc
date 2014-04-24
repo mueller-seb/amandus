@@ -1,5 +1,15 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Maxwell equations (curl-curl problem)</li>
+ * <li> Homogeneous tangential boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Linear solver</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_nedelec.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_system.h>

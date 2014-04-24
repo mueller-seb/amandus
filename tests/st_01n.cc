@@ -1,5 +1,15 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Stokes equations</li>
+ * <li> Homogeneous no-slip boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Newton solver</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
@@ -9,10 +19,6 @@
 #include "apps.h"
 #include "stokes/polynomial.h"
 #include "stokes/matrix.h"
-
-// Exact polynomial solution to the Stokes problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {

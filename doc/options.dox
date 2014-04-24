@@ -14,9 +14,11 @@ EXTERNAL_PAGES	       = NO
 
 USE_MATHJAX            = YES
 MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
+
+HAVE_DOT	       = YES
 DOT_IMAGE_FORMAT       = svg
 
 GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
-INPUT                  = .. ../stokes ../darcy ../laplace
+INPUT                  = .. ../stokes ../darcy ../laplace ../maxwell ../tests
