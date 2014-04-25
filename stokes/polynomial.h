@@ -343,19 +343,21 @@ void StokesPolynomialError<dim>::cell(
       Tensor<1,dim> Dp = info.gradients[0][dim][k];
       Dp[0] += px[1]*py[0];
       Dp[1] += px[0]*py[1];
-      unsigned int i=0;
       // 0. L^2(u)
-      dinfo.value(i++) += (u0*u0+u1*u1) * dx;
+      dinfo.value(0) += (u0*u0+u1*u1) * dx;
       // 1. H^1(u)
-      dinfo.value(i++) += ((Du0*Du0)+(Du1*Du1)) * dx;
+      dinfo.value(1) += ((Du0*Du0)+(Du1*Du1)) * dx;
       // 2. div u
-      dinfo.value(i++) =
+      dinfo.value(2) =
 	Divergence::norm(info.fe_values(0), make_slice(info.gradients[0], 0, dim));
       // 3. L^2(p) up to mean value
-      dinfo.value(i++) += p*p * dx;
+      dinfo.value(3) += p*p * dx;
       // 4. H^1(p)
-      dinfo.value(i++) += Dp*Dp * dx;
+      dinfo.value(4) += Dp*Dp * dx;
     }
+  
+  for (unsigned int i=0;i<=4;++i)
+    dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
 
 

@@ -54,7 +54,9 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
 		dof_handler(triangulation),
 		use_umfpack(use_umfpack),
 	        estimates(1)		
-{}
+{
+  deallog << "Finite element: " << fe.get_name() << std::endl;
+}
 
 
 template <int dim>
@@ -304,6 +306,8 @@ AmandusApplicationSparse<dim>::error(
   info_box.cell_selector.add("solution", true, true, false);
   info_box.boundary_selector.add("solution", true, false, false);
   info_box.face_selector.add("solution", true, false, false);
+  const unsigned int degree = this->fe->tensor_degree();
+  info_box.initialize_gauss_quadrature(degree+2, degree+2, degree+2);
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
@@ -344,7 +348,7 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     {    
       AssertThrow(false, ExcNotImplemented());
     }
-  data_out.build_patches (3);
+  data_out.build_patches (this->fe->tensor_degree());
 
   std::ostringstream filename;
   filename << "solution-"
