@@ -25,23 +25,27 @@ int main()
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(3);
   
-  const unsigned int degree = 3;
+  const unsigned int degree = 1;
   FE_BDM<d> vec(degree);
   FE_DGP<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
-  Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
-  solution1d.print(std::cout);
+  Polynomials::Polynomial<double> vector_potential;
+  vector_potential += Polynomials::Monomial<double>(4, 1.);
+  vector_potential += Polynomials::Monomial<double>(2, -2.);
+  vector_potential += Polynomials::Monomial<double>(0, 1.);
+  vector_potential.print(std::cout);
+
+  Polynomials::Polynomial<double> scalar_potential(1);
+  // scalar_potential += Polynomials::Monomial<double>(3, -1.);
+  // scalar_potential += Polynomials::Monomial<double>(1, 3.);
   
-  Polynomials::Polynomial<double> solution1dp(1);
-//  solution1dp += Polynomials::Monomial<double>(3, 1.);
+  Polynomials::Polynomial<double> pressure_source(1);
+//  pressure_source += Polynomials::Monomial<double>(3, 1.);
   
   DarcyMatrix<d> matrix_integrator;
-  DarcyPolynomialResidual<d> rhs_integrator(solution1d, solution1d);
-  DarcyPolynomialError<d> error_integrator(solution1d, solution1d);
+  DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
@@ -50,6 +54,7 @@ int main()
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);
   newton.control.set_reduction(1.e-14);
+  newton.control.set_tolerance(1.e-5);
   newton.threshold(.1);
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
