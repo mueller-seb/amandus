@@ -39,7 +39,7 @@ int main()
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator);
+  AmandusResidual<d>    residual(app, rhs_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);

@@ -3,9 +3,6 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <deal.II/algorithms/newton.h>
-#include <deal.II/numerics/dof_output_operator.h>
-#include <deal.II/numerics/dof_output_operator.templates.h>
 #include "apps.h"
 #include "laplace/polynomial.h"
 #include "laplace/matrix.h"
