@@ -26,7 +26,7 @@ int main()
   tr.refine_global(3);
   
   const unsigned int degree = 1;
-  FE_BDM<d> vec(degree);
+  FE_BDM<d> vec(degree+1);
   FE_DGP<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
