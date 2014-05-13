@@ -1,7 +1,8 @@
 // $Id$
 
 /**
- * @file Verify that DarcyMatrix and DarcyNoForceResidual are consistent
+ * @file
+ * Verify that DarcyMatrix and DarcyNoForceResidual are consistent
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>

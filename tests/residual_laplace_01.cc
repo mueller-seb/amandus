@@ -1,7 +1,8 @@
 // $Id$
 
 /**
- * @file Verify that LaplaceMatrix and LaplaceNoForceResidual are consistent
+ * @file
+ * Verify that LaplaceMatrix and LaplaceNoForceResidual are consistent
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>
