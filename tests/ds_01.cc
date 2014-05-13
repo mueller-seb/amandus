@@ -3,7 +3,7 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Stokes equations</li>
+ * <li> Stationary Darcy-Stokes equations</li>
  * <li> Homogeneous no-slip boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
@@ -15,7 +15,7 @@
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include "apps.h"
-#include "matrix_darcy_stokes.h"
+#include "brinkman/matrix.h"
 #include "rhs_one.h"
 
 
@@ -43,8 +43,9 @@ int main()
   FE_RaviartThomas<d> vec(degree);
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
-  
-  DarcyStokesMatrix<d> matrix_integrator(1000.);
+
+  Brinkman::Parameters coefficients(1000);
+  Brinkman::Matrix<d> matrix_integrator(coefficients);
   RhsOne<d> rhs_integrator;
 
   AmandusApplication<d> app(tr, fe);

@@ -32,8 +32,12 @@ using namespace MeshWorker;
  * \f}
  *
  * The solutions in this namespace are parameterized by three tensor
- * product polynomials $\psi$, $\phi$ and $\pi$ which all have the
- * form \f$p(x,y) = p_{1d}(x)*p_{1d}(y)\f$. given these three polynomials,
+ * product polynomials \f$\psi\f$, \f$\phi\f$ and \f$\pi\f$ which all have the
+ * form
+ * \f[
+ * p(x,y) = p_{1d}(x)*p_{1d}(y).
+ * \f]
+ * Given these three polynomials,
  * the solutions are given by the equations
  *
  * \f{align*}{
@@ -45,7 +49,7 @@ using namespace MeshWorker;
  */
 namespace DarcyPolynomial
 {
-  // /**
+  // /*
   //  * @todo The integrator function is not correct. If this class is to
   //  * be used, please copy from Residual!
   //  */

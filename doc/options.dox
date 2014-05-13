@@ -17,8 +17,13 @@ MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
 
 HAVE_DOT	       = YES
 DOT_IMAGE_FORMAT       = svg
+INCLUDE_GRAPH	       = NO
+INCLUDED_BY_GRAPH      = NO
+CALL_GRAPH	       = YES
 
 GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
-INPUT                  = .. ../stokes ../darcy ../laplace ../maxwell ../tests ./
+INPUT                  = .. ../stokes ../darcy ../brinkman ../laplace ../maxwell ../tests ./
+
+UML_LOOK	       = NO

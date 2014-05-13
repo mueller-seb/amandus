@@ -14,13 +14,13 @@
  */
 
 /**
- * @defgroup Examples
+ * @defgroup Examples Examples
  *
  * @brief Test programs that also serve as basis for implementing a model.
  */
 
 /**
- * @defgroup Verification
+ * @defgroup Verification Verification
  *
  * @brief Small programs verifying the consistency of different parts of the library.
  */

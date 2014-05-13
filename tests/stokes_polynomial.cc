@@ -2,6 +2,8 @@
 
 /**
  * @file
+ *
+ * @brief Stationary Stokes equations with a manufacured solution
  * <ul>
  * <li> Stationary Stokes equations</li>
  * <li> Homogeneous no-slip boundary condition</li>
