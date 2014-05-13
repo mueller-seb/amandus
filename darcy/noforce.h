@@ -22,6 +22,8 @@ using namespace MeshWorker;
  * Integrate the residual for a Darcy problem, where the
  * solution is the curl of the symmetric tensor product of a given
  * polynomial, plus the gradient of another.
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class DarcyNoForceResidual : public LocalIntegrator<dim>

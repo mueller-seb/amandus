@@ -40,6 +40,8 @@ using namespace MeshWorker;
  * u &= \nabla \times \psi + \nabla \phi \\
  * \Delta p &= \Delta\pi - \Delta\phi.
  * \f}
+ *
+ * @ingroup integrators
  */
 namespace DarcyPolynomial
 {
@@ -74,6 +76,8 @@ namespace DarcyPolynomial
  * Integrate the residual for a Darcy problem, where the
  * solution is the curl of the symmetric tensor product of a given
  * polynomial, plus the gradient of another.
+ *
+ * @ingroup integrators
  */
   template <int dim>
   class Residual : public LocalIntegrator<dim>
@@ -97,7 +101,12 @@ namespace DarcyPolynomial
       Polynomials::Polynomial<double> pressure_1d;
   };
   
-  
+
+  /**
+   * Compute the error with respect to the given solution
+   *
+   * @ingroup integrators
+   */
   template <int dim>
   class Error : public LocalIntegrator<dim>
   {

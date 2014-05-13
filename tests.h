@@ -15,6 +15,9 @@
 
 #include "amandus.h"
 
+/**
+ * @ingroup Verification
+ */
 template <int dim>
 void
 verify_residual(unsigned int n_refinements,

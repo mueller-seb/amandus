@@ -1,5 +1,14 @@
 // $Id$
 
+/**
+ * @file
+ *
+ * Exact polynomial solution to the AllenCahn problem
+ * Homogeneous no-slip boundary condition
+ * Linear solver
+ *
+ * @ingroup Examples
+ */
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
@@ -10,9 +19,6 @@
 #include "allen_cahn_stat.h"
 #include "matrix_allen_cahn.h"
 
-// Exact polynomial solution to the AllenCahn problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {

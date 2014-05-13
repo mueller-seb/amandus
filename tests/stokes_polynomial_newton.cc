@@ -9,6 +9,8 @@
  * <li> Newton solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
+ *
+ * @ingroup Examples
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>

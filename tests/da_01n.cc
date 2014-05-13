@@ -1,5 +1,15 @@
 // $Id$
 
+/**
+ * @file
+ *
+ * Exact polynomial solution to the Darcy problem
+ * Homogeneous no-slip boundary condition
+ * Linear solver
+ *
+ * @ingroup Examples
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
@@ -10,9 +20,6 @@
 #include "darcy/polynomial.h"
 #include "darcy/matrix.h"
 
-// Exact polynomial solution to the Darcy problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {

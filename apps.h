@@ -14,6 +14,11 @@
 
 #include "amandus.h"
 
+/**
+ *
+ *
+ * @ingroup apps
+ */
 template <int dim>
 void
 global_refinement_linear_loop(unsigned int n_steps,
@@ -64,6 +69,11 @@ global_refinement_linear_loop(unsigned int n_steps,
 }
 
 
+/**
+ *
+ *
+ * @ingroup apps
+ */
 template <int dim>
 void
 global_refinement_nonlinear_loop(unsigned int n_steps,

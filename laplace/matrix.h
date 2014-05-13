@@ -15,6 +15,8 @@ using namespace LocalIntegrators;
 
 /**
  * Integrator for Laplace problems
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class LaplaceMatrix : public MeshWorker::LocalIntegrator<dim>

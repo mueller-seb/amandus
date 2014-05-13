@@ -8,6 +8,8 @@
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
  * </ul>
+ *
+ * @ingroup Examples
  */
 
 #include <deal.II/fe/fe_nedelec.h>

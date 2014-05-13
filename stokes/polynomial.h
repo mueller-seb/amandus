@@ -29,6 +29,8 @@ using namespace MeshWorker;
  *
  * @author Guido Kanschat
  * @date 2014
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class StokesPolynomialRHS : public LocalIntegrator<dim>
@@ -67,6 +69,8 @@ class StokesPolynomialRHS : public LocalIntegrator<dim>
  *
  * @author Guido Kanschat
  * @date 2014
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class StokesPolynomialResidual : public LocalIntegrator<dim>
@@ -118,6 +122,8 @@ class StokesPolynomialResidual : public LocalIntegrator<dim>
  *
  * @author Guido Kanschat
  * @date 2014
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class StokesPolynomialError : public LocalIntegrator<dim>

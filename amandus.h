@@ -79,6 +79,8 @@
  *
  * @author Guido Kanschat
  * @date 2014
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusApplicationSparse : public dealii::Subscriptor  
@@ -225,6 +227,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
  *
  * @author Guido Kanschat
  * @date 2014
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusApplicationSparseMultigrid
@@ -289,6 +293,8 @@ class AmandusApplicationSparseMultigrid
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints
  * and homogeneous Dirichlet boundary conditions.
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusApplication : public AmandusApplicationSparseMultigrid<dim>
@@ -304,6 +310,8 @@ class AmandusApplication : public AmandusApplicationSparseMultigrid<dim>
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints
  * and homogeneous Dirichlet boundary conditions.
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusUMFPACK : public AmandusApplicationSparse<dim>
@@ -318,6 +326,8 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
 
 /**
  * A residual operator using AmandusApplicationSparse::assemble_right_hand_side().
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusResidual
@@ -336,6 +346,8 @@ class AmandusResidual
 
 /**
  * A solution operator using AmandusApplicationSparse::solve().
+ *
+ * @ingroup apps
  */
 template <int dim>
 class AmandusSolve

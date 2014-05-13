@@ -9,6 +9,8 @@
  * <li> Linear solver</li>
  * <li> UMFPack</li>
  * </ul>
+ *
+ * @ingroup Examples
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>

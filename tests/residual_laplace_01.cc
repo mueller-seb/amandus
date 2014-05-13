@@ -3,6 +3,8 @@
 /**
  * @file
  * Verify that LaplaceMatrix and LaplaceNoForceResidual are consistent
+ *
+ * @ingroup Verification
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>

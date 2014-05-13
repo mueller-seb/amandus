@@ -21,4 +21,4 @@ DOT_IMAGE_FORMAT       = svg
 GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
-INPUT                  = .. ../stokes ../darcy ../laplace ../maxwell ../tests
+INPUT                  = .. ../stokes ../darcy ../laplace ../maxwell ../tests ./

@@ -27,6 +27,8 @@ using namespace LocalIntegrators;
  * <li> The divergence operator as transpose of the gradient</li>
  * <li> Empty</li>
  * </ol>
+ *
+ * @ingroup integrators
  */
 template <int dim>
 class DarcyMatrix : public MeshWorker::LocalIntegrator<dim>
