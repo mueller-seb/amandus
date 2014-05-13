@@ -7,6 +7,7 @@
  * <li> Homogeneous no-slip boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
+ * <li> UMFPack</li>
  * </ul>
  */
 
@@ -17,6 +18,9 @@
 #include "stokes/polynomial.h"
 #include "stokes/matrix.h"
 
+// Exact polynomial solution to the Stokes problem
+// Homogeneous no-slip boundary condition
+// Linear solver
 
 int main()
 {
@@ -46,7 +50,7 @@ int main()
   StokesPolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
   StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusUMFPACK<d>     app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);

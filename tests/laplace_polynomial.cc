@@ -1,15 +1,22 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Poisson equations</li>
+ * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Linear solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include "apps.h"
-#include "stokes/polynomial.h"
-#include "stokes/matrix.h"
-
-// Exact polynomial solution to the Stokes problem
-// Homogeneous no-slip boundary condition
-// Linear solver
+#include "laplace/polynomial.h"
+#include "laplace/matrix.h"
 
 int main()
 {
@@ -20,11 +27,9 @@ int main()
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
-
-  const unsigned int degree = 3;
-  FE_RaviartThomas<d> vec(degree);
-  FE_DGQ<d> scal(degree);
-  FESystem<d> fe(vec, 1, scal, 1);
+  
+  const unsigned int degree = 4;
+  FE_DGQ<d> fe(degree);
 
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(4, 1.);
@@ -32,14 +37,11 @@ int main()
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
   
-  Polynomials::Polynomial<double> solution1dp(1);
-  solution1dp += Polynomials::Monomial<double>(3, 1.);
+  LaplaceMatrix<d> matrix_integrator;
+  LaplacePolynomialRHS<d> rhs_integrator(solution1d);
+  LaplacePolynomialError<d> error_integrator(solution1d);
   
-  StokesMatrix<d> matrix_integrator;
-  StokesPolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
-  StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
-  
-  AmandusUMFPACK<d>     app(tr, fe);
+  AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);

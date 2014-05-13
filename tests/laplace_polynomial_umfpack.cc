@@ -1,15 +1,25 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Poisson equations</li>
+ * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Linear solver</li>
+ * <li> UMFPack</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
+#include <deal.II/algorithms/newton.h>
+#include <deal.II/numerics/dof_output_operator.h>
+#include <deal.II/numerics/dof_output_operator.templates.h>
 #include "apps.h"
 #include "laplace/polynomial.h"
 #include "laplace/matrix.h"
-
-// Exact polynomial solution to the Laplace problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {
@@ -34,7 +44,7 @@ int main()
   LaplacePolynomialRHS<d> rhs_integrator(solution1d);
   LaplacePolynomialError<d> error_integrator(solution1d);
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusUMFPACK<d>     app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);

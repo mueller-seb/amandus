@@ -1,5 +1,16 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Poisson equations</li>
+ * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Newton solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
@@ -9,10 +20,6 @@
 #include "apps.h"
 #include "laplace/polynomial.h"
 #include "laplace/matrix.h"
-
-// Exact polynomial solution to the Laplace problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {

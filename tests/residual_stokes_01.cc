@@ -1,5 +1,9 @@
 // $Id$
 
+/**
+ * @file Verify that StokesMatrix and StokesNoForceResidual are consistent
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>

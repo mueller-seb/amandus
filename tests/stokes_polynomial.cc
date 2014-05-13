@@ -6,19 +6,18 @@
  * <li> Stationary Stokes equations</li>
  * <li> Homogeneous no-slip boundary condition</li>
  * <li> Exact polynomial solution</li>
- * <li> Newton solver</li>
+ * <li> Linear solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  */
 
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <deal.II/algorithms/newton.h>
-#include <deal.II/numerics/dof_output_operator.h>
-#include <deal.II/numerics/dof_output_operator.templates.h>
 #include "apps.h"
 #include "stokes/polynomial.h"
 #include "stokes/matrix.h"
+
 
 int main()
 {
@@ -45,17 +44,13 @@ int main()
   solution1dp += Polynomials::Monomial<double>(3, 1.);
   
   StokesMatrix<d> matrix_integrator;
-  StokesPolynomialResidual<d> rhs_integrator(solution1d, solution1dp);
+  StokesPolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
   StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
+  app.control.set_reduction(1.e-10);
   
-  Algorithms::Newton<Vector<double> > newton(residual, solver);
-  newton.control.log_history(true);
-  newton.control.set_reduction(1.e-14);
-  newton.threshold(.1);
-  
-  global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
+  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
 }
