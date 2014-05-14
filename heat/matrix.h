@@ -56,7 +56,7 @@ void HeatMatrix<dim>::face(
   		     dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
   		     info1.fe_values(0), info2.fe_values(0),
   		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
-  std::cout<<"hi"<<std::endl;
+  //std::cout<<"heat matrix face"<<std::endl;
 }
 
 

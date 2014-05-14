@@ -22,7 +22,7 @@ int main()
   deallog.attach(logfile);
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, 0, 1);
+  GridGenerator::hyper_cube (tr, -0.5, 0.5);
   
   const unsigned int degree = 2;
   FE_DGQ<d> fe(degree);
@@ -51,5 +51,5 @@ int main()
   newton.debug_vectors = true;
   newton.debug = 2;
   
-  global_refinement_nonlinear_loop(10, app, newton, &error_integrator);
+  global_refinement_nonlinear_loop(4, app, newton, &error_integrator);
 }
