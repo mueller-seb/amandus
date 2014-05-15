@@ -14,7 +14,7 @@ using namespace LocalIntegrators;
 
 
 /**
- * Integrator for Laplace problems
+ * Integrator for Laplace problems and heat equation
  *
  * @ingroup integrators
  */
@@ -33,7 +33,13 @@ template <int dim>
 void LaplaceMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension (dinfo.n_matrices(), 1);
-  Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+  if (this->timestep == 0.)
+    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+  else
+    {
+      Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), this->timestep);
+      L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+    }
 }
 
 
