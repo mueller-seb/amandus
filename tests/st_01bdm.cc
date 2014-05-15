@@ -15,9 +15,9 @@
 #include <deal.II/fe/fe_bdm.h>
 #include <deal.II/fe/fe_dgp.h>
 #include <deal.II/fe/fe_system.h>
-#include "apps.h"
-#include "stokes/polynomial.h"
-#include "stokes/matrix.h"
+#include <apps.h>
+#include <stokes/polynomial.h>
+#include <stokes/matrix.h>
 
 
 int main()

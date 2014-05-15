@@ -4,7 +4,7 @@
 #define __matrix_laplace_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <deal.II/meshworker/local_integrator.h>
+#include <integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -19,7 +19,7 @@ using namespace LocalIntegrators;
  * @ingroup integrators
  */
 template <int dim>
-class LaplaceMatrix : public MeshWorker::LocalIntegrator<dim>
+class LaplaceMatrix : public AmandusIntegrator<dim>
 {
 public:
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;

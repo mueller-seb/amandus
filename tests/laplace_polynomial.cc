@@ -16,9 +16,9 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include "apps.h"
-#include "laplace/polynomial.h"
-#include "laplace/matrix.h"
+#include <apps.h>
+#include <laplace/polynomial.h>
+#include <laplace/matrix.h>
 
 int main()
 {

@@ -14,7 +14,7 @@
 #include <integrators/l2.h>
 #include <integrators/elasticity.h>
 
-#include "brinkman/parameters.h"
+#include <brinkman/parameters.h>
 
 using namespace dealii;
 using namespace dealii::LocalIntegrators;

@@ -38,7 +38,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "amandus.h"
+#include <amandus.h>
 
 using namespace dealii;
 

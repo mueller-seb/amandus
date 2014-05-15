@@ -14,9 +14,9 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include "apps.h"
-#include "brinkman/matrix.h"
-#include "rhs_one.h"
+#include <apps.h>
+#include <brinkman/matrix.h>
+#include <rhs_one.h>
 
 
 int main()

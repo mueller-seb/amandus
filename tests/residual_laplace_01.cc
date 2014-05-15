@@ -13,9 +13,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "tests.h"
-#include "laplace/noforce.h"
-#include "laplace/matrix.h"
+#include <tests.h>
+#include <laplace/noforce.h>
+#include <laplace/matrix.h>
 
 int main()
 {

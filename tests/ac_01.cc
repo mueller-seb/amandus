@@ -15,9 +15,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "allen_cahn_stat.h"
-#include "matrix_allen_cahn.h"
+#include <apps.h>
+#include <allen_cahn_stat.h>
+#include <matrix_allen_cahn.h>
 
 
 int main()

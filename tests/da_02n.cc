@@ -6,9 +6,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "darcy/polynomial.h"
-#include "darcy/matrix.h"
+#include <apps.h>
+#include <darcy/polynomial.h>
+#include <darcy/matrix.h>
 
 // Exact polynomial solution to the Darcy problem
 // Homogeneous no-slip boundary condition

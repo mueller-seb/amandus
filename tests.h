@@ -13,7 +13,7 @@
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
 
-#include "amandus.h"
+#include <amandus.h>
 
 /**
  * @ingroup Verification

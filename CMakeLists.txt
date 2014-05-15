@@ -3,7 +3,9 @@ FIND_PACKAGE(deal.II 8.0 REQUIRED
   HINTS
   ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR})
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
-PROJECT(cell-matrices)
+PROJECT(amandus)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SOURCE_DIR}")
 
 ADD_LIBRARY(amandus
   amandus.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
