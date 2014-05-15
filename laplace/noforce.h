@@ -20,9 +20,7 @@ using namespace LocalIntegrators;
 using namespace MeshWorker;
 
 /**
- * Integrate the residual for a Laplace problem, where the
- * solution is the curl of the symmetric tensor product of a given
- * polynomial, plus the gradient of another.
+ * Integrate the residual for a Laplace problem with zero right hand side.
  *
  * @ingroup integrators
  */
