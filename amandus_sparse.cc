@@ -98,7 +98,7 @@ void AmandusApplicationSparse<dim>::setup_constraints()
 template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_matrix(
-  const dealii::NamedData<dealii::Vector<double> *> &in,
+  const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
   matrix = 0.;
@@ -111,7 +111,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(
     }
   UpdateFlags update_flags = update_values | update_gradients | update_hessians | update_quadrature_points;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*fe, mapping, in, &dof_handler.block_info());
+  info_box.initialize(*fe, mapping, in, Vector<double>(),
+			&dof_handler.block_info());
 
   MeshWorker::DoFInfo<dim> dof_info(dof_handler.block_info());
 
@@ -138,7 +139,7 @@ AmandusApplicationSparse<dim>::assemble_matrix(
 template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_mg_matrix(
-  const dealii::NamedData<dealii::Vector<double> *> &,
+  const dealii::AnyData &,
   const AmandusIntegrator<dim>&)
 {
 }
@@ -147,8 +148,8 @@ AmandusApplicationSparse<dim>::assemble_mg_matrix(
 template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_right_hand_side(
-  NamedData<Vector<double> *> &out,
-  const NamedData<Vector<double> *> &in,
+  AnyData &out,
+  const AnyData &in,
   const AmandusIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
@@ -162,7 +163,8 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*this->fe, this->mapping, in, &dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
+		      &dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
@@ -180,8 +182,8 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
 template <int dim>
 void
 AmandusApplicationSparse<dim>::verify_residual(
-  NamedData<Vector<double> *> &out,
-  const NamedData<Vector<double> *> &in,
+  AnyData &out,
+  const AnyData &in,
   const AmandusIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
@@ -195,7 +197,8 @@ AmandusApplicationSparse<dim>::verify_residual(
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*this->fe, this->mapping, in, &dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
+		      &dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
@@ -207,9 +210,9 @@ AmandusApplicationSparse<dim>::verify_residual(
     this->dof_handler.begin_active(), this->dof_handler.end(),
     dof_info, info_box,
     integrator, assembler);
-  (*out(0)) *= -1.;
+  (*out.entry<Vector<double>*>(0)) *= -1.;
 
-  matrix.vmult_add(*out(0), *in(0));
+  matrix.vmult_add(*out.entry<Vector<double>*>(0), *in.entry<Vector<double>*>(0));
 }
 
 
@@ -232,7 +235,7 @@ AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& 
 ////
 template <int dim>
 double AmandusApplicationSparse<dim>::estimate(
-  const NamedData<Vector<double> *> &in,
+  const AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
   estimates.block(0).reinit(triangulation->n_active_cells());
@@ -251,12 +254,12 @@ double AmandusApplicationSparse<dim>::estimate(
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
   info_box.add_update_flags_all(update_flags);
   
-  info_box.initialize(*fe, mapping, in);
+  info_box.initialize(*fe, mapping, in, Vector<double>());
   
   MeshWorker::DoFInfo<dim> dof_info(dof_handler);
   
   MeshWorker::Assembler::CellsAndFaces<double> assembler ;
-  NamedData< BlockVector<double>* > out_data;
+  AnyData out_data;
   BlockVector<double>* est =&estimates ;
   out_data.add (est,"cells" ); 
   
@@ -290,7 +293,7 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 template <int dim>
 void
 AmandusApplicationSparse<dim>::error(
-  const dealii::NamedData<dealii::Vector<double> *> &solution_data,
+  const dealii::AnyData &solution_data,
   const AmandusIntegrator<dim>& integrator,
   unsigned int num_errs)
 {
@@ -311,12 +314,13 @@ AmandusApplicationSparse<dim>::error(
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*this->fe, this->mapping, solution_data, &this->dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, solution_data, Vector<double>(),
+		      &this->dof_handler.block_info());
   
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
   
   MeshWorker::Assembler::CellsAndFaces<double> assembler;
-  NamedData<BlockVector<double>* > out_data;
+  AnyData out_data;
   BlockVector<double> *est = &errors;
   out_data.add(est, "cells");
   assembler.initialize(out_data, false);
@@ -334,7 +338,7 @@ AmandusApplicationSparse<dim>::error(
 
 template <int dim>
 void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
-						    const NamedData<Vector<double>*>* in) const
+						    const AnyData* in) const
 {
   DataOut<dim> data_out;
 
@@ -342,7 +346,7 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   if (in != 0)
     {
       for (unsigned int i=0;i<in->size();++i)
-	data_out.add_data_vector(*((*in)(i)), in->name(i));
+	data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
     }
   else
     {    

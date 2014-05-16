@@ -44,7 +44,6 @@
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
-#include <deal.II/base/named_data.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/algorithms/operator.h>
@@ -123,8 +122,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * in <code>in</code> and write the result to the first vector in
      * <code>out</code>.
      */
-    void assemble_right_hand_side(dealii::NamedData<dealii::Vector<double> *> &out,
-				  const dealii::NamedData<dealii::Vector<double> *> &in,
+    void assemble_right_hand_side(dealii::AnyData &out,
+				  const dealii::AnyData &in,
 				  const AmandusIntegrator<dim>& integrator) const;
   
     void refine_mesh (const bool global = false);
@@ -139,12 +138,12 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     /**
      * Use the integrator to build the matrix for the leaf mesh.
      */
-    void assemble_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+    void assemble_matrix (const dealii::AnyData &in,
 			  const AmandusIntegrator<dim>& integrator);
     /**
      * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
      */
-    virtual void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+    virtual void assemble_mg_matrix (const dealii::AnyData &in,
 				     const AmandusIntegrator<dim>& integrator);
 
     /**
@@ -152,7 +151,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      *
      * \todo: Make sure it takes an AnyData with a vector called "solution".
      */
-    double estimate(const dealii::NamedData<dealii::Vector<double> *> &in,
+    double estimate(const dealii::AnyData &in,
 		    const AmandusIntegrator<dim>& integrator);
     /**
      * Compute several error values using the integrator. The number
@@ -160,7 +159,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      *
      * @todo Improve the interface to determine the number of errors from the integrator.
      */
-    void error (const dealii::NamedData<dealii::Vector<double> *> &in,
+    void error (const dealii::AnyData &in,
 		const AmandusIntegrator<dim>& integrator,
 		unsigned int num_errs);
     /**
@@ -170,15 +169,15 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     virtual void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
     
     void output_results(unsigned int refinement_cycle,
-			const dealii::NamedData<dealii::Vector<double>*>* data = 0) const;
+			const dealii::AnyData* data = 0) const;
   
     /**
      * For testing purposes compare the residual operator applied to to
      * the vectors in <code>in</code> with the result of the matrix
      * vector multiplication.
      */
-    void verify_residual(dealii::NamedData<dealii::Vector<double> *> &out,
-			 const dealii::NamedData<dealii::Vector<double> *> &in,
+    void verify_residual(dealii::AnyData &out,
+			 const dealii::AnyData &in,
 			 const AmandusIntegrator<dim>& integrator) const;
   
     /**
@@ -269,7 +268,7 @@ class AmandusApplicationSparseMultigrid
      * also automatically generates the transfer matrices needed for
      * multigrid with local smoothing on locally refined meshes.
      */
-    void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
+    void assemble_mg_matrix (const dealii::AnyData &in,
 			     const AmandusIntegrator<dim>& integrator);
     
     /**
@@ -337,13 +336,12 @@ class AmandusResidual
 {
   public:
     AmandusResidual(const AmandusApplicationSparse<dim>& application,
-		    const AmandusIntegrator<dim>& integrator);
+		    AmandusIntegrator<dim>& integrator);
 		    
-    virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
+    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
   private:
     dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
-    dealii::SmartPointer<const AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
+    dealii::SmartPointer<AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
 /**
@@ -362,17 +360,16 @@ class AmandusSolve
      * matrices.
      */
     AmandusSolve(AmandusApplicationSparse<dim>& application,
-		 const AmandusIntegrator<dim>& integrator);
+		 AmandusIntegrator<dim>& integrator);
     /**
      * Apply the solution operator. If indecated by events, reassemble matrices 
      */
-    virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			     const dealii::NamedData<dealii::Vector<double> *> &in);
+    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
   private:
     /// The pointer to the application object.
     dealii::SmartPointer<AmandusApplicationSparse<dim>, AmandusSolve<dim> > application;
     /// The pointer to the local integrator for assembling matrices
-    dealii::SmartPointer<const AmandusIntegrator<dim>, AmandusSolve<dim> > integrator;
+    dealii::SmartPointer<AmandusIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
 
 

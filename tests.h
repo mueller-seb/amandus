@@ -9,7 +9,7 @@
 #define __tests_h
 
 #include <deal.II/base/logstream.h>
-#include <deal.II/base/named_data.h>
+#include <deal.II/algorithms/any_data.h>
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
 
@@ -39,11 +39,11 @@ verify_residual(unsigned int n_refinements,
       for (unsigned int i=0;i<seed.size();++i)
 	seed(i) = dealii::Utilities::generate_normal_random_number(0., 1.);
       
-      dealii::NamedData<dealii::Vector<double>* > diff_data;
+      dealii::AnyData diff_data;
       dealii::Vector<double>* p = &diff;
       diff_data.add(p, "diff");
       
-      dealii::NamedData<dealii::Vector<double>* > data;
+      dealii::AnyData data;
       dealii::Vector<double>* rhs = &seed;
       data.add(rhs, "Newton iterate");
       
