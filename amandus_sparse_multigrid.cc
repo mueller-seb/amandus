@@ -109,12 +109,12 @@ void AmandusApplicationSparseMultigrid<dim>::setup_constraints()
 template <int dim>
 void
 AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
-  const dealii::NamedData<dealii::Vector<double> *> &in,
+  const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
   mg_matrix = 0.;
   std::vector<MGLevelObject<Vector<double> > > aux(in.size());
-  const NamedData<MGLevelObject<Vector<double> > *> mg_in;
+  const AnyData mg_in;
   // unsigned int k=0;
   // for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
   //      i != integrator.input_vector_names.end();++i)

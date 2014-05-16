@@ -100,7 +100,7 @@ void AmandusUMFPACK<dim>::setup_constraints()
 
 template <int dim>
 AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& application,
-				      const AmandusIntegrator<dim>& integrator)
+				      AmandusIntegrator<dim>& integrator)
 		:
 		application(&application),
 		integrator(&integrator)
@@ -109,10 +109,13 @@ AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& appli
 
 template <int dim>
 void
-AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &out,
-			     const dealii::NamedData<dealii::Vector<double> *> &in)
+AmandusResidual<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
-  *out(0) = 0.;
+  const double* timestep = in.try_read<const double>("Timestep");
+  if (timestep != 0)
+    integrator->timestep = *timestep;
+  
+  *out.entry<Vector<double>*>(0) = 0.;
   application->assemble_right_hand_side(out, in, *integrator);
 }
 
@@ -121,7 +124,7 @@ AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &o
 
 template <int dim>
 AmandusSolve<dim>::AmandusSolve(AmandusApplicationSparse<dim>& application,
-				const AmandusIntegrator<dim>& integrator)
+				AmandusIntegrator<dim>& integrator)
 		:
 		application(&application),
 		integrator(&integrator)
@@ -130,9 +133,12 @@ AmandusSolve<dim>::AmandusSolve(AmandusApplicationSparse<dim>& application,
 
 template <int dim>
 void
-AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
-			       const NamedData<Vector<double> *> &in)
+AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
+  const double* timestep = in.try_read<const double>("Timestep");
+  if (timestep != 0)
+    integrator->timestep = *timestep;
+  
   if (this->notifications.test(Algorithms::Events::initial)
       || this->notifications.test(Algorithms::Events::remesh)
       || this->notifications.test(Algorithms::Events::bad_derivative))
@@ -142,7 +148,10 @@ AmandusSolve<dim>::operator() (NamedData<Vector<double> *> &out,
       application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }
-  application->solve(*out(0), *in(0));
+  const Vector<double>* rhs = in.entry<Vector<double>*>(0);
+  Vector<double>* solution = out.entry<Vector<double>*>(0);
+  
+  application->solve(*solution, *rhs);
 }
 
 
