@@ -22,8 +22,8 @@ template <int dim>
 void
 verify_residual(unsigned int n_refinements,
 		AmandusApplication<dim> &app,
-		const dealii::MeshWorker::LocalIntegrator<dim>& matrix_integrator,
-		const dealii::MeshWorker::LocalIntegrator<dim>& residual_integrator)
+		const AmandusIntegrator<dim>& matrix_integrator,
+		const AmandusIntegrator<dim>& residual_integrator)
 {
   dealii::Vector<double> seed;
   dealii::Vector<double> diff;

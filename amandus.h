@@ -49,6 +49,8 @@
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/algorithms/operator.h>
 
+#include <integrator.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -123,7 +125,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     void assemble_right_hand_side(dealii::NamedData<dealii::Vector<double> *> &out,
 				  const dealii::NamedData<dealii::Vector<double> *> &in,
-				  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const;
+				  const AmandusIntegrator<dim>& integrator) const;
   
     void refine_mesh (const bool global = false);
   
@@ -138,12 +140,12 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * Use the integrator to build the matrix for the leaf mesh.
      */
     void assemble_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
-			  const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+			  const AmandusIntegrator<dim>& integrator);
     /**
      * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
      */
     virtual void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
-				     const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+				     const AmandusIntegrator<dim>& integrator);
 
     /**
      * Currently disabled.
@@ -151,7 +153,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * \todo: Make sure it takes an AnyData with a vector called "solution".
      */
     double estimate(const dealii::NamedData<dealii::Vector<double> *> &in,
-		    const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+		    const AmandusIntegrator<dim>& integrator);
     /**
      * Compute several error values using the integrator. The number
      * of errors computed is given as the last argument.
@@ -159,7 +161,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * @todo Improve the interface to determine the number of errors from the integrator.
      */
     void error (const dealii::NamedData<dealii::Vector<double> *> &in,
-		const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+		const AmandusIntegrator<dim>& integrator,
 		unsigned int num_errs);
     /**
      * Solve the linear system stored in #matrix with the right hand
@@ -177,7 +179,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     void verify_residual(dealii::NamedData<dealii::Vector<double> *> &out,
 			 const dealii::NamedData<dealii::Vector<double> *> &in,
-			 const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const;
+			 const AmandusIntegrator<dim>& integrator) const;
   
     /**
      * The object controlling the iteration in solve().
@@ -268,7 +270,7 @@ class AmandusApplicationSparseMultigrid
      * multigrid with local smoothing on locally refined meshes.
      */
     void assemble_mg_matrix (const dealii::NamedData<dealii::Vector<double> *> &in,
-			     const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+			     const AmandusIntegrator<dim>& integrator);
     
     /**
      * Solve the linear system stored in #matrix with the right hand
@@ -335,13 +337,13 @@ class AmandusResidual
 {
   public:
     AmandusResidual(const AmandusApplicationSparse<dim>& application,
-		    const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+		    const AmandusIntegrator<dim>& integrator);
 		    
     virtual void operator() (dealii::NamedData<dealii::Vector<double> *> &out,
 			     const dealii::NamedData<dealii::Vector<double> *> &in);
   private:
     dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
-    dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusResidual<dim> > integrator;
+    dealii::SmartPointer<const AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
 /**
@@ -360,7 +362,7 @@ class AmandusSolve
      * matrices.
      */
     AmandusSolve(AmandusApplicationSparse<dim>& application,
-		 const dealii::MeshWorker::LocalIntegrator<dim>& integrator);
+		 const AmandusIntegrator<dim>& integrator);
     /**
      * Apply the solution operator. If indecated by events, reassemble matrices 
      */
@@ -370,7 +372,7 @@ class AmandusSolve
     /// The pointer to the application object.
     dealii::SmartPointer<AmandusApplicationSparse<dim>, AmandusSolve<dim> > application;
     /// The pointer to the local integrator for assembling matrices
-    dealii::SmartPointer<const dealii::MeshWorker::LocalIntegrator<dim>, AmandusSolve<dim> > integrator;
+    dealii::SmartPointer<const AmandusIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
 
 

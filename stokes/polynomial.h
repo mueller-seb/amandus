@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -33,7 +34,7 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialRHS : public LocalIntegrator<dim>
+class StokesPolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
     StokesPolynomialRHS(const Polynomials::Polynomial<double> curl_potential_1d,
@@ -73,7 +74,7 @@ class StokesPolynomialRHS : public LocalIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialResidual : public LocalIntegrator<dim>
+class StokesPolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
     StokesPolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
@@ -126,7 +127,7 @@ class StokesPolynomialResidual : public LocalIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialError : public LocalIntegrator<dim>
+class StokesPolynomialError : public AmandusIntegrator<dim>
 {
   public:
     StokesPolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,

@@ -99,7 +99,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_matrix(
   const dealii::NamedData<dealii::Vector<double> *> &in,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
+  const AmandusIntegrator<dim>& integrator)
 {
   matrix = 0.;
 
@@ -139,7 +139,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_mg_matrix(
   const dealii::NamedData<dealii::Vector<double> *> &,
-  const dealii::MeshWorker::LocalIntegrator<dim>&)
+  const AmandusIntegrator<dim>&)
 {
 }
 
@@ -149,7 +149,7 @@ void
 AmandusApplicationSparse<dim>::assemble_right_hand_side(
   NamedData<Vector<double> *> &out,
   const NamedData<Vector<double> *> &in,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const
+  const AmandusIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -182,7 +182,7 @@ void
 AmandusApplicationSparse<dim>::verify_residual(
   NamedData<Vector<double> *> &out,
   const NamedData<Vector<double> *> &in,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator) const
+  const AmandusIntegrator<dim>& integrator) const
 {
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -233,7 +233,7 @@ AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& 
 template <int dim>
 double AmandusApplicationSparse<dim>::estimate(
   const NamedData<Vector<double> *> &in,
-  const MeshWorker::LocalIntegrator<dim>& integrator)
+  const AmandusIntegrator<dim>& integrator)
 {
   estimates.block(0).reinit(triangulation->n_active_cells());
   unsigned int i=0;
@@ -291,7 +291,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::error(
   const dealii::NamedData<dealii::Vector<double> *> &solution_data,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator,
+  const AmandusIntegrator<dim>& integrator,
   unsigned int num_errs)
 {
   BlockVector<double> errors(num_errs);

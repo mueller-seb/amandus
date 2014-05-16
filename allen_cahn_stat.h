@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -26,7 +27,7 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class AllenCahnPolynomialResidual : public LocalIntegrator<dim>
+class AllenCahnPolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
     AllenCahnPolynomialResidual(
@@ -48,7 +49,7 @@ class AllenCahnPolynomialResidual : public LocalIntegrator<dim>
 
 
 template <int dim>
-class AllenCahnPolynomialError : public LocalIntegrator<dim>
+class AllenCahnPolynomialError : public AmandusIntegrator<dim>
 {
   public:
     AllenCahnPolynomialError(const Polynomials::Polynomial<double> solution_1d);

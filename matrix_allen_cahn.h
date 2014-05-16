@@ -8,6 +8,7 @@
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -17,7 +18,7 @@ using namespace LocalIntegrators;
  * Integrator for AllenCahn problems
  */
 template <int dim>
-class AllenCahnMatrix : public MeshWorker::LocalIntegrator<dim>
+class AllenCahnMatrix : public AmandusIntegrator<dim>
 {
   public:
     AllenCahnMatrix(double diffusion);

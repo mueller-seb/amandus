@@ -100,7 +100,7 @@ void AmandusUMFPACK<dim>::setup_constraints()
 
 template <int dim>
 AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& application,
-				      const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
+				      const AmandusIntegrator<dim>& integrator)
 		:
 		application(&application),
 		integrator(&integrator)
@@ -121,7 +121,7 @@ AmandusResidual<dim>::operator() (dealii::NamedData<dealii::Vector<double> *> &o
 
 template <int dim>
 AmandusSolve<dim>::AmandusSolve(AmandusApplicationSparse<dim>& application,
-				const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
+				const AmandusIntegrator<dim>& integrator)
 		:
 		application(&application),
 		integrator(&integrator)

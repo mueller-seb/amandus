@@ -25,8 +25,8 @@ global_refinement_linear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* error = 0,
+			      const AmandusIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -79,8 +79,8 @@ void
 global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* error = 0,
+			      const AmandusIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;

@@ -14,6 +14,7 @@
 #include <integrators/l2.h>
 #include <integrators/elasticity.h>
 
+#include <integrator.h>
 #include <brinkman/parameters.h>
 
 using namespace dealii;
@@ -89,7 +90,7 @@ namespace Brinkman
  * @ingroup integrators
  */
   template <int dim>
-  class Matrix : public MeshWorker::LocalIntegrator<dim>
+  class Matrix : public AmandusIntegrator<dim>
   {
     public:
       /**

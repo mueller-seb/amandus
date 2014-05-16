@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -26,7 +27,7 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class LaplacePolynomialRHS : public LocalIntegrator<dim>
+class LaplacePolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
     LaplacePolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
@@ -52,7 +53,7 @@ class LaplacePolynomialRHS : public LocalIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class LaplacePolynomialResidual : public LocalIntegrator<dim>
+class LaplacePolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
     LaplacePolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
@@ -71,7 +72,7 @@ class LaplacePolynomialResidual : public LocalIntegrator<dim>
 
 
 template <int dim>
-class LaplacePolynomialError : public LocalIntegrator<dim>
+class LaplacePolynomialError : public AmandusIntegrator<dim>
 {
   public:
     LaplacePolynomialError(const Polynomials::Polynomial<double> solution_1d);

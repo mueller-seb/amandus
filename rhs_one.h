@@ -16,7 +16,7 @@ using namespace LocalIntegrators;
  * the vector valued equation and zero in the scalar.
  */
 template <int dim>
-class RhsOne : public MeshWorker::LocalIntegrator<dim>
+class RhsOne : public AmandusIntegrator<dim>
 {
   public:
   RhsOne();

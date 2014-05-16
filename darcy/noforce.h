@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -26,7 +27,7 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class DarcyNoForceResidual : public LocalIntegrator<dim>
+class DarcyNoForceResidual : public AmandusIntegrator<dim>
 {
   public:
   DarcyNoForceResidual();

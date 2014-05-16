@@ -110,7 +110,7 @@ template <int dim>
 void
 AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
   const dealii::NamedData<dealii::Vector<double> *> &in,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
+  const AmandusIntegrator<dim>& integrator)
 {
   mg_matrix = 0.;
   std::vector<MGLevelObject<Vector<double> > > aux(in.size());
