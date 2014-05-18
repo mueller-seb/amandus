@@ -136,6 +136,9 @@ void
 AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
   const double* timestep = in.try_read<double>("Timestep");
+  if (timestep == 0)
+    timestep = in.try_read<const double>("Timestep");
+  
   if (timestep != 0)
     integrator->timestep = *timestep;
   
