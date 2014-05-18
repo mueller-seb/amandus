@@ -135,7 +135,7 @@ template <int dim>
 void
 AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
-  const double* timestep = in.try_read<const double>("Timestep");
+  const double* timestep = in.try_read<double>("Timestep");
   if (timestep != 0)
     integrator->timestep = *timestep;
   
@@ -148,7 +148,7 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
       application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }
-  const Vector<double>* rhs = in.entry<Vector<double>*>(0);
+  const Vector<double>* rhs = in.read_ptr<Vector<double> >(0);
   Vector<double>* solution = out.entry<Vector<double>*>(0);
   
   application->solve(*solution, *rhs);
