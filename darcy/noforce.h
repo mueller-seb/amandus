@@ -41,7 +41,6 @@ class DarcyNoForceResidual : public AmandusIntegrator<dim>
 		      IntegrationInfo<dim>& info2) const;
 };
 
-
 //----------------------------------------------------------------------//
 
 template <int dim>
