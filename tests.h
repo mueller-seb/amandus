@@ -49,8 +49,9 @@ verify_residual(unsigned int n_refinements,
       
       app.assemble_matrix(data, matrix_integrator);
       app.verify_residual(diff_data, data, residual_integrator);
+      diff_data.add(rhs, "rhs");
       app.output_results(s, &diff_data);
-
+      
       dealii::deallog << "Difference " << diff.l2_norm() << std::endl;
     }
 }
