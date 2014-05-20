@@ -150,7 +150,6 @@ LaplacePolynomialResidual<dim>::LaplacePolynomialResidual(
 {
   this->use_boundary = true;
   this->use_face = true;
-  this->input_vector_names.push_back("Newton iterate");
 }
 
 
@@ -175,10 +174,16 @@ void LaplacePolynomialResidual<dim>::cell(
       
       rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
-  
-  L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -1.);
+
+  double factor = 1.;
+  if (this->timestep != 0)
+    {
+      factor = this->timestep;
+      L2::L2(dinfo.vector(0).block(0), info.fe_values(0), info.values[0][0]);
+    }
+  L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -factor);
   Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-			 info.gradients[0][0]);
+			 info.gradients[0][0], factor);
 }
 
 
@@ -188,13 +193,13 @@ void LaplacePolynomialResidual<dim>::boundary(
   IntegrationInfo<dim>& info) const
 {
   std::vector<double> null(info.fe_values(0).n_quadrature_points, 0.);
-  
+  const double factor = (this->timestep == 0.) ? 1. : this->timestep;
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_residual(dinfo.vector(0).block(0), info.fe_values(0),
 			    info.values[0][0],
 			    info.gradients[0][0],
 			    null,
-			    Laplace::compute_penalty(dinfo, dinfo, deg, deg));
+			    Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor);
 }
 
 
@@ -206,13 +211,14 @@ void LaplacePolynomialResidual<dim>::face(
   IntegrationInfo<dim>& info2) const
 {
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
+  const double factor = (this->timestep == 0.) ? 1. : this->timestep;
   Laplace::ip_residual(dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
 		  info1.fe_values(0), info2.fe_values(0),
 		  info1.values[0][0],
 		  info1.gradients[0][0],
 		  info2.values[0][0],
 		  info2.gradients[0][0],
-		  Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), factor);
 }
 
 //----------------------------------------------------------------------//
