@@ -44,6 +44,7 @@ int main()
   
   LaplaceMatrix<d> matrix_integrator;
   LaplacePolynomialResidual<d> rhs_integrator(solution1d);
+  rhs_integrator.input_vector_names.push_back("Newton iterate");
   LaplacePolynomialError<d> error_integrator(solution1d);
   
   AmandusApplication<d> app(tr, fe);

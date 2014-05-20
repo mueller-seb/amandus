@@ -3,10 +3,9 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Poisson equations</li>
+ * <li> Heat equations/li>
  * <li> Homogeneous Dirichlet boundary condition</li>
- * <li> Exact polynomial solution</li>
- * <li> Newton solver</li>
+ * <li> </li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
@@ -16,7 +15,7 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <deal.II/algorithms/newton.h>
+#include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
@@ -44,6 +43,7 @@ int main()
   
   LaplaceMatrix<d> matrix_integrator;
   LaplacePolynomialResidual<d> rhs_integrator(solution1d);
+  rhs_integrator.input_vector_names.push_back("Previous iterate");
   LaplacePolynomialError<d> error_integrator(solution1d);
   
   AmandusApplication<d> app(tr, fe);
@@ -53,12 +53,9 @@ int main()
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
   
-  Algorithms::Newton<Vector<double> > newton(residual, solver);
-  newton.control.log_history(true);
-  newton.control.set_reduction(1.e-14);
-  newton.initialize(newout);
-  newton.debug_vectors = true;
-  newton.debug = 2;
-  
-  global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
+  Algorithms::ThetaTimestepping<Vector<double> > timestepping(residual, solver);
+  timestepping.set_output(newout);
+  timestepping.timestep_control().start_step(.1);
+  timestepping.timestep_control().final(1.);
+  global_refinement_nonlinear_loop(5, app, timestepping);
 }
