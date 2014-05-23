@@ -178,7 +178,7 @@ void LaplacePolynomialResidual<dim>::cell(
   double factor = 1.;
   if (this->timestep != 0)
     {
-      factor = this->timestep;
+      factor = -this->timestep;
       L2::L2(dinfo.vector(0).block(0), info.fe_values(0), info.values[0][0]);
     }
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -factor);

@@ -43,9 +43,9 @@ int main()
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
   
-  AllenCahnMatrix<d> matrix_integrator(.1);
-  AllenCahnPolynomialResidual<d> rhs_integrator(.1, solution1d);
-  AllenCahnPolynomialError<d> error_integrator(solution1d);
+  AllenCahn::Matrix<d> matrix_integrator(.1);
+  AllenCahn::PolynomialResidual<d> rhs_integrator(.1, solution1d);
+  AllenCahn::PolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);

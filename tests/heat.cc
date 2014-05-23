@@ -2,10 +2,14 @@
 
 /**
  * @file
+ *
+ * @brief Should be heat equation, but not working
  * <ul>
  * <li> Heat equations/li>
  * <li> Homogeneous Dirichlet boundary condition</li>
- * <li> </li>
+ * <li> Linear solver: due to the fact that we do not compute the
+ * residual at the new time, but only invert the matrix, this method
+ * is actually wrong except for theta close to zero</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
@@ -31,6 +35,7 @@ int main()
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
+  tr.refine_global(3);
   
   const unsigned int degree = 2;
   FE_DGQ<d> fe(degree);
@@ -56,9 +61,9 @@ int main()
   
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(residual, solver);
   timestepping.set_output(newout);
-  timestepping.theta(.55);
+  timestepping.theta(.75);
   
-  timestepping.timestep_control().start_step(.1);
-  timestepping.timestep_control().final(1.);
+  timestepping.timestep_control().start_step(1.);
+  timestepping.timestep_control().final(100.);
   global_refinement_nonlinear_loop(5, app, timestepping, &error_integrator);
 }

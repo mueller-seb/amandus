@@ -114,12 +114,16 @@ AmandusResidual<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &i
   const double* timestep = in.try_read_ptr<double>("Timestep");
   if (timestep != 0)
     {
-      integrator->timestep = -*timestep;
-      deallog << "Explicit timestep " << integrator->timestep << std::endl;
+      integrator->timestep = *timestep;
+//      deallog << "Explicit timestep " << integrator->timestep << std::endl;
     }
   
   *out.entry<Vector<double>*>(0) = 0.;
   application->assemble_right_hand_side(out, in, *integrator);
+  
+  const Vector<double>* p = in.try_read_ptr<Vector<double> >("Previous time");
+  if (p != 0)
+    out.entry<Vector<double>*>(0)->add(-1., *p);
 }
 
 
@@ -142,7 +146,7 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
   if (timestep != 0)
     {
       integrator->timestep = *timestep;
-      deallog << "Implicit timestep " << integrator->timestep << std::endl;
+//      deallog << "Implicit timestep " << integrator->timestep << std::endl;
     }
   
   if (this->notifications.test(Algorithms::Events::initial)
@@ -158,6 +162,7 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
   Vector<double>* solution = out.entry<Vector<double>*>(0);
   
   application->solve(*solution, *rhs);
+//  deallog << "Norms " << rhs->l2_norm() << ' ' << solution->l2_norm() << std::endl;
 }
 
 
