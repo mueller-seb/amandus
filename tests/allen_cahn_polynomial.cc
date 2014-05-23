@@ -3,9 +3,13 @@
 /**
  * @file
  *
- * Exact polynomial solution to the AllenCahn problem
- * Homogeneous no-slip boundary condition
- * Linear solver
+ * @brief Stationary Allen-Cahn with manufactured solution
+ * <ul>
+ * <li>Stationary Allen-Cahn equations</li>
+ * <li>Homogeneous Dirichlet boundary conditions</li>
+ * <li>Exact polynomial solutionExact polynomial solution</li>
+ * <li>Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
  *
  * @ingroup Examples
  */
@@ -16,8 +20,8 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
-#include <allen_cahn_stat.h>
-#include <matrix_allen_cahn.h>
+#include <allen_cahn/polynomial.h>
+#include <allen_cahn/matrix.h>
 
 
 int main()
