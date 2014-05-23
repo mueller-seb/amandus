@@ -49,13 +49,16 @@ int main()
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
+  app.control.set_reduction(1.e-10);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
   
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(residual, solver);
   timestepping.set_output(newout);
+  timestepping.theta(.55);
+  
   timestepping.timestep_control().start_step(.1);
   timestepping.timestep_control().final(1.);
-  global_refinement_nonlinear_loop(5, app, timestepping);
+  global_refinement_nonlinear_loop(5, app, timestepping, &error_integrator);
 }
