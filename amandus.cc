@@ -154,7 +154,7 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
       application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }
-  const Vector<double>* rhs = in.read_ptr<Vector<double> >("Previous time");
+  const Vector<double>* rhs = in.read_ptr<Vector<double> >(0);
   Vector<double>* solution = out.entry<Vector<double>*>(0);
   
   application->solve(*solution, *rhs);

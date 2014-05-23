@@ -32,7 +32,7 @@ int main()
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   
-  const unsigned int degree = 4;
+  const unsigned int degree = 2;
   FE_DGQ<d> fe(degree);
 
   Polynomials::Polynomial<double> solution1d;
