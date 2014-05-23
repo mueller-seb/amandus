@@ -14,7 +14,13 @@ using namespace LocalIntegrators;
 
 
 /**
- * Integrator for Laplace problems and heat equation
+ * Integrator for Laplace problems and heat equation.
+ *
+ * The distinction between stationary and instationary problems is
+ * made by the variable AmandusIntegrator::timestep, which is
+ * inherited from the base class. If this variable is zero, we solve a
+ * stationary problem. If it is nonzero, we assemble for an implicit
+ * scheme.
  *
  * @ingroup integrators
  */
