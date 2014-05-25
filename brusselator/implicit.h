@@ -27,6 +27,17 @@ namespace Brusselator
  * solution is the curl of the symmetric tensor product of a given
  * polynomial, plus the gradient of another.
  *
+ * The residual operator for the implicit part of the operator
+ * according to the equation in the description of the namespace
+ * Brusselator is
+ *
+ * \f{align*}{
+ * r_u &= u - \theta\Delta t \bigl( \alpha\Delta u + B + u^2 v - (A+1) u
+ * \bigr) \\
+ * r_v &= v - \theta\Delta t \bigl( \alpha\Delta v + Au - u^2 v \bigr).
+ * \f}
+ * Note the change in the sign due to the minus sign in front of theta.
+ *
  * @ingroup integrators
  */
   template <int dim>
@@ -69,18 +80,25 @@ namespace Brusselator
     Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
     Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   
-    std::vector<double> rhs (info.fe_values(0).n_quadrature_points, 0.);
+    std::vector<double> rhs0 (info.fe_values(0).n_quadrature_points, 0.);
+    std::vector<double> rhs1 (info.fe_values(0).n_quadrature_points, 0.);
 
     for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
       {
 	const double u = info.values[0][0][k];
-	rhs[k] = u + this->timestep * u*(u*u-1.);
+	const double v = info.values[0][1][k];
+	rhs0[k] = u - this->timestep
+		     * (parameters->B + u*u*v - (parameters->A+1.)*u );
+	rhs1[k] = v - this->timestep
+		     * (parameters->A*u - u*u*v );
       }
   
-    L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
-    
+    L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs0);
+    L2::L2(dinfo.vector(0).block(1), info.fe_values(0), rhs1);    
     Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-			   info.gradients[0][0], parameters->alpha1*this->timestep);
+			   info.gradients[0][0], parameters->alpha*this->timestep);
+    Laplace::cell_residual(dinfo.vector(0).block(1), info.fe_values(0),
+			   info.gradients[0][1], parameters->alpha*this->timestep);
   }
 
 
@@ -107,7 +125,16 @@ namespace Brusselator
       info2.values[0][0],
       info2.gradients[0][0],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      parameters->alpha1*this->timestep);
+      parameters->alpha*this->timestep);
+    Laplace::ip_residual(
+      dinfo1.vector(0).block(1), dinfo2.vector(0).block(1),
+      info1.fe_values(0), info2.fe_values(0),
+      info1.values[0][1],
+      info1.gradients[0][1],
+      info2.values[0][1],
+      info2.gradients[0][1],
+      Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
+      parameters->alpha*this->timestep);
   }
 }
 
