@@ -20,8 +20,8 @@ using namespace LocalIntegrators;
  * These integrators deal with the equations
  *
  * \f{align*}{
- * u' - \alpha\Delta u &= B + u^2 v - (A+1) u \\
- * v' - \alpha\Delta v &= Au - u^2 v.
+ * 0 &= u' - \alpha\Delta u - B - u^2 v + (A+1) u \\
+ * 0 &= v' - \alpha\Delta v - Au + u^2 v.
  * \f}
  *
  * A parameter set can be found in G. Adomian: The Diffusion
@@ -88,9 +88,9 @@ namespace Brusselator
       }
     
     Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-			 parameters->alpha*factor);
+			 parameters->alpha0*factor);
     Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0),
-			 parameters->alpha*factor);
+			 parameters->alpha1*factor);
     if (info.values.size() > 0)
       {
 	AssertDimension(info.values[0].size(), 2);
@@ -135,12 +135,12 @@ namespace Brusselator
 		       dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
 		       info1.fe_values(0), info2.fe_values(0),
 		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-		       parameters->alpha*factor);
+		       parameters->alpha0*factor);
     Laplace::ip_matrix(dinfo1.matrix(3,false).matrix, dinfo1.matrix(3,true).matrix, 
 		       dinfo2.matrix(3,true).matrix, dinfo2.matrix(3,false).matrix,
 		       info1.fe_values(0), info2.fe_values(0),
 		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-		       parameters->alpha*factor);
+		       parameters->alpha1*factor);
   }
 }
 

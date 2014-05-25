@@ -11,7 +11,8 @@ namespace Brusselator
   {
       double A;
       double B;
-      double alpha;
+      double alpha0;
+      double alpha1;
   };
 }
 
