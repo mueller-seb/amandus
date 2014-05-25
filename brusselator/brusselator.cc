@@ -42,11 +42,12 @@ int main()
   const unsigned int degree = 1;
   FE_DGQ<d> fe(degree);
 
-  const double diffusion = 1.e-2;
-  Brusselator::Matrix<d> matrix_integrator(diffusion);
-  Brusselator::ExplicitResidual<d> explicit_integrator(diffusion);
+  Brusselator::Parameters parameters;
+  parameters.alpha1 = 1.e-2;
+  Brusselator::Matrix<d> matrix_integrator(parameters);
+  Brusselator::ExplicitResidual<d> explicit_integrator(parameters);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
-  Brusselator::ImplicitResidual<d> implicit_integrator(diffusion);
+  Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
