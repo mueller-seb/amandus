@@ -36,21 +36,23 @@ int main()
 //  deallog.depth_console(2);
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -2, 2);
-  tr.refine_global(6);
+  GridGenerator::hyper_cube (tr, -1, 1);
+  tr.refine_global(4);
   
   const unsigned int degree = 1;
-  FE_DGQ<d> fe(degree);
+  FE_DGQ<d> feb(degree);
+  FESystem<d> fe(feb, 2);
 
   Brusselator::Parameters parameters;
-  parameters.alpha1 = 1.e-2;
+  parameters.alpha = 1.e-2;
   Brusselator::Matrix<d> matrix_integrator(parameters);
   Brusselator::ExplicitResidual<d> explicit_integrator(parameters);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
   Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  //AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  AmandusUMFPACK<d> app(tr, fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);
@@ -68,7 +70,7 @@ int main()
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
   timestepping.theta(.55);
-  timestepping.timestep_control().start_step(.1);
+  timestepping.timestep_control().start_step(.01);
   timestepping.timestep_control().final(10.);
 
   // Now we prepare for the actual timestepping
@@ -78,7 +80,7 @@ int main()
   app.setup_system();
   app.setup_vector(solution);
   
-  Functions::CosineFunction<d> cosine;
+  Functions::CosineFunction<d> cosine(2);
   VectorTools::interpolate(app.dof_handler, cosine, solution);
   
   dealii::AnyData indata;
