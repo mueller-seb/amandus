@@ -14,6 +14,7 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <integrator.h>
+#include <brusselator/parameters.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -32,7 +33,7 @@ namespace Brusselator
   class ImplicitResidual : public AmandusIntegrator<dim>
   {
     public:
-      ImplicitResidual(double difusion);
+      ImplicitResidual(const Parameters& par);
     
       virtual void cell(DoFInfo<dim>& dinfo,
 			IntegrationInfo<dim>& info) const;
@@ -43,16 +44,16 @@ namespace Brusselator
 			IntegrationInfo<dim>& info1,
 			IntegrationInfo<dim>& info2) const;
     private:
-      double D;
+      SmartPointer<const Parameters, class ImplicitResidual<dim> > parameters;
   };
 
 
 //----------------------------------------------------------------------//
 
   template <int dim>
-  ImplicitResidual<dim>::ImplicitResidual(double diffusion)
+  ImplicitResidual<dim>::ImplicitResidual(const Parameters& par)
 		  :
-		  D(diffusion)
+		  parameters(&par)
   {
     this->use_boundary = false;
     this->use_face = true;
@@ -79,7 +80,7 @@ namespace Brusselator
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
     
     Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-			   info.gradients[0][0], D*this->timestep);
+			   info.gradients[0][0], parameters->alpha1*this->timestep);
   }
 
 
@@ -106,7 +107,7 @@ namespace Brusselator
       info2.values[0][0],
       info2.gradients[0][0],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      D*this->timestep);
+      parameters->alpha1*this->timestep);
   }
 }
 

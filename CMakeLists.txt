@@ -12,5 +12,6 @@ ADD_LIBRARY(amandus
 
 DEAL_II_SETUP_TARGET(amandus)  
 
+ADD_SUBDIRECTORY(brusselator)
 ADD_SUBDIRECTORY(tests)
 

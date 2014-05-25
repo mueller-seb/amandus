@@ -1,13 +1,14 @@
 // $Id$
 
 #ifndef __brusselator_matrix_h
-#define __brusselator_matrix_H
+#define __brusselator_matrix_h
 
 #include <deal.II/meshworker/integration_info.h>
 #include <integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
+#include <brusselator/parameters.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -22,7 +23,7 @@ namespace Brusselator
   class Matrix : public AmandusIntegrator<dim>
   {
     public:
-      Matrix(double diffusion);
+      Matrix(const Parameters& par);
     
       virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
       virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
@@ -30,14 +31,14 @@ namespace Brusselator
 			MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
 
     private:
-      double D;
+      SmartPointer<const Parameters, class Matrix<dim> > parameters;
   };
 
 
   template <int dim>
-  Matrix<dim>::Matrix(double diffusion)
+  Matrix<dim>::Matrix(const Parameters& par)
 		  :
-		  D(diffusion)
+		  parameters(&par)
   {
     this->use_boundary = false;
     this->input_vector_names.push_back("Newton iterate");
@@ -55,7 +56,8 @@ namespace Brusselator
 	L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
       }
     
-    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), D*factor);
+    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
+			 parameters->alpha1*factor);
     if (info.values.size() > 0)
       {
 	AssertDimension(info.values[0][0].size(), info.fe_values(0).n_quadrature_points);
@@ -87,7 +89,8 @@ namespace Brusselator
     Laplace::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
 		       dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
 		       info1.fe_values(0), info2.fe_values(0),
-		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), D*factor);
+		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
+		       parameters->alpha1*factor);
   }
 }
 
