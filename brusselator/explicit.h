@@ -76,18 +76,18 @@ namespace Brusselator
       {
 	const double u = info.values[0][0][k];
 	const double v = info.values[0][1][k];
-	rhs0[k] = u + this->timestep
-		  * (parameters->B + u*u*v - (parameters->A+1.)*u );
-	rhs1[k] = v + this->timestep
-		  * (parameters->A*u - u*u*v );
+	rhs0[k] = u - this->timestep
+		  * (-parameters->B - u*u*v + (parameters->A+1.)*u );
+	rhs1[k] = v - this->timestep
+		  * (-parameters->A*u + u*u*v );
       }
   
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs0);
     L2::L2(dinfo.vector(0).block(1), info.fe_values(0), rhs1);
     Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-    			   info.gradients[0][0], parameters->alpha*this->timestep);
+    			   info.gradients[0][0], -parameters->alpha0*this->timestep);
     Laplace::cell_residual(dinfo.vector(0).block(1), info.fe_values(0),
-    			   info.gradients[0][1], parameters->alpha*this->timestep);
+    			   info.gradients[0][1], -parameters->alpha1*this->timestep);
   }
 
 
@@ -114,7 +114,7 @@ namespace Brusselator
       info2.values[0][0],
       info2.gradients[0][0],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      parameters->alpha*this->timestep);
+      -parameters->alpha0*this->timestep);
     Laplace::ip_residual(
       dinfo1.vector(0).block(1), dinfo2.vector(0).block(1),
       info1.fe_values(0), info2.fe_values(0),
@@ -123,7 +123,7 @@ namespace Brusselator
       info2.values[0][1],
       info2.gradients[0][1],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      parameters->alpha*this->timestep);
+      -parameters->alpha1*this->timestep);
   }
 }
 
