@@ -78,7 +78,7 @@ namespace AllenCahn
   
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
     Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-    			   info.gradients[0][0], D*this->timestep);
+    			   info.gradients[0][0], -D*this->timestep);
   }
 
 
@@ -105,7 +105,7 @@ namespace AllenCahn
       info2.values[0][0],
       info2.gradients[0][0],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      D*this->timestep);
+      -D*this->timestep);
   }
 }
 
