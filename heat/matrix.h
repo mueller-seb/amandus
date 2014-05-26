@@ -4,10 +4,11 @@
 #define __matrix_heat_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <deal.II/meshworker/local_integrator.h>
+//#include <deal.II/meshworker/local_integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -17,7 +18,7 @@ using namespace LocalIntegrators;
  * Integrator for heat problems
  */
 template <int dim>
-class HeatMatrix : public MeshWorker::LocalIntegrator<dim>
+class HeatMatrix : public AmandusIntegrator<dim>
 {
 public:
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;

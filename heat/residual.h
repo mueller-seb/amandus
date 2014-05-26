@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 #ifndef M_PI
 #define M_PI    3.14159265358979323846f
@@ -31,7 +32,7 @@ using namespace MeshWorker;
  * polynomial, plus the gradient of another.
  */
 template <int dim>
-class HeatRHS : public LocalIntegrator<dim>
+class HeatRHS : public AmandusIntegrator<dim>
 {
   public:
     HeatRHS();
@@ -53,7 +54,7 @@ class HeatRHS : public LocalIntegrator<dim>
  * polynomial, plus the gradient of another.
  */
 template <int dim>
-class HeatResidual : public LocalIntegrator<dim>
+class HeatResidual : public AmandusIntegrator<dim> 
 {
   public:
     HeatResidual();
@@ -70,7 +71,7 @@ class HeatResidual : public LocalIntegrator<dim>
 
 
 template <int dim>
-class HeatError : public LocalIntegrator<dim>
+class HeatError : public AmandusIntegrator<dim>
 {
   public:
     HeatError();

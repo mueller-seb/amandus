@@ -35,6 +35,7 @@ int main()
   
   HeatMatrix<d> matrix_integrator;
   HeatResidual<d> resi_integrator;
+  resi_integrator.input_vector_names.push_back("Newton iterate");
   HeatError<d> error_integrator;
   
   AmandusApplication<d> app(tr, fe);
