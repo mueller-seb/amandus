@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -22,9 +23,11 @@ using namespace MeshWorker;
  * Integrate the residual for a Stokes problem, where the
  * solution is the curl of the symmetric tensor product of a given
  * polynomial, plus the gradient of another.
+ *
+ * @ingroup integrators
  */
 template <int dim>
-class StokesNoForceResidual : public LocalIntegrator<dim>
+class StokesNoForceResidual : public AmandusIntegrator<dim>
 {
   public:
     StokesNoForceResidual();
@@ -42,6 +45,7 @@ class StokesNoForceResidual : public LocalIntegrator<dim>
 //----------------------------------------------------------------------//
 
 template <int dim>
+inline
 StokesNoForceResidual<dim>::StokesNoForceResidual()
 {
   this->input_vector_names.push_back("Newton iterate");
@@ -49,6 +53,7 @@ StokesNoForceResidual<dim>::StokesNoForceResidual()
 
 
 template <int dim>
+inline
 void StokesNoForceResidual<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
@@ -60,13 +65,14 @@ void StokesNoForceResidual<dim>::cell(
 			 make_slice(info.gradients[0], 0, dim));
   // This must be the weak gradient residual!
   Divergence::gradient_residual(dinfo.vector(0).block(0), info.fe_values(0),
-  				info.values[0][dim], -1.);
+   				info.values[0][dim], -1.);
   Divergence::cell_residual(dinfo.vector(0).block(1), info.fe_values(1),
   			    make_slice(info.gradients[0], 0, dim), 1.);
 }
 
 
 template <int dim>
+inline
 void StokesNoForceResidual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
@@ -83,6 +89,7 @@ void StokesNoForceResidual<dim>::boundary(
 
 
 template <int dim>
+inline
 void StokesNoForceResidual<dim>::face(
   DoFInfo<dim>& dinfo1, 
   DoFInfo<dim>& dinfo2,

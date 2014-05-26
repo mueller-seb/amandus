@@ -1,18 +1,27 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Poisson equations</li>
+ * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Linear solver</li>
+ * <li> UMFPack</li>
+ * </ul>
+ *
+ * @ingroup Examples
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "laplace/polynomial.h"
-#include "laplace/matrix.h"
-
-// Exact polynomial solution to the Laplace problem
-// Homogeneous no-slip boundary condition
-// Linear solver
+#include <apps.h>
+#include <laplace/polynomial.h>
+#include <laplace/matrix.h>
 
 int main()
 {

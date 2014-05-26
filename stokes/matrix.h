@@ -4,7 +4,7 @@
 #define __matrix_stokes_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <deal.II/meshworker/local_integrator.h>
+#include <integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -27,9 +27,11 @@ using namespace LocalIntegrators;
  * <li> The divergence operator as transpose of the gradient</li>
  * <li> Empty</li>
  * </ol>
+ *
+ * @ingroup integrators
  */
 template <int dim>
-class StokesMatrix : public MeshWorker::LocalIntegrator<dim>
+class StokesMatrix : public AmandusIntegrator<dim>
 {
 public:
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;

@@ -1,18 +1,27 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Poisson equations</li>
+ * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Newton solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
+ *
+ * @ingroup Examples
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "laplace/polynomial.h"
-#include "laplace/matrix.h"
-
-// Exact polynomial solution to the Laplace problem
-// Homogeneous no-slip boundary condition
-// Linear solver
+#include <apps.h>
+#include <laplace/polynomial.h>
+#include <laplace/matrix.h>
 
 int main()
 {
@@ -34,13 +43,23 @@ int main()
   solution1d.print(std::cout);
   
   LaplaceMatrix<d> matrix_integrator;
-  LaplacePolynomialRHS<d> rhs_integrator(solution1d);
+  LaplacePolynomialResidual<d> rhs_integrator(solution1d);
+  rhs_integrator.input_vector_names.push_back("Newton iterate");
   LaplacePolynomialError<d> error_integrator(solution1d);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
-  app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  Algorithms::DoFOutputOperator<Vector<double>, d> newout;
+  newout.initialize(app.dof_handler);
+  
+  Algorithms::Newton<Vector<double> > newton(residual, solver);
+  newton.control.log_history(true);
+  newton.control.set_reduction(1.e-14);
+  newton.initialize(newout);
+  newton.debug_vectors = true;
+  newton.debug = 2;
+  
+  global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }

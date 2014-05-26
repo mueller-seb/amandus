@@ -8,14 +8,16 @@
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
  * </ul>
+ *
+ * @ingroup Examples
  */
 
 #include <deal.II/fe/fe_nedelec.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_system.h>
-#include "apps.h"
-#include "maxwell/matrix.h"
-#include "rhs_one.h"
+#include <apps.h>
+#include <maxwell/matrix.h>
+#include <rhs_one.h>
 
 
 int main()

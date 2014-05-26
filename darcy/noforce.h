@@ -13,6 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -22,9 +23,11 @@ using namespace MeshWorker;
  * Integrate the residual for a Darcy problem, where the
  * solution is the curl of the symmetric tensor product of a given
  * polynomial, plus the gradient of another.
+ *
+ * @ingroup integrators
  */
 template <int dim>
-class DarcyNoForceResidual : public LocalIntegrator<dim>
+class DarcyNoForceResidual : public AmandusIntegrator<dim>
 {
   public:
   DarcyNoForceResidual();
@@ -37,7 +40,6 @@ class DarcyNoForceResidual : public LocalIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
 };
-
 
 //----------------------------------------------------------------------//
 

@@ -1,14 +1,21 @@
 // $Id$
 
+/**
+ * @file
+ * Verify that DarcyMatrix and DarcyNoForceResidual are consistent
+ *
+ * @ingroup Verification
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "tests.h"
-#include "darcy/noforce.h"
-#include "darcy/matrix.h"
+#include <tests.h>
+#include <darcy/noforce.h>
+#include <darcy/matrix.h>
 
 int main()
 {
@@ -28,7 +35,7 @@ int main()
   DarcyMatrix<d> matrix_integrator;
   DarcyNoForceResidual<d> rhs_integrator;
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusApplicationSparse<d> app(tr, fe);
   
   verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

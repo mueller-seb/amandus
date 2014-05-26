@@ -1,18 +1,28 @@
 // $Id$
 
+/**
+ * @file
+ *
+ * @brief Stationary Allen-Cahn with manufactured solution
+ * <ul>
+ * <li>Stationary Allen-Cahn equations</li>
+ * <li>Homogeneous Dirichlet boundary conditions</li>
+ * <li>Exact polynomial solutionExact polynomial solution</li>
+ * <li>Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
+ *
+ * @ingroup Examples
+ */
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "allen_cahn_stat.h"
-#include "matrix_allen_cahn.h"
+#include <apps.h>
+#include <allen_cahn/polynomial.h>
+#include <allen_cahn/matrix.h>
 
-// Exact polynomial solution to the AllenCahn problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {
@@ -33,9 +43,9 @@ int main()
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
   
-  AllenCahnMatrix<d> matrix_integrator(.1);
-  AllenCahnPolynomialResidual<d> rhs_integrator(.1, solution1d);
-  AllenCahnPolynomialError<d> error_integrator(solution1d);
+  AllenCahn::Matrix<d> matrix_integrator(.1);
+  AllenCahn::PolynomialResidual<d> rhs_integrator(.1, solution1d);
+  AllenCahn::PolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);

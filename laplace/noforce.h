@@ -13,18 +13,19 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
+#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
 /**
- * Integrate the residual for a Laplace problem, where the
- * solution is the curl of the symmetric tensor product of a given
- * polynomial, plus the gradient of another.
+ * Integrate the residual for a Laplace problem with zero right hand side.
+ *
+ * @ingroup integrators
  */
 template <int dim>
-class LaplaceNoForceResidual : public LocalIntegrator<dim>
+class LaplaceNoForceResidual : public AmandusIntegrator<dim>
 {
   public:
     LaplaceNoForceResidual();

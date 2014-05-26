@@ -43,7 +43,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "amandus.h"
+#include <amandus.h>
 
 using namespace dealii;
 
@@ -109,12 +109,12 @@ void AmandusApplicationSparseMultigrid<dim>::setup_constraints()
 template <int dim>
 void
 AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
-  const dealii::NamedData<dealii::Vector<double> *> &in,
-  const dealii::MeshWorker::LocalIntegrator<dim>& integrator)
+  const dealii::AnyData &in,
+  const AmandusIntegrator<dim>& integrator)
 {
   mg_matrix = 0.;
   std::vector<MGLevelObject<Vector<double> > > aux(in.size());
-  const NamedData<MGLevelObject<Vector<double> > *> mg_in;
+  const AnyData mg_in;
   // unsigned int k=0;
   // for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
   //      i != integrator.input_vector_names.end();++i)
@@ -181,9 +181,9 @@ AmandusApplicationSparseMultigrid<dim>::solve(Vector<double>& sol, const Vector<
   mg_smoother.set_steps(1);
   mg_smoother.set_variable(false);
   
-  MGMatrix<SparseMatrix<double>, Vector<double> > mgmatrix(&mg_matrix);
-  MGMatrix<SparseMatrix<double>, Vector<double> > mgdown(&mg_matrix_down);
-  MGMatrix<SparseMatrix<double>, Vector<double> > mgup(&mg_matrix_up);
+  mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
+  mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
+  mg::Matrix<Vector<double> > mgup(mg_matrix_up);
   
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,

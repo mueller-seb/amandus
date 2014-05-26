@@ -12,16 +12,21 @@
 #include <deal.II/base/named_data.h>
 #include <deal.II/lac/vector.h>
 
-#include "amandus.h"
+#include <amandus.h>
 
+/**
+ *
+ *
+ * @ingroup apps
+ */
 template <int dim>
 void
 global_refinement_linear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* error = 0,
+			      const AmandusIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -35,14 +40,14 @@ global_refinement_linear_loop(unsigned int n_steps,
       app.setup_vector(res);
       app.setup_vector(sol);
       
-      dealii::NamedData<dealii::Vector<double>* > solution_data;
+      dealii::AnyData solution_data;
       dealii::Vector<double>* p = &sol;
       solution_data.add(p, "solution");
       
-      dealii::NamedData<dealii::Vector<double>* > data;
+      dealii::AnyData data;
       dealii::Vector<double>* rhs = &res;
       data.add(rhs, "RHS");
-      dealii::NamedData<dealii::Vector<double>* > residual_data;
+      dealii::AnyData residual_data;
       residual(data, residual_data);
       dealii::deallog << "Residual " << res.l2_norm() << std::endl;
       solver(solution_data, data);
@@ -64,13 +69,18 @@ global_refinement_linear_loop(unsigned int n_steps,
 }
 
 
+/**
+ *
+ *
+ * @ingroup apps
+ */
 template <int dim>
 void
 global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* error = 0,
-			      const dealii::MeshWorker::LocalIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* error = 0,
+			      const AmandusIntegrator<dim>* estimator = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -84,11 +94,11 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       app.setup_vector(sol);
       sol = 0.;
       
-      dealii::NamedData<dealii::Vector<double>* > solution_data;
+      dealii::AnyData solution_data;
       dealii::Vector<double>* p = &sol;
       solution_data.add(p, "solution");
       
-      dealii::NamedData<dealii::Vector<double>* > data;
+      dealii::AnyData data;
       solve(solution_data, data);
       if (error != 0)
 	{

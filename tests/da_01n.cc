@@ -1,18 +1,25 @@
 // $Id$
 
+/**
+ * @file
+ *
+ * Exact polynomial solution to the Darcy problem
+ * Homogeneous no-slip boundary condition
+ * Linear solver
+ *
+ * @ingroup Examples
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include "apps.h"
-#include "darcy/polynomial.h"
-#include "darcy/matrix.h"
+#include <apps.h>
+#include <darcy/polynomial.h>
+#include <darcy/matrix.h>
 
-// Exact polynomial solution to the Darcy problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {
@@ -30,18 +37,22 @@ int main()
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
-  Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
-  solution1d.print(std::cout);
+  Polynomials::Polynomial<double> vector_potential;
+  vector_potential += Polynomials::Monomial<double>(4, 1.);
+  vector_potential += Polynomials::Monomial<double>(2, -2.);
+  vector_potential += Polynomials::Monomial<double>(0, 1.);
+  vector_potential.print(std::cout);
+
+  Polynomials::Polynomial<double> scalar_potential;
+  scalar_potential += Polynomials::Monomial<double>(3, -1.);
+  scalar_potential += Polynomials::Monomial<double>(1, 3.);
   
-  Polynomials::Polynomial<double> solution1dp(1);
-//  solution1dp += Polynomials::Monomial<double>(3, 1.);
+  Polynomials::Polynomial<double> pressure_source(1);
+//  pressure_source += Polynomials::Monomial<double>(3, 1.);
   
   DarcyMatrix<d> matrix_integrator;
-  DarcyPolynomialResidual<d> rhs_integrator(solution1d, solution1d);
-  DarcyPolynomialError<d> error_integrator(solution1d, solution1d);
+  DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);

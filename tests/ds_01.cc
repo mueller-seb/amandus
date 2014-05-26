@@ -1,11 +1,22 @@
 // $Id$
 
+/**
+ * @file
+ * <ul>
+ * <li> Stationary Darcy-Stokes equations</li>
+ * <li> Homogeneous no-slip boundary condition</li>
+ * <li> Exact polynomial solution</li>
+ * <li> Linear solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
+ * </ul>
+ */
+
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include "amandus.h"
-#include "matrix_darcy_stokes.h"
-#include "rhs_one.h"
+#include <apps.h>
+#include <brinkman/matrix.h>
+#include <rhs_one.h>
 
 
 int main()
@@ -32,10 +43,15 @@ int main()
   FE_RaviartThomas<d> vec(degree);
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
-  
-  DarcyStokesMatrix<d> matrix_integrator(1000.);
+
+  Brinkman::Parameters coefficients(1000);
+  Brinkman::Matrix<d> matrix_integrator(coefficients);
   RhsOne<d> rhs_integrator;
 
-  AmandusApplication<d> test1(tr, fe, matrix_integrator, rhs_integrator);
-  test1.run(5);
+  AmandusApplication<d> app(tr, fe);
+  AmandusSolve<d>       solver(app, matrix_integrator);
+  AmandusResidual<d>    residual(app, rhs_integrator);
+  app.control.set_reduction(1.e-10);
+  
+  global_refinement_linear_loop(5, app, solver, residual);
 }

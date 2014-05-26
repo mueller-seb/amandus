@@ -4,7 +4,7 @@
 #define __matrix_darcy_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <deal.II/meshworker/local_integrator.h>
+#include <integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -27,9 +27,11 @@ using namespace LocalIntegrators;
  * <li> The divergence operator as transpose of the gradient</li>
  * <li> Empty</li>
  * </ol>
+ *
+ * @ingroup integrators
  */
 template <int dim>
-class DarcyMatrix : public MeshWorker::LocalIntegrator<dim>
+class DarcyMatrix : public AmandusIntegrator<dim>
 {
 public:
     DarcyMatrix ();

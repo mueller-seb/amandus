@@ -9,18 +9,21 @@
 #define __tests_h
 
 #include <deal.II/base/logstream.h>
-#include <deal.II/base/named_data.h>
+#include <deal.II/algorithms/any_data.h>
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
 
-#include "amandus.h"
+#include <amandus.h>
 
+/**
+ * @ingroup Verification
+ */
 template <int dim>
 void
 verify_residual(unsigned int n_refinements,
-		AmandusApplication<dim> &app,
-		const dealii::MeshWorker::LocalIntegrator<dim>& matrix_integrator,
-		const dealii::MeshWorker::LocalIntegrator<dim>& residual_integrator)
+		AmandusApplicationSparse<dim> &app,
+		const AmandusIntegrator<dim>& matrix_integrator,
+		const AmandusIntegrator<dim>& residual_integrator)
 {
   dealii::Vector<double> seed;
   dealii::Vector<double> diff;
@@ -36,18 +39,18 @@ verify_residual(unsigned int n_refinements,
       for (unsigned int i=0;i<seed.size();++i)
 	seed(i) = dealii::Utilities::generate_normal_random_number(0., 1.);
       
-      dealii::NamedData<dealii::Vector<double>* > diff_data;
+      dealii::AnyData diff_data;
       dealii::Vector<double>* p = &diff;
       diff_data.add(p, "diff");
       
-      dealii::NamedData<dealii::Vector<double>* > data;
+      dealii::AnyData data;
       dealii::Vector<double>* rhs = &seed;
       data.add(rhs, "Newton iterate");
       
       app.assemble_matrix(data, matrix_integrator);
       app.verify_residual(diff_data, data, residual_integrator);
       app.output_results(s, &diff_data);
-
+      
       dealii::deallog << "Difference " << diff.l2_norm() << std::endl;
     }
 }
