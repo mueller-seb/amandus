@@ -34,12 +34,12 @@ int main()
   solution1d.print(std::cout); */
   
   HeatMatrix<d> matrix_integrator;
-  HeatResidual<d> rhs_integrator;
+  HeatResidual<d> resi_integrator;
   HeatError<d> error_integrator;
   
   AmandusApplication<d> app(tr, fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator);
+  AmandusResidual<d> residual(app, resi_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
