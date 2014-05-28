@@ -50,9 +50,9 @@ int main()
   
   dealii::Algorithms::ThetaTimestepping<dealii::Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
-  timestepping.theta(.0000001);
-  timestepping.timestep_control().start_step(.001);
-  timestepping.timestep_control().final(1.);
+  timestepping.theta(.5);
+  timestepping.timestep_control().start_step(.1);
+  timestepping.timestep_control().final(20.);
 
   // Now we prepare for the actual timestepping
   
