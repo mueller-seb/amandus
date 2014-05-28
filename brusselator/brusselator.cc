@@ -78,8 +78,8 @@ int main()
   FESystem<d> fe(feb, 2);
 
   Brusselator::Parameters parameters;
-  parameters.alpha0 = .002;
-  parameters.alpha1 = .002;
+  parameters.alpha0 = .00;
+  parameters.alpha1 = .00;
   parameters.A = 3.4;
   parameters.B = 1.;
   Brusselator::Matrix<d> matrix_integrator(parameters);
@@ -107,8 +107,8 @@ int main()
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
   timestepping.theta(0.5);
-  timestepping.timestep_control().start_step(.001);
-  timestepping.timestep_control().final(1.);
+  timestepping.timestep_control().start_step(.1);
+  timestepping.timestep_control().final(20.);
 
   // Now we prepare for the actual timestepping
   
