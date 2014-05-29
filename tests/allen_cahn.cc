@@ -90,7 +90,7 @@ Startup<dim>::value_list (
 }
 
 
-int main()
+int main(int argc, const char** argv)
 {
   const unsigned int d=2;
   
@@ -98,6 +98,9 @@ int main()
   deallog.attach(logfile);
   deallog.depth_console(2);
   
+  AmandusParameters param;
+  param.read(argc, argv);
+
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(5);

@@ -44,6 +44,7 @@
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/parameter_handler.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/algorithms/operator.h>
@@ -52,6 +53,26 @@
 
 #include <iostream>
 #include <fstream>
+
+/**
+ * A class managing a common ParameterHandler for most applications.
+ */
+class AmandusParameters : public dealii::ParameterHandler
+{
+ public:
+  /**
+   * Constructor declaring the default parameters. After this, but before calling read(),
+   * additional parameters can be declared using the functions of the base class.
+   */
+  AmandusParameters ();
+  
+  /**
+   * Read parameters from default file, if it exists, from a file
+   * derived from the name of the executable by adding the suffix
+   * ".prm", or from a file specified on the command line.
+   */
+  void read(int argc, const char** argv);
+};
 
 /**
  * An application class with a plain GMRES solver and optional UMFPack
@@ -102,6 +123,10 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 			     const dealii::FiniteElement<dim>& fe,
 			     bool use_umfpack = false);
 
+    /**
+     * Declare parameters
+     */
+    
     /**
      * Initialize the vector <code>v</code> to the size matching the
      * DoFHandler. This requires that setup_system() is called before.
