@@ -13,9 +13,8 @@
  *
  * @ingroup Examples
  */
-#include <deal.II/fe/fe_raviart_thomas.h>
-#include <deal.II/fe/fe_dgq.h>
-#include <deal.II/fe/fe_system.h>
+
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>
@@ -26,6 +25,7 @@
 #include <allen_cahn/explicit.h>
 #include <allen_cahn/matrix.h>
 
+#include <boost/scoped_ptr.hpp>
 
 template <int dim>
 class Startup : public dealii::Function<dim>
@@ -100,14 +100,16 @@ int main(int argc, const char** argv)
   
   AmandusParameters param;
   param.read(argc, argv);
-
+  param.log_parameters(deallog);
+  
+  param.enter_subsection("Discretization");
+  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
-  tr.refine_global(5);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
   
-  const unsigned int degree = 1;
-  FE_DGQ<d> fe(degree);
-
   const double diffusion = 2.e-3;
   AllenCahn::Matrix<d> matrix_integrator(diffusion);
   AllenCahn::ExplicitResidual<d> explicit_integrator(diffusion);
@@ -115,7 +117,7 @@ int main(int argc, const char** argv)
   AllenCahn::ImplicitResidual<d> implicit_integrator(diffusion);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

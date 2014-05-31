@@ -26,8 +26,10 @@ leave_subsection();
 void
 AmandusParameters::read(int argc, const char** argv)
 {
-read_input("options", true);
-//read_input(argv[0], true);
-if (argc > 1)
-  read_input(argv[1], false, true);
+  read_input("options", true);
+  std::string myname = argv[0];
+  myname += ".prm";
+  read_input(myname, true);
+  if (argc > 1)
+    read_input(argv[1], false, true);
 }
