@@ -6,7 +6,7 @@
  * @brief Instationary Allen-Cahn equations
  * <ul>
  * <li>Instationary Allen-Cahn equations</li>
- * <li>Homogeneous Dirichlet boundary conditions</li>
+ * <li>Homogeneous Neumann boundary conditions</li>
  * <li>Exact polynomial solutionExact polynomial solution</li>
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
