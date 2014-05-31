@@ -127,17 +127,17 @@ int main(int argc, const char** argv)
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
   
+  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
-  newton.control.log_history(true);
-  newton.control.set_reduction(1.e-14);
-  newton.threshold(.2);
+  newton.parse_parameters(param);
+  param.leave_subsection();
   
+  param.enter_subsection("ThetaTimestepping");
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
-  timestepping.theta(.55);
-  timestepping.timestep_control().start_step(.2);
-  timestepping.timestep_control().final(20.);
-
+  timestepping.parse_parameters(param);
+  param.leave_subsection();
+  
   // Now we prepare for the actual timestepping
   
   timestepping.notify(dealii::Algorithms::Events::remesh);

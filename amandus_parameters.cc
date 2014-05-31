@@ -6,6 +6,8 @@
  **********************************************************************/
 
 #include <deal.II/base/data_out_base.h>
+#include <deal.II/algorithms/newton.h>
+#include <deal.II/algorithms/theta_timestepping.h>
 #include <amandus.h>
 
 using namespace dealii;
@@ -17,9 +19,17 @@ AmandusParameters::AmandusParameters ()
   declare_entry("Refinement", "1", Patterns::Integer());
   leave_subsection();
   
+  enter_subsection("Newton");
+  Algorithms::Newton<Vector<double> >::declare_parameters(*this);
+  leave_subsection();
+  
+  enter_subsection("ThetaTimestepping");
+  Algorithms::ThetaTimestepping<Vector<double> >::declare_parameters(*this);
+  leave_subsection();
+  
   enter_subsection("Output");
   DataOutInterface<2>::declare_parameters(*this);
-leave_subsection();
+  leave_subsection();
 }
 
 
