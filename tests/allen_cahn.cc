@@ -19,7 +19,7 @@
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <deal.II/base/function_lib.h>
+#include <deal.II/base/function.h>
 #include <apps.h>
 #include <allen_cahn/implicit.h>
 #include <allen_cahn/explicit.h>
