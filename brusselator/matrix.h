@@ -71,7 +71,7 @@ namespace Brusselator
 		  parameters(&par)
   {
     this->use_boundary = false;
-    this->use_face = false;
+    this->use_face = true;
     this->input_vector_names.push_back("Newton iterate");
   }
 
@@ -88,10 +88,10 @@ namespace Brusselator
 	L2::mass_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0));
       }
     
-    // Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-    // 			 parameters->alpha0*factor);
-    // Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0),
-    // 			 parameters->alpha1*factor);
+    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
+    			 parameters->alpha0*factor);
+    Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0),
+    			 parameters->alpha1*factor);
     if (info.values.size() > 0)
       {
 	AssertDimension(info.values[0].size(), 2);

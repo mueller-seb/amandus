@@ -56,7 +56,7 @@ namespace Brusselator
 		  parameters(&par)
   {
     this->use_boundary = false;
-    this->use_face = false;
+    this->use_face = true;
   }
 
 
@@ -84,10 +84,10 @@ namespace Brusselator
   
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs0);
     L2::L2(dinfo.vector(0).block(1), info.fe_values(0), rhs1);
-    // Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-    // 			   info.gradients[0][0], -parameters->alpha0*this->timestep);
-    // Laplace::cell_residual(dinfo.vector(0).block(1), info.fe_values(0),
-    // 			   info.gradients[0][1], -parameters->alpha1*this->timestep);
+    Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
+    			   info.gradients[0][0], -parameters->alpha0*this->timestep);
+    Laplace::cell_residual(dinfo.vector(0).block(1), info.fe_values(0),
+    			   info.gradients[0][1], -parameters->alpha1*this->timestep);
   }
 
 

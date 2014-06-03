@@ -9,3 +9,6 @@ FOREACH(ccfile ${sources})
   DEAL_II_SETUP_TARGET(${file})
   TARGET_LINK_LIBRARIES(${file} amandus)
 ENDFOREACH()
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/brusselator.prm
+  ${CMAKE_CURRENT_BINARY_DIR}/brusselator.prm COPYONLY)

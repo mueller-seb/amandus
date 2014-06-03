@@ -34,7 +34,6 @@ Explicit:: operator() (dealii::AnyData &out, const dealii::AnyData &in)
   const dealii::Vector<double>& n = *in.read_ptr<dealii::Vector<double> >("Previous iterate");
   const double u = n(0);
   const double v = n(1);
-  dealii::deallog << "Ex  " << ts << std::endl;
   r(0) = u - ts * (-parameters->B - u*u*v + (parameters->A+1.)*u );
   r(1) = v - ts * (-parameters->A*u + u*u*v );
 }
@@ -68,7 +67,6 @@ const dealii::Vector<double>& p = *in.read_ptr<dealii::Vector<double> >("Previou
   const double u = n(0);
   const double v = n(1);
   
-  dealii::deallog << "ImR " << ts << std::endl;
   r(0) = u - p(0) + ts * (-parameters->B - u*u*v + (parameters->A+1.)*u );
   r(1) = v - p(1) + ts * (-parameters->A*u + u*u*v );
 }

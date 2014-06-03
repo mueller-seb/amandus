@@ -13,18 +13,19 @@
  *
  * @ingroup Examples
  */
-#include <deal.II/fe/fe_raviart_thomas.h>
-#include <deal.II/fe/fe_dgq.h>
-#include <deal.II/fe/fe_system.h>
+
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <deal.II/base/function_lib.h>
+#include <deal.II/base/function.h>
 #include <apps.h>
 #include <brusselator/implicit.h>
 #include <brusselator/explicit.h>
 #include <brusselator/matrix.h>
+
+#include <boost/scoped_ptr.hpp>
 
 template <int dim>
 class Startup : public dealii::Function<dim>
@@ -61,7 +62,7 @@ Startup<dim>::vector_value_list (
 
 
   
-int main()
+int main(int argc, const char** argv)
 {
   const unsigned int d=2;
   
@@ -69,17 +70,21 @@ int main()
   deallog.attach(logfile);
   deallog.depth_console(2);
   
+  AmandusParameters param;
+  param.read(argc, argv);
+  param.log_parameters(deallog);
+  
+  param.enter_subsection("Discretization");
+  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, 0., 1.);
-  tr.refine_global(4);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
   
-  const unsigned int degree = 1;
-  FE_DGQ<d> feb(degree);
-  FESystem<d> fe(feb, 2);
-
   Brusselator::Parameters parameters;
-  parameters.alpha0 = .00;
-  parameters.alpha1 = .00;
+  parameters.alpha0 = 1.;
+  parameters.alpha1 = .1;
   parameters.A = 3.4;
   parameters.B = 1.;
   Brusselator::Matrix<d> matrix_integrator(parameters);
@@ -88,40 +93,43 @@ int main()
   Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
-  //AmandusUMFPACK<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  //AmandusUMFPACK<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);
 
   // Set up timestepping algorithm with embedded Newton solver
   
+  param.enter_subsection("Output");
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
+  newout.parse_parameters(param);
   newout.initialize(app.dof_handler);
+  param.leave_subsection();
   
+  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
-  newton.control.log_history(true);
-  newton.control.set_reduction(1.e-14);
-  newton.threshold(.2);
+  newton.parse_parameters(param);
+  param.leave_subsection();
   
+  param.enter_subsection("ThetaTimestepping");
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
-  timestepping.theta(0.5);
-  timestepping.timestep_control().start_step(.1);
-  timestepping.timestep_control().final(20.);
-
+  timestepping.parse_parameters(param);
+  param.leave_subsection();
+  
   // Now we prepare for the actual timestepping
   
   timestepping.notify(dealii::Algorithms::Events::remesh);
   dealii::Vector<double> solution;
   app.setup_system();
   app.setup_vector(solution);
-
+  
   Startup<d> startup;
   VectorTools::interpolate(app.dof_handler, startup, solution);
   
   dealii::AnyData indata;
   indata.add(&solution, "solution");
   dealii::AnyData outdata;
-  timestepping(indata, outdata);  
+  timestepping(indata, outdata);
 }
