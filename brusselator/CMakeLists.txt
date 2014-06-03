@@ -1,0 +1,11 @@
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+
+FILE(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+
+FOREACH(ccfile ${sources})
+  GET_FILENAME_COMPONENT(file ${ccfile} NAME_WE)
+  ADD_EXECUTABLE(${file} ${ccfile})
+  DEAL_II_SETUP_TARGET(${file})
+  TARGET_LINK_LIBRARIES(${file} amandus)
+ENDFOREACH()

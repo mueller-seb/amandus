@@ -24,6 +24,6 @@ CALL_GRAPH	       = YES
 GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
-INPUT                  = .. ../stokes ../darcy ../brinkman ../laplace ../maxwell ../allen_cahn ../tests ./
+INPUT                  = .. ../stokes ../darcy ../brinkman ../laplace ../maxwell ../allen_cahn ../brusselator ../tests ./
 
 UML_LOOK	       = NO
