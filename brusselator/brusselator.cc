@@ -26,7 +26,41 @@
 #include <brusselator/explicit.h>
 #include <brusselator/matrix.h>
 
+template <int dim>
+class Startup : public dealii::Function<dim>
+{
+  public:
+    Startup();
+    virtual void vector_value_list (const std::vector<Point<dim> > &points,
+				    std::vector<Vector<double> >   &values) const;
+};
 
+
+template <int dim>
+Startup<dim>::Startup ()
+		:
+		Function<dim> (2)
+{}
+
+
+template <int dim>
+void
+Startup<dim>::vector_value_list (
+  const std::vector<Point<dim> > &points,
+  std::vector<Vector<double> >   &values) const
+{
+  AssertDimension(points.size(), values.size());
+  
+  for (unsigned int k=0;k<points.size();++k)
+    {
+      const Point<dim>& p = points[k];
+      values[k](0) = 2. + .25*p(1);
+      values[k](1) = 1. + .8*p(0);
+    }
+}
+
+
+  
 int main()
 {
   const unsigned int d=2;
@@ -36,18 +70,18 @@ int main()
   deallog.depth_console(2);
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -1, 1);
-  tr.refine_global(5);
+  GridGenerator::hyper_cube (tr, 0., 1.);
+  tr.refine_global(4);
   
   const unsigned int degree = 1;
   FE_DGQ<d> feb(degree);
   FESystem<d> fe(feb, 2);
 
   Brusselator::Parameters parameters;
-  parameters.alpha0 = .0001;
-  parameters.alpha1 = .00001;
+  parameters.alpha0 = .00;
+  parameters.alpha1 = .00;
   parameters.A = 3.4;
-  parameters.B = 10.;
+  parameters.B = 1.;
   Brusselator::Matrix<d> matrix_integrator(parameters);
   Brusselator::ExplicitResidual<d> explicit_integrator(parameters);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
@@ -72,9 +106,9 @@ int main()
   
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
-  timestepping.theta(0.0000001);
-  timestepping.timestep_control().start_step(.01);
-  timestepping.timestep_control().final(10.);
+  timestepping.theta(0.5);
+  timestepping.timestep_control().start_step(.1);
+  timestepping.timestep_control().final(20.);
 
   // Now we prepare for the actual timestepping
   
@@ -82,9 +116,9 @@ int main()
   dealii::Vector<double> solution;
   app.setup_system();
   app.setup_vector(solution);
-  
-  Functions::CosineFunction<d> cosine(2);
-  VectorTools::interpolate(app.dof_handler, cosine, solution);
+
+  Startup<d> startup;
+  VectorTools::interpolate(app.dof_handler, startup, solution);
   
   dealii::AnyData indata;
   indata.add(&solution, "solution");
