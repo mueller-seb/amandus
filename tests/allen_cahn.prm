@@ -17,7 +17,7 @@ subsection Newton
   end
 end
 subsection Output
-  set Output format = gnuplot
+  set Output format = vtk
   set Subdivisions  = 1
   subsection Povray output parameters
     set Include external file = true
