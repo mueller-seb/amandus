@@ -15,8 +15,6 @@
 
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/algorithms/newton.h>
-#include <deal.II/numerics/dof_output_operator.h>
-#include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
 #include <stokes/polynomial.h>
 #include <stokes/matrix.h>
@@ -59,13 +57,9 @@ int main(int argc, const char** argv)
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
-  Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.initialize(app.dof_handler);
-  
   param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
-  newton.initialize(newout);
   param.leave_subsection();
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);

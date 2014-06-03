@@ -124,8 +124,11 @@ int main(int argc, const char** argv)
 
   // Set up timestepping algorithm with embedded Newton solver
   
+  param.enter_subsection("Output");
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
+  newout.parse_parameters(param);
   newout.initialize(app.dof_handler);
+  param.leave_subsection();
   
   param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
