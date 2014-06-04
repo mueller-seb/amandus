@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ "$#" -eq 0 ]; then
     echo "run program as"
     echo "  nuke.sh /path/to/dealii [build-name]"
