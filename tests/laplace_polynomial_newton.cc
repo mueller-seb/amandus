@@ -13,9 +13,7 @@
  * @ingroup Examples
  */
 
-#include <deal.II/fe/fe_raviart_thomas.h>
-#include <deal.II/fe/fe_dgq.h>
-#include <deal.II/fe/fe_system.h>
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
@@ -23,19 +21,27 @@
 #include <laplace/polynomial.h>
 #include <laplace/matrix.h>
 
-int main()
+#include <boost/scoped_ptr.hpp>
+
+int main(int argc, const char** argv)
 {
   const unsigned int d=2;
   
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
   
+  AmandusParameters param;
+  param.read(argc, argv);
+  param.log_parameters(deallog);
+  
+  param.enter_subsection("Discretization");
+  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
   
-  const unsigned int degree = 4;
-  FE_DGQ<d> fe(degree);
-
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(4, 1.);
   solution1d += Polynomials::Monomial<double>(2, -2.);
@@ -47,19 +53,18 @@ int main()
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   LaplacePolynomialError<d> error_integrator(solution1d);
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dof_handler);
   
+  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
-  newton.control.log_history(true);
-  newton.control.set_reduction(1.e-14);
+  newton.parse_parameters(param);
   newton.initialize(newout);
-  newton.debug_vectors = true;
-  newton.debug = 2;
+  param.leave_subsection();
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }

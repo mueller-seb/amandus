@@ -8,9 +8,10 @@ PROJECT(amandus)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SOURCE_DIR}")
 
 ADD_LIBRARY(amandus
-  amandus.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
+  amandus.cc amandus_parameters.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
 
 DEAL_II_SETUP_TARGET(amandus)  
 
+ADD_SUBDIRECTORY(brusselator)
 ADD_SUBDIRECTORY(tests)
 

@@ -3,10 +3,10 @@
 /**
  * @file
  *
- * @brief Instationary Allen-Cahn equations
+ * @brief Instationary Brusselator problem
  * <ul>
- * <li>Instationary Allen-Cahn equations</li>
- * <li>Homogeneous Neumann boundary conditions</li>
+ * <li>Instationary Brusselator model</li>
+ * <li>Homogeneous Dirichlet boundary conditions</li>
  * <li>Exact polynomial solutionExact polynomial solution</li>
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -21,9 +21,9 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
 #include <apps.h>
-#include <allen_cahn/implicit.h>
-#include <allen_cahn/explicit.h>
-#include <allen_cahn/matrix.h>
+#include <brusselator/implicit.h>
+#include <brusselator/explicit.h>
+#include <brusselator/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -32,9 +32,6 @@ class Startup : public dealii::Function<dim>
 {
   public:
     Startup();
-    virtual void value_list (const std::vector<Point<dim> > &points,
-			     std::vector<double>   &values,
-			     const unsigned int component = 0) const;
     virtual void vector_value_list (const std::vector<Point<dim> > &points,
 				    std::vector<Vector<double> >   &values) const;
 };
@@ -43,7 +40,7 @@ class Startup : public dealii::Function<dim>
 template <int dim>
 Startup<dim>::Startup ()
 		:
-		Function<dim> (1)
+		Function<dim> (2)
 {}
 
 
@@ -58,38 +55,13 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      if (std::fabs(p(0)) < .8 && std::fabs(p(1)) < .2)
-	values[k](0) = 1.;
-      else if (std::fabs(p(1)) < .8 && std::fabs(p(0)) < .2)
-	values[k](0) = 1.;
-      else
-	values[k](0) = -1.;
+      values[k](0) = 2. + .25*p(1);
+      values[k](1) = 1. + .8*p(0);
     }
 }
 
 
-template <int dim>
-void
-Startup<dim>::value_list (
-  const std::vector<Point<dim> > &points,
-  std::vector<double>   &values,
-  const unsigned int) const
-{
-  AssertDimension(points.size(), values.size());
   
-  for (unsigned int k=0;k<points.size();++k)
-    {
-      const Point<dim>& p = points[k];
-      if (std::fabs(p(0)) < .8 && std::fabs(p(1)) < .2)
-	values[k] = 1.;
-      else if (std::fabs(p(1)) < .8 && std::fabs(p(0)) < .2)
-	values[k] = 1.;
-      else
-	values[k] = -1.;
-    }
-}
-
-
 int main(int argc, const char** argv)
 {
   const unsigned int d=2;
@@ -106,18 +78,23 @@ int main(int argc, const char** argv)
   boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -1, 1);
+  GridGenerator::hyper_cube (tr, 0., 1.);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-  const double diffusion = 2.e-3;
-  AllenCahn::Matrix<d> matrix_integrator(diffusion);
-  AllenCahn::ExplicitResidual<d> explicit_integrator(diffusion);
+  Brusselator::Parameters parameters;
+  parameters.alpha0 = 1.;
+  parameters.alpha1 = .1;
+  parameters.A = 3.4;
+  parameters.B = 1.;
+  Brusselator::Matrix<d> matrix_integrator(parameters);
+  Brusselator::ExplicitResidual<d> explicit_integrator(parameters);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
-  AllenCahn::ImplicitResidual<d> implicit_integrator(diffusion);
+  Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  //AmandusUMFPACK<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);
