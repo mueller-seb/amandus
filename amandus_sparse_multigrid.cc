@@ -136,9 +136,11 @@ AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
   assembler.initialize(mg_matrix);
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
 
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop<dim, dim> (
     this->dof_handler.begin_mg(), this->dof_handler.end_mg(),
-    dof_info, info_box, integrator, assembler);
+    dof_info, info_box, integrator, assembler, control);
 }
 
 

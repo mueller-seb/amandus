@@ -110,7 +110,8 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   const double diffusion = 2.e-3;
-  AllenCahn::Matrix<d> matrix_integrator(diffusion);
+  AllenCahn::Matrix<d> matrix_stationary(diffusion);
+  Integrators::ThetaResidual<d> matrix_integrator(matrix_stationary, true);
   AllenCahn::Residual<d> residual_integrator(diffusion);
   Integrators::ThetaResidual<d> explicit_integrator(residual_integrator, false);
   explicit_integrator.input_vector_names.push_back("Previous iterate");

@@ -34,7 +34,9 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
 namespace Integrators
 {
 /**
- *
+ * The local integrator for the two residuals in
+ * dealii::ThetaTimestepping, namely the explicit part and the
+ * Newton-residual of the implicit part.
  */
   template <int dim>
   class ThetaResidual : public AmandusIntegrator<dim>
@@ -43,7 +45,41 @@ namespace Integrators
       /**
        * Constructor setting the integrator for the stationary problem
        * and optionally a BlockMask, which for DAE identifies which
-       * blocks are subject to timestepping.
+       * blocks are subject to timestepping. Given a stationary
+       * operator \f$ F(u) \f$, the local integral computed is
+       * \f[
+       * Mu \pm F(u),
+       * \f]
+       * where the sign is positive for the implicit operator and
+       * negative for the explicit.
+       *
+       *
+       * \param <code>client</code> is the integrator for the
+       * stationary problem. Copied into the dealii::SmartPointer #client.
+       *
+       * \param <code>implicit</code> selects whether the Newton
+       * residual of the implicit
+       * side (true) or the explicit side of the theta scheme is
+       * integrated. Copied into the variable #is_implicit.
+       *
+       * \param <code>blocks</code> If the system is a DAE, for
+       * instance the Stokes equations, then the timestepping applies
+       * only to some parts of the system, for instance only the
+       * velocities. Thus, the mass matrix in the fomula above would
+       * have empty blocks.
+       *
+       * @warning Requires that
+       * dealii::MeshWorker::LoopControl::cells_first is false! This
+       * integrator has to modify the results of the stationary
+       * integrator. In part, for face integration, this modification
+       * can be applied in face(). But since the matrix coupling only
+       * interior degrees of freedom is accumulated through all
+       * interior and boundary faces, the modification of scaling the
+       * stationary matrix and then adding the mass matrix <b>must</b>
+       * be applied after all these contributions have been
+       * assembled. Setting
+       * dealii::MeshWorker::LoopControl::cells_first to false
+       * accompliches this.
        */
       ThetaResidual (AmandusIntegrator<dim>& client,
 		     bool implicit,
@@ -61,7 +97,7 @@ namespace Integrators
       dealii::SmartPointer<AmandusIntegrator<dim>,  ThetaResidual<dim> > client;
       bool is_implicit;
       dealii::BlockMask block_mask;
-  };
+  };  
 }
 
 
@@ -120,10 +156,11 @@ namespace Integrators
   {
     client->cell(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
-    dinfo.vector(0) *= factor;
-
-    // Todo: this is wrong, since fe_values should only have the index
-    // of the base element for block b.
+    for (unsigned int i=0;i<dinfo.n_vectors();++i)
+      dinfo.vector(i) *= factor;
+    for (unsigned int i=0;i<dinfo.n_matrices();++i)
+      dinfo.matrix(i, false).matrix *= factor;
+    
     const dealii::FiniteElement<dim>& fe = info.finite_element();
 
     unsigned int comp = 0;
@@ -133,9 +170,15 @@ namespace Integrators
 	const dealii::FiniteElement<dim>& base = fe.base_element(b);
 	for (unsigned int m=0;m<fe.element_multiplicity(b);++m)
 	  {
-	    dealii::LocalIntegrators::L2::L2(
-	      dinfo.vector(0).block(k+m), info.fe_values(b),
-	      dealii::make_slice(info.values[0], comp, base.n_components()));
+	    for (unsigned int i=0;i<dinfo.n_vectors();++i)
+	      dealii::LocalIntegrators::L2::L2(
+		dinfo.vector(i).block(k+m), info.fe_values(b),
+		dealii::make_slice(info.values[0], comp, base.n_components()));
+	    for (unsigned int i=0;i<dinfo.n_matrices();++i)
+	      if (dinfo.matrix(i, false).row == k+m
+		  && dinfo.matrix(i, false).column == k+m)
+	      dealii::LocalIntegrators::L2::mass_matrix(
+		dinfo.matrix(i, false).matrix, info.fe_values(b));
 	    comp += base.n_components();
 	  }
       }
@@ -148,7 +191,10 @@ namespace Integrators
   {
     client->boundary(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
-    dinfo.vector(0) *= factor;
+    for (unsigned int i=0;i<dinfo.n_vectors();++i)
+      dinfo.vector(i) *= factor;
+    for (unsigned int i=0;i<dinfo.n_matrices();++i)
+      dinfo.matrix(i, false).matrix *= factor;
 }
   
   template <int dim>
@@ -160,11 +206,19 @@ namespace Integrators
   {
     client->face(dinfo1, dinfo2, info1, info2);
     const double factor = is_implicit ? this->timestep : -this->timestep;
-    dinfo1.vector(0) *= factor;
-    dinfo2.vector(0) *= factor;
+    for (unsigned int i=0;i<dinfo1.n_vectors();++i)
+      {
+	dinfo1.vector(0) *= factor;
+	dinfo2.vector(0) *= factor;
+      }
+    for (unsigned int i=0;i<dinfo1.n_matrices();++i)
+      {
+	dinfo1.matrix(i, false).matrix *= factor;
+	dinfo1.matrix(i, true).matrix *= factor;
+	dinfo2.matrix(i, false).matrix *= factor;
+	dinfo2.matrix(i, true).matrix *= factor;
+      }
   }
-  
-
 }
 
 
