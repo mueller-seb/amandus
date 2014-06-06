@@ -12,6 +12,8 @@
 #include <deal.II/fe/block_mask.h>
 #include <deal.II/algorithms/any_data.h>
 #include <deal.II/base/smartpointer.h>
+#include <deal.II/integrators/l2.h>
+#include <deal.II/base/vector_slice.h>
 
 template <int dim>
 class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
@@ -116,17 +118,27 @@ namespace Integrators
   ThetaResidual<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
 			   dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
-    client->face(dinfo, info);
+    client->cell(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
     dinfo.vector(0) *= factor;
 
     // Todo: this is wrong, since fe_values should only have the index
     // of the base element for block b.
-    for (unsigned int b=0;b<dinfo.vector(0).n_blocks();++b)
+    const dealii::FiniteElement<dim>& fe = info.finite_element();
+
+    unsigned int comp = 0;
+    for (unsigned int b=0;b<fe.n_base_elements();++b)
       {
-//	L2::L2(dinfo.vector(0), info.fe_values(b), info.values[0]);
+	unsigned int k=fe.first_block_of_base(b);
+	const dealii::FiniteElement<dim>& base = fe.base_element(b);
+	for (unsigned int m=0;m<fe.element_multiplicity(b);++m)
+	  {
+	    dealii::LocalIntegrators::L2::L2(
+	      dinfo.vector(0).block(k+m), info.fe_values(b),
+	      dealii::make_slice(info.values[0], comp, base.n_components()));
+	    comp += base.n_components();
+	  }
       }
-	  
   }
   
   template <int dim>
@@ -134,7 +146,7 @@ namespace Integrators
   ThetaResidual<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
 			       dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
-    client->face(dinfo, info);
+    client->boundary(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
     dinfo.vector(0) *= factor;
 }

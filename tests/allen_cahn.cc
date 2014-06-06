@@ -21,8 +21,7 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
 #include <apps.h>
-#include <allen_cahn/implicit.h>
-#include <allen_cahn/explicit.h>
+#include <allen_cahn/residual.h>
 #include <allen_cahn/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
@@ -112,9 +111,10 @@ int main(int argc, const char** argv)
   
   const double diffusion = 2.e-3;
   AllenCahn::Matrix<d> matrix_integrator(diffusion);
-  AllenCahn::ExplicitResidual<d> explicit_integrator(diffusion);
+  AllenCahn::Residual<d> residual_integrator(diffusion);
+  Integrators::ThetaResidual<d> explicit_integrator(residual_integrator, false);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
-  AllenCahn::ImplicitResidual<d> implicit_integrator(diffusion);
+  Integrators::ThetaResidual<d> implicit_integrator(residual_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
