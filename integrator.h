@@ -114,11 +114,11 @@ inline
 void
 AmandusIntegrator<dim>::extract_data (const dealii::AnyData& data)
 {
-  const double* ts = data.try_read_ptr<double>("Timestep");
-  if (ts != 0)
-    {
-      timestep = *ts;
-    }
+  // const double* ts = data.try_read_ptr<double>("Timestep");
+  // if (ts != 0)
+  //   {
+  //     timestep = *ts;
+  //   }
 }
 
 
@@ -190,11 +190,11 @@ namespace Integrators
 			       dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
     client->boundary(dinfo, info);
-    const double factor = is_implicit ? this->timestep : -this->timestep;
-    for (unsigned int i=0;i<dinfo.n_vectors();++i)
-      dinfo.vector(i) *= factor;
-    for (unsigned int i=0;i<dinfo.n_matrices();++i)
-      dinfo.matrix(i, false).matrix *= factor;
+    // const double factor = is_implicit ? this->timestep : -this->timestep;
+    // for (unsigned int i=0;i<dinfo.n_vectors();++i)
+    //   dinfo.vector(i) *= factor;
+    // for (unsigned int i=0;i<dinfo.n_matrices();++i)
+    //   dinfo.matrix(i, false).matrix *= factor;
 }
   
   template <int dim>
@@ -208,12 +208,14 @@ namespace Integrators
     const double factor = is_implicit ? this->timestep : -this->timestep;
     for (unsigned int i=0;i<dinfo1.n_vectors();++i)
       {
-	dinfo1.vector(0) *= factor;
+	// Scale the exterior vector; interior is scaled by the cell function.
 	dinfo2.vector(0) *= factor;
       }
     for (unsigned int i=0;i<dinfo1.n_matrices();++i)
       {
-	dinfo1.matrix(i, false).matrix *= factor;
+	// Scale all matrices except the one coupling
+	// interior-interior degrees of freedom; those are scaled by
+	// the cell() function.
 	dinfo1.matrix(i, true).matrix *= factor;
 	dinfo2.matrix(i, false).matrix *= factor;
 	dinfo2.matrix(i, true).matrix *= factor;
