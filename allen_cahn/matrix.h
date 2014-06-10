@@ -40,7 +40,6 @@ namespace AllenCahn
 		  D(diffusion)
   {
     this->use_boundary = false;
-    this->input_vector_names.push_back("Newton iterate");
   }
 
 
@@ -49,13 +48,7 @@ namespace AllenCahn
   {
     AssertDimension (dinfo.n_matrices(), 1);
 //  Assert (info.values.size() >0, ExcInternalError());
-    const double factor = (this->timestep == 0.) ? 1. : this->timestep;
-    if (this->timestep != 0.)
-      {
-	L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
-      }
-    
-    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), D*factor);
+    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), D);
     if (info.values.size() > 0)
       {
 	AssertDimension(info.values[0][0].size(), info.fe_values(0).n_quadrature_points);
@@ -63,7 +56,7 @@ namespace AllenCahn
 	for (unsigned int k=0;k<fu.size();++k)
 	  {
 	    const double u = info.values[0][0][k];
-	    fu[k] = (3.*u*u-1.) * factor;
+	    fu[k] = (3.*u*u-1.);
 	  }
 	L2::weighted_mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), fu);
       }
@@ -74,7 +67,8 @@ namespace AllenCahn
   void Matrix<dim>::boundary(
     MeshWorker::DoFInfo<dim>&,
     typename MeshWorker::IntegrationInfo<dim>&) const
-  {}
+  {
+  }
 
 
   template <int dim>
@@ -83,13 +77,28 @@ namespace AllenCahn
     MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
   {
     const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-    const double factor = (this->timestep == 0.) ? 1. : this->timestep;
     Laplace::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
 		       dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
 		       info1.fe_values(0), info2.fe_values(0),
-		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), D*factor);
+		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), D);
   }
 }
 
 
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

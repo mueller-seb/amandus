@@ -114,11 +114,11 @@ inline
 void
 AmandusIntegrator<dim>::extract_data (const dealii::AnyData& data)
 {
-  // const double* ts = data.try_read_ptr<double>("Timestep");
-  // if (ts != 0)
-  //   {
-  //     timestep = *ts;
-  //   }
+  const double* ts = data.try_read_ptr<double>("Timestep");
+  if (ts != 0)
+    {
+      timestep = *ts;
+    }
 }
 
 
@@ -126,12 +126,15 @@ namespace Integrators
 {
   template <int dim>
   inline
-  ThetaResidual<dim>::ThetaResidual(AmandusIntegrator<dim>& client,
+  ThetaResidual<dim>::ThetaResidual(AmandusIntegrator<dim>& cl,
 				    bool implicit,
 				    dealii::BlockMask blocks)
-: client(&client), block_mask(blocks)
+: client(&cl), block_mask(blocks)
 {
   is_implicit = implicit;
+  this->use_cell = client->use_cell;
+  this->use_boundary = client->use_boundary;
+  this->use_face = client->use_face;
 }
 
 
@@ -174,6 +177,7 @@ namespace Integrators
 	      dealii::LocalIntegrators::L2::L2(
 		dinfo.vector(i).block(k+m), info.fe_values(b),
 		dealii::make_slice(info.values[0], comp, base.n_components()));
+	    
 	    for (unsigned int i=0;i<dinfo.n_matrices();++i)
 	      if (dinfo.matrix(i, false).row == k+m
 		  && dinfo.matrix(i, false).column == k+m)
@@ -190,12 +194,7 @@ namespace Integrators
 			       dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
     client->boundary(dinfo, info);
-    // const double factor = is_implicit ? this->timestep : -this->timestep;
-    // for (unsigned int i=0;i<dinfo.n_vectors();++i)
-    //   dinfo.vector(i) *= factor;
-    // for (unsigned int i=0;i<dinfo.n_matrices();++i)
-    //   dinfo.matrix(i, false).matrix *= factor;
-}
+  }
   
   template <int dim>
   void
@@ -226,4 +225,14 @@ namespace Integrators
 
 
 #endif
+
+
+
+
+
+
+
+
+
+
 
