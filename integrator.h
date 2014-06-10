@@ -135,6 +135,7 @@ namespace Integrators
   this->use_cell = client->use_cell;
   this->use_boundary = client->use_boundary;
   this->use_face = client->use_face;
+  // Copy vector requests
 }
 
 

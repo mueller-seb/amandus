@@ -218,7 +218,8 @@ AmandusApplicationSparse<dim>::verify_residual(
     integrator, assembler, control);
   (*out.entry<Vector<double>*>(0)) *= -1.;
 
-  matrix.vmult_add(*out.entry<Vector<double>*>(0), *in.entry<Vector<double>*>(0));
+  const Vector<double>* p = in.try_read_ptr<Vector<double> >("Newton iterate");
+  matrix.vmult_add(*out.entry<Vector<double>*>(0), *p);
 }
 
 

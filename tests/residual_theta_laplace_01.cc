@@ -15,6 +15,8 @@
 #include <laplace/noforce.h>
 #include <laplace/matrix.h>
 
+using namespace Integrators;
+
 int main(int argc, const char** argv)
 {
   const unsigned int d=2;
@@ -34,9 +36,17 @@ int main(int argc, const char** argv)
   GridGenerator::hyper_cube (tr, -1, 1);
   
   LaplaceMatrix<d> matrix_integrator;
+  matrix_integrator.use_boundary = false;
+  matrix_integrator.use_face = false;  
+  ThetaResidual<d> mi(matrix_integrator, true);
   LaplaceNoForceResidual<d> rhs_integrator;
+  rhs_integrator.use_boundary = false;
+  rhs_integrator.use_face = false;
+  ThetaResidual<d> ri(rhs_integrator, true);
+  ri.input_vector_names.push_back("Newton iterate");
+
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   
-  verify_residual(5, app, matrix_integrator, rhs_integrator);
+  verify_theta_residual(5, app, mi, ri);
 }
