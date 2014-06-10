@@ -55,9 +55,9 @@ int main(int argc, const char** argv)
   GridGenerator::hyper_cube (tr, -1, 1);
   
   Dummy<d> integrator;
-  ThetaResidual<d> mi(integrator, true);
+  Theta<d> mi(integrator, true);
   
-  ThetaResidual<d> ri(integrator, true);
+  Theta<d> ri(integrator, true);
   ri.input_vector_names.push_back("Newton iterate");
 
   

@@ -36,9 +36,9 @@ int main(int argc, const char** argv)
   GridGenerator::hyper_cube (tr, -1, 1);
   
   LaplaceMatrix<d> matrix_integrator;
-  ThetaResidual<d> mi(matrix_integrator, true);
+  Theta<d> mi(matrix_integrator, true);
   LaplaceNoForceResidual<d> rhs_integrator;
-  ThetaResidual<d> ri(rhs_integrator, true);
+  Theta<d> ri(rhs_integrator, true);
   ri.input_vector_names.push_back("Newton iterate");
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);

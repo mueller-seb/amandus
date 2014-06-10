@@ -39,7 +39,7 @@ namespace Integrators
  * Newton-residual of the implicit part.
  */
   template <int dim>
-  class ThetaResidual : public AmandusIntegrator<dim>
+  class Theta : public AmandusIntegrator<dim>
   {
     public:
       /**
@@ -81,9 +81,9 @@ namespace Integrators
        * dealii::MeshWorker::LoopControl::cells_first to false
        * accompliches this.
        */
-      ThetaResidual (AmandusIntegrator<dim>& client,
-		     bool implicit,
-		     dealii::BlockMask blocks = dealii::BlockMask());
+      Theta (AmandusIntegrator<dim>& client,
+	     bool implicit,
+	     dealii::BlockMask blocks = dealii::BlockMask());
      virtual void extract_data (const dealii::AnyData& data);
    private:
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
@@ -94,7 +94,7 @@ namespace Integrators
 			dealii::MeshWorker::DoFInfo<dim>& dinfo2,
 			dealii::MeshWorker::IntegrationInfo<dim>& info1,
 			dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
-      dealii::SmartPointer<AmandusIntegrator<dim>,  ThetaResidual<dim> > client;
+      dealii::SmartPointer<AmandusIntegrator<dim>,  Theta<dim> > client;
       bool is_implicit;
       dealii::BlockMask block_mask;
   };  
@@ -126,9 +126,9 @@ namespace Integrators
 {
   template <int dim>
   inline
-  ThetaResidual<dim>::ThetaResidual(AmandusIntegrator<dim>& cl,
-				    bool implicit,
-				    dealii::BlockMask blocks)
+  Theta<dim>::Theta(AmandusIntegrator<dim>& cl,
+		    bool implicit,
+		    dealii::BlockMask blocks)
 : client(&cl), block_mask(blocks)
 {
   is_implicit = implicit;
@@ -142,7 +142,7 @@ namespace Integrators
   template <int dim>
   inline
   void
-  ThetaResidual<dim>::extract_data (const dealii::AnyData& data)
+  Theta<dim>::extract_data (const dealii::AnyData& data)
   {
     client->extract_data(data);
     const double* ts = data.try_read_ptr<double>("Timestep");
@@ -155,8 +155,8 @@ namespace Integrators
   
   template <int dim>
   void
-  ThetaResidual<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-			   dealii::MeshWorker::IntegrationInfo<dim>& info) const
+  Theta<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+		   dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
     client->cell(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
@@ -191,8 +191,8 @@ namespace Integrators
   
   template <int dim>
   void
-  ThetaResidual<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-			       dealii::MeshWorker::IntegrationInfo<dim>& info) const
+  Theta<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+		       dealii::MeshWorker::IntegrationInfo<dim>& info) const
   {
     client->boundary(dinfo, info);
     const double factor = is_implicit ? this->timestep : -this->timestep;
@@ -204,10 +204,10 @@ namespace Integrators
   
   template <int dim>
   void
-  ThetaResidual<dim>::face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-			   dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-			   dealii::MeshWorker::IntegrationInfo<dim>& info1,
-			   dealii::MeshWorker::IntegrationInfo<dim>& info2) const
+  Theta<dim>::face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
+		   dealii::MeshWorker::DoFInfo<dim>& dinfo2,
+		   dealii::MeshWorker::IntegrationInfo<dim>& info1,
+		   dealii::MeshWorker::IntegrationInfo<dim>& info2) const
   {
     client->face(dinfo1, dinfo2, info1, info2);
     const double factor = is_implicit ? this->timestep : -this->timestep;

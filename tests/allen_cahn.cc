@@ -111,12 +111,12 @@ int main(int argc, const char** argv)
   
   const double diffusion = 2.e-3;
   AllenCahn::Matrix<d> matrix_stationary(diffusion);
-  Integrators::ThetaResidual<d> matrix_integrator(matrix_stationary, true);
+  Integrators::Theta<d> matrix_integrator(matrix_stationary, true);
   matrix_integrator.input_vector_names.push_back("Newton iterate");
   AllenCahn::Residual<d> residual_integrator(diffusion);
-  Integrators::ThetaResidual<d> explicit_integrator(residual_integrator, false);
+  Integrators::Theta<d> explicit_integrator(residual_integrator, false);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
-  Integrators::ThetaResidual<d> implicit_integrator(residual_integrator, true);
+  Integrators::Theta<d> implicit_integrator(residual_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
