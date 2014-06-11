@@ -36,7 +36,7 @@ AmandusParameters::AmandusParameters ()
 void
 AmandusParameters::read(int argc, const char** argv)
 {
-  read_input("options", true);
+  read_input("options.prm", true);
   std::string myname = argv[0];
   myname += ".prm";
   read_input(myname, true);

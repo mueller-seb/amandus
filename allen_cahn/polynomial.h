@@ -33,7 +33,7 @@ namespace AllenCahn
   {
     public:
       PolynomialResidual(
-	double difusion,
+	double diffusion,
 	const Polynomials::Polynomial<double> solution_1d);
     
       virtual void cell(DoFInfo<dim>& dinfo,

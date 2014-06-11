@@ -5,8 +5,8 @@
  *
  **********************************************************************/
 
-#ifndef __allen_cahn_implicit_h
-#define __allen_cahn_implicit_h
+#ifndef __allen_cahn_residual_h
+#define __allen_cahn_residual_h
 
 #include <deal.II/base/polynomial.h>
 #include <deal.II/base/tensor.h>
@@ -29,10 +29,10 @@ namespace AllenCahn
  * @ingroup integrators
  */
   template <int dim>
-  class ImplicitResidual : public AmandusIntegrator<dim>
+  class Residual : public AmandusIntegrator<dim>
   {
     public:
-      ImplicitResidual(double difusion);
+      Residual(double diffusion);
     
       virtual void cell(DoFInfo<dim>& dinfo,
 			IntegrationInfo<dim>& info) const;
@@ -50,7 +50,7 @@ namespace AllenCahn
 //----------------------------------------------------------------------//
 
   template <int dim>
-  ImplicitResidual<dim>::ImplicitResidual(double diffusion)
+  Residual<dim>::Residual(double diffusion)
 		  :
 		  D(diffusion)
   {
@@ -60,11 +60,10 @@ namespace AllenCahn
 
 
   template <int dim>
-  void ImplicitResidual<dim>::cell(
+  void Residual<dim>::cell(
     DoFInfo<dim>& dinfo, 
     IntegrationInfo<dim>& info) const
   {
-    Assert (this->timestep != 0, ExcMessage("Only for transient problems"));
     Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
     Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   
@@ -73,40 +72,37 @@ namespace AllenCahn
     for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
       {
 	const double u = info.values[0][0][k];
-	rhs[k] = u + this->timestep * u*(u*u-1.);
+	rhs[k] += u*(u*u-1.);
       }
   
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
-    
     Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
-			   info.gradients[0][0], D*this->timestep);
+			   info.gradients[0][0], D);
   }
 
 
   template <int dim>
-  void ImplicitResidual<dim>::boundary(
+  void Residual<dim>::boundary(
     DoFInfo<dim>&, 
     IntegrationInfo<dim>&) const
   {}
 
 
   template <int dim>
-  void ImplicitResidual<dim>::face(
+  void Residual<dim>::face(
     DoFInfo<dim>& dinfo1, 
     DoFInfo<dim>& dinfo2,
     IntegrationInfo<dim>& info1, 
     IntegrationInfo<dim>& info2) const
   {
     const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-    Laplace::ip_residual(
-      dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
-      info1.fe_values(0), info2.fe_values(0),
-      info1.values[0][0],
-      info1.gradients[0][0],
-      info2.values[0][0],
-      info2.gradients[0][0],
-      Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      D*this->timestep);
+    Laplace::ip_residual(dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
+			 info1.fe_values(0), info2.fe_values(0),
+			 info1.values[0][0],
+			 info1.gradients[0][0],
+			 info2.values[0][0],
+			 info2.gradients[0][0],
+			 Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), D);
   }
 }
 

@@ -111,13 +111,7 @@ template <int dim>
 void
 AmandusResidual<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
-  const double* timestep = in.try_read_ptr<double>("Timestep");
-  if (timestep != 0)
-    {
-      integrator->timestep = *timestep;
-//      deallog << "Explicit timestep " << integrator->timestep << std::endl;
-    }
-  
+  integrator->extract_data(in);
   *out.entry<Vector<double>*>(0) = 0.;
   application->assemble_right_hand_side(out, in, *integrator);
   
@@ -142,13 +136,7 @@ template <int dim>
 void
 AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
-  const double* timestep = in.try_read_ptr<double>("Timestep");  
-  if (timestep != 0)
-    {
-      integrator->timestep = *timestep;
-//      deallog << "Implicit timestep " << integrator->timestep << std::endl;
-    }
-  
+  integrator->extract_data(in);  
   if (this->notifications.test(Algorithms::Events::initial)
       || this->notifications.test(Algorithms::Events::remesh)
       || this->notifications.test(Algorithms::Events::bad_derivative))

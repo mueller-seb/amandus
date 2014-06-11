@@ -1,14 +1,10 @@
-subsection Discretization
-  set FE         = FE_DGQ(2)
-  set Refinement = 1
-end
 subsection Newton
   subsection Newton
     set Assemble threshold  = 0.2
     set Debug level         = 0
     set Debug vectors       = false
     set Log frequency       = 1
-    set Log history         = false
+    set Log history         = true
     set Log result          = true
     set Max steps           = 100
     set Reduction           = 1.e-14
@@ -27,18 +23,5 @@ subsection Output
   subsection Vtk output parameters
   end
   subsection deal.II intermediate output parameters
-  end
-end
-subsection ThetaTimestepping
-  subsection ThetaTimestepping
-    set Adaptive   = false
-    set Final      = 1.
-    set First step = .1
-    set Max step   = 1.
-    set Print step = -1.
-    set Start      = 0.
-    set Strategy   = uniform
-    set Theta      = .5
-    set Tolerance  = 1.e-2
   end
 end

@@ -95,20 +95,20 @@ ImplicitSolve:: operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
   const double ts = *in.read_ptr<double>("Timestep");
   dealii::Vector<double>& s = *out.entry<dealii::Vector<double>*>(0);
-const dealii::Vector<double>& r = *in.read_ptr<dealii::Vector<double> >("Newton residual");
-const dealii::Vector<double>& n = *in.read_ptr<dealii::Vector<double> >("Newton iterate");
+  const dealii::Vector<double>& r = *in.read_ptr<dealii::Vector<double> >("Newton residual");
+  const dealii::Vector<double>& n = *in.read_ptr<dealii::Vector<double> >("Newton iterate");
   const double u = n(0);
   const double v = n(1);
 
   dealii::deallog << "ImS " << ts << std::endl;
-dealii::FullMatrix<double> M(2,2);
-M(0,0) = 1. + ts * (2.*u*v - (parameters->A+1.));
-M(1,1) = 1. + ts * u*u;
-M(0,1) = ts * u*u;
-M(1,0) = ts * 2.*u*v;
+  dealii::FullMatrix<double> M(2,2);
+  M(0,0) = 1. + ts * (-2.*u*v + (parameters->A+1.));
+  M(1,1) = 1. + ts * u*u;
+  M(0,1) = ts * (-u*u);
+  M(1,0) = ts * (-parameters->A + 2.*u*v);
 
-M.gauss_jordan();
-M.vmult(s, r);
+  M.gauss_jordan();
+  M.vmult(s, r);
 }
 
 

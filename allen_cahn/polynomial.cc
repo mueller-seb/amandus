@@ -13,7 +13,6 @@
  *
  * @ingroup Examples
  */
-#include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/algorithms/newton.h>
@@ -43,8 +42,9 @@ int main()
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
   
-  AllenCahn::Matrix<d> matrix_integrator(.1);
-  AllenCahn::PolynomialResidual<d> rhs_integrator(.1, solution1d);
+  AllenCahn::Matrix<d> matrix_integrator(1.);
+  matrix_integrator.input_vector_names.push_back("Newton iterate");
+  AllenCahn::PolynomialResidual<d> rhs_integrator(1., solution1d);
   AllenCahn::PolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);

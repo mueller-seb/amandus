@@ -105,10 +105,10 @@ namespace Brusselator
 	  {
 	    const double u = info.values[0][0][k];
 	    const double v = info.values[0][1][k];
-	    Du_ru[k] = (2.*u*v - (parameters->A+1.)) * factor;
-	    Dv_ru[k] = u*u * factor;
+	    Du_ru[k] = (-2.*u*v + (parameters->A+1.)) * factor;
+	    Dv_ru[k] = -u*u * factor;
 	    Dv_rv[k] = u*u * factor;
-	    Du_rv[k] = 2*u*v * factor;
+	    Du_rv[k] = (-parameters->A+2.*u*v) * factor;
 	  }
 	L2::weighted_mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), Du_ru);
 	L2::weighted_mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0), Dv_ru);

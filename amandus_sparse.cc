@@ -121,9 +121,11 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   assembler.initialize(matrix);
   assembler.initialize(constraints);
 
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(
     dof_handler.begin_active(), dof_handler.end(),
-    dof_info, info_box, integrator, assembler);
+    dof_info, info_box, integrator, assembler, control);
   
   for (unsigned int i=0;i<matrix.m();++i)
     if (constraints.is_constrained(i))
@@ -172,10 +174,12 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   assembler.initialize(this->constraints);
   assembler.initialize(out);
   
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(
     this->dof_handler.begin_active(), this->dof_handler.end(),
     dof_info, info_box,
-    integrator, assembler);
+    integrator, assembler, control);
 }
 
 
@@ -206,13 +210,16 @@ AmandusApplicationSparse<dim>::verify_residual(
   assembler.initialize(this->constraints);
   assembler.initialize(out);
   
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(
     this->dof_handler.begin_active(), this->dof_handler.end(),
     dof_info, info_box,
-    integrator, assembler);
+    integrator, assembler, control);
   (*out.entry<Vector<double>*>(0)) *= -1.;
 
-  matrix.vmult_add(*out.entry<Vector<double>*>(0), *in.entry<Vector<double>*>(0));
+  const Vector<double>* p = in.try_read_ptr<Vector<double> >("Newton iterate");
+  matrix.vmult_add(*out.entry<Vector<double>*>(0), *p);
 }
 
 
@@ -265,10 +272,12 @@ double AmandusApplicationSparse<dim>::estimate(
   
   assembler.initialize(out_data, false);
   
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop< dim , dim >(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
-    integrator, assembler);
+    integrator, assembler, control);
   
   return estimates.block(0).l2_norm();
 }
@@ -325,10 +334,12 @@ AmandusApplicationSparse<dim>::error(
   out_data.add(est, "cells");
   assembler.initialize(out_data, false);
   
+  MeshWorker::LoopControl control;
+  control.cells_first = false;
   MeshWorker::integration_loop<dim, dim> (
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
-    integrator, assembler);
+    integrator, assembler, control);
 
   for (unsigned int i=0;i<num_errs;++i)
     deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
