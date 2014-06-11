@@ -5,7 +5,8 @@ my @name;
 my @default;
 my @parname;
 my @description;
-
+my $namespace = '';
+my $guard = '__parameters_h';
 my %pattern =
 (
     'int' => 'Integer()',
@@ -22,13 +23,33 @@ my %get =
 
 while(<>)
 {
-    die "Malformed line: $_\n" unless m/(\w+)\s+(\w+)\s+(\"[^\"]*\")\s+(\"[^\"]*\")\s+(\"[^\"]*\")/;
-    push @type, $1;
-    push @name, $2;
-    push @default, $3;
-    push @parname, $4;
-    push @description, $5;
+    if (m/^parameter\s+(\w+)\s+(\w+)\s+(\"[^\"]*\")\s+(\"[^\"]*\")\s+(\"[^\"]*\")/)
+    {
+	push @type, $1;
+	push @name, $2;
+	push @default, $3;
+	push @parname, $4;
+	push @description, $5;
+    }
+    
+    if (m/^namespace\s+(\w+)/)
+    {
+	$namespace = $1;
+    }
+    
+    if (m/^include_guard\s+(\w+)/)
+    {
+	$guard = $1;
+    }
 }
+
+print <<"EOT"
+#ifndef $guard
+#define $guard
+EOT
+    ;
+
+print "namespace $namespace\n{\n" if ($namespace ne "");
 
 print <<'EOT'
 struct Parameters : public dealii::Subscriptor
@@ -46,6 +67,7 @@ for (my $i=0; $i <= $#name; ++$i)
 print <<'EOT'
 };
 
+inline
 void
 Parameters::declare_parameters(ParameterHandler& param)
 {
@@ -58,8 +80,9 @@ for (my $i=0; $i <= $#name; ++$i)
 }
 
 print << 'EOT'
-};
+}
 
+inline
 void
 Parameters::parse_parameters(ParameterHandler& param)
 {
@@ -71,4 +94,6 @@ for (my $i=0; $i <= $#name; ++$i)
     print "    $name[$i] = param.$get{$type[$i]}($parname[$i]);\n";
 }
 
-print "};\n";
+print "}\n";
+print "\n}\n" if ($namespace ne '');
+print "#endif\n";
