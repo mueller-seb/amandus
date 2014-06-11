@@ -44,7 +44,7 @@ namespace ReactionDiffusion
 			IntegrationInfo<dim>& info1,
 			IntegrationInfo<dim>& info2) const;
     private:
-      SmartPointer<const Parameters, class ImplicitResidual<dim> > parameters;
+      SmartPointer<const Parameters, class Residual<dim> > parameters;
   };
 
 

@@ -22,13 +22,12 @@ my %get =
     'std::string' => 'get'
 );
 
-print "<$ARGV[2] > $ARGV[3]\n";
-
-#open(my $in, "<$
+#open(my $in, "<$ARGV[0]");
+#open(my $out, ">$ARGV[1]");
 
 while(<>)
 {
-    if (m/^parameter\s+(\w+)\s+(\w+)\s+(\"[^\"]*\")\s+(\"[^\"]*\")\s+(\"[^\"]*\")/)
+    if (m/^parameter\s+(\w+)\s+(\w+)\s+(\"[^\"]*\")\s+(\"[^\"]*\")\s*(\"[^\"]*\")?/)
     {
 	push @type, $1;
 	push @name, $2;
@@ -51,6 +50,9 @@ while(<>)
 print <<"EOT"
 #ifndef $guard
 #define $guard
+
+#include <deal.II/base/parameter_handler.h>
+
 EOT
     ;
 
@@ -59,8 +61,8 @@ print "namespace $namespace\n{\n" if ($namespace ne "");
 print <<'EOT'
 struct Parameters : public dealii::Subscriptor
 {
-    static void declare_parameters(ParameterHandler& param);
-    void parse_parameters(ParameterHandler& param);
+    static void declare_parameters(dealii::ParameterHandler& param);
+    void parse_parameters(dealii::ParameterHandler& param);
 EOT
     ;
 
@@ -74,14 +76,14 @@ print <<'EOT'
 
 inline
 void
-Parameters::declare_parameters(ParameterHandler& param)
+Parameters::declare_parameters(dealii::ParameterHandler& param)
 {
 EOT
     ;
 
 for (my $i=0; $i <= $#name; ++$i)
 {
-    print "    param.declare_entry($parname[$i], $default[$i], Pattern::$pattern{$type[$i]});\n";
+    print "    param.declare_entry($parname[$i], $default[$i], dealii::Patterns::$pattern{$type[$i]});\n";
 }
 
 print << 'EOT'
@@ -89,7 +91,7 @@ print << 'EOT'
 
 inline
 void
-Parameters::parse_parameters(ParameterHandler& param)
+Parameters::parse_parameters(dealii::ParameterHandler& param)
 {
 EOT
     ;

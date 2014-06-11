@@ -5,7 +5,7 @@ FIND_PACKAGE(deal.II 8.0 REQUIRED
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(amandus)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_SOURCE_DIR}")
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
 ADD_LIBRARY(amandus
   amandus.cc amandus_parameters.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
