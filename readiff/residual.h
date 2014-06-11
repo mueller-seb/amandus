@@ -72,8 +72,7 @@ namespace ReactionDiffusion
     std::vector<double> rhs0 (info.fe_values(0).n_quadrature_points, 0.);
     std::vector<double> rhs1 (info.fe_values(0).n_quadrature_points, 0.);
 
-    const Parameters& p = *parameters;
-    
+    const Parameters& p = *parameters;    
     for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
       {
 	const double u = info.values[0][0][k];
@@ -106,24 +105,19 @@ namespace ReactionDiffusion
     IntegrationInfo<dim>& info2) const
   {
     const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-    Laplace::ip_residual(
-      dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
+    const Parameters& p = *parameters;
+    Laplace::ip_residual(dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
       info1.fe_values(0), info2.fe_values(0),
-      info1.values[0][0],
-      info1.gradients[0][0],
-      info2.values[0][0],
-      info2.gradients[0][0],
+      info1.values[0][0], info1.gradients[0][0],
+      info2.values[0][0], info2.gradients[0][0],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      -parameters->alpha0*this->timestep);
-    Laplace::ip_residual(
-      dinfo1.vector(0).block(1), dinfo2.vector(0).block(1),
+      p.alpha1);
+    Laplace::ip_residual(dinfo1.vector(0).block(1), dinfo2.vector(0).block(1),
       info1.fe_values(0), info2.fe_values(0),
-      info1.values[0][1],
-      info1.gradients[0][1],
-      info2.values[0][1],
-      info2.gradients[0][1],
+      info1.values[0][1], info1.gradients[0][1],
+      info2.values[0][1], info2.gradients[0][1],
       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      -parameters->alpha1*this->timestep);
+      p.alpha2);
   }
 }
 
