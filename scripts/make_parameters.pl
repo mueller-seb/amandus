@@ -1,3 +1,4 @@
+#!/bin/perl
 
 use strict;
 my @type;
@@ -20,6 +21,10 @@ my %get =
     'double' => 'get_double',
     'std::string' => 'get'
 );
+
+print "<$ARGV[2] > $ARGV[3]\n";
+
+#open(my $in, "<$
 
 while(<>)
 {
