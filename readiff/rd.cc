@@ -70,6 +70,7 @@ int main(int argc, const char** argv)
   deallog.depth_console(2);
   
   AmandusParameters param;
+  ReactionDiffusion::Parameters::declare_parameters(param);
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -82,11 +83,17 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   ReactionDiffusion::Parameters parameters;
-  ReactionDiffusion::Matrix<d> matrix_integrator(parameters);
-  ReactionDiffusion::Residual<d> explicit_integrator(parameters);
+  parameters.parse_parameters(param);
+  
+  ReactionDiffusion::Matrix<d> m_integrator(parameters);
+  Integrators::Theta<d> matrix_integrator(m_integrator, true);
+  matrix_integrator.input_vector_names.push_back("Newton iterate");
+  ReactionDiffusion::Residual<d> r_integrator(parameters);
+  Integrators::Theta<d> explicit_integrator(r_integrator, false);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
-  ReactionDiffusion::Residual<d> implicit_integrator(parameters);
+  Integrators::Theta<d> implicit_integrator(r_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
+
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   //AmandusUMFPACK<d> app(tr, *fe);

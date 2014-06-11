@@ -15,7 +15,7 @@ using namespace dealii;
 AmandusParameters::AmandusParameters ()
 {
   enter_subsection("Discretization");
-  declare_entry("FE", "", Patterns::Anything());
+  declare_entry("FE", "FE_Nothing", Patterns::Anything());
   declare_entry("Refinement", "1", Patterns::Integer());
   leave_subsection();
   
