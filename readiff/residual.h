@@ -77,8 +77,8 @@ namespace ReactionDiffusion
       {
 	const double u = info.values[0][0][k];
 	const double v = info.values[0][1][k];
-	rhs0[k] = p.A1 + p.B1*u + p.C1*v + p.D1*u*v + p.E1*u*u + p.F1*v*v;
-	rhs1[k] = p.A2 + p.B2*u + p.C2*v + p.D2*u*v + p.E2*u*u + p.F2*v*v;
+	rhs0[k] = p.A1 + p.B1*u + p.C1*v + p.D1*u*v + p.E1*u*u + p.F1*v*v + p.G1*u*u*v + p.H1*u*v*v;
+	rhs1[k] = p.A2 + p.B2*u + p.C2*v + p.D2*u*v + p.E2*u*u + p.F2*v*v + p.G2*u*u*v + p.H2*u*v*v;
       }
   
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs0);

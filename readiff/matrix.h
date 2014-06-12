@@ -20,8 +20,8 @@ using namespace LocalIntegrators;
  * These integrators deal with the equations
  *
  * \f{align*}{
- * 0 &= u' - \alpha\Delta u - B - u^2 v + (A+1) u \\
- * 0 &= v' - \alpha\Delta v - Au + u^2 v.
+ * 0 &= u' - \alpha_1\Delta u - A_1-B_1u+C_1v+D_1uv+E_1u^2+F_1v^2+G_1u^2v+H_1uv^2 \\
+ * 0 &= v' - \alpha_2\Delta v - A_2-B_2u+C_2v+D_2uv+E_2u^2+F_2v^2+G_2u^2v+H_2uv^2
  * \f}
  *
  * A parameter set can be found in G. Adomian: The Diffusion
@@ -40,14 +40,6 @@ namespace ReactionDiffusion
    * The derivative of the residual operator in ImplicitResidual
    * consists of 4 matrices, namely:
    *
-   * \f{align*}{
-   * \partial_u r_u(w) & = w - \theta\Delta t \bigl( \alpha\Delta w +
-   * 2 uvw - (A+1)w \\
-   * \partial_v r_u(w) & = - \theta\Delta t u^2 w \\
-   * \partial_v r_v(w) & = w - \theta\Delta t \bigl( \alpha\Delta w -
-   * u^2 \bigr) \\
-   * \partial_u r_v(w) & = \theta\Delta t 2uvw
-   * \f}
    */
   template <int dim>
   class Matrix : public AmandusIntegrator<dim>
@@ -81,10 +73,8 @@ namespace ReactionDiffusion
 //    Assert (info.values.size() >0, ExcInternalError());
     
     const Parameters& p = *parameters;
-    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-    			 parameters->alpha1);
-    Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0),
-    			 parameters->alpha2);
+    Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), p.alpha1);
+    Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0), p.alpha2);
     if (info.values.size() > 0)
       {
     AssertDimension(info.values[0].size(), 2);
@@ -98,15 +88,15 @@ namespace ReactionDiffusion
       {
 	const double u = info.values[0][0][k];
 	const double v = info.values[0][1][k];
-	Du_ru[k] = p.B1 + p.D1*v + 2.*p.E1*u;
-	Dv_ru[k] = p.C1 + p.D1*u + 2.*p.F1*v;
-	Dv_rv[k] = p.C2 + p.D2*u + 2.*p.F2*v;
-	Du_rv[k] = p.B2 + p.D2*v + 2.*p.E2*u;
+	Du_ru[k] = p.B1 + p.D1*v + 2.*p.E1*u + 2.*p.G1*u*v + p.H1*v*v;
+	Dv_ru[k] = p.C1 + p.D1*u + 2.*p.F1*v + 2.*p.H1*u*v + p.G1*u*u;
+	Dv_rv[k] = p.C2 + p.D2*u + 2.*p.F2*v + 2.*p.H2*u*v + p.G2*u*u;
+	Du_rv[k] = p.B2 + p.D2*v + 2.*p.E2*u + 2.*p.G2*u*v + p.H2*v*v;
       }
     L2::weighted_mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), Du_ru);
     L2::weighted_mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0), Dv_ru);
-    L2::weighted_mass_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), Dv_rv);
-    L2::weighted_mass_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0), Du_rv);
+    L2::weighted_mass_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), Du_rv);
+    L2::weighted_mass_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0), Dv_rv);
       }
   }
   

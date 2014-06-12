@@ -20,6 +20,7 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/utilities.h>
 #include <apps.h>
 #include <readiff/residual.h>
 #include <readiff/matrix.h>
@@ -54,8 +55,16 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[k](0) = 2. + .25*p(1);
-      values[k](1) = 1. + .8*p(0);
+      if (std::fabs(p(0)) < .125 && std::fabs(p(1)) < .125)
+	{
+	  values[k](0) = Utilities::generate_normal_random_number(.5, .005);
+	  values[k](1) = Utilities::generate_normal_random_number(.25, .005);
+	}
+      else
+	{
+	  values[k](0) = 1.;
+	  values[k](1) = 0.;
+	}
     }
 }
 
