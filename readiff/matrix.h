@@ -71,8 +71,6 @@ namespace ReactionDiffusion
 		  parameters(&par)
   {
     this->use_boundary = false;
-    this->use_face = true;
-    this->input_vector_names.push_back("Newton iterate");
   }
 
 
@@ -80,14 +78,15 @@ namespace ReactionDiffusion
   void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
   {
     AssertDimension (dinfo.n_matrices(), 4);
-    // Assert (info.values.size() >0, ExcInternalError());
+//    Assert (info.values.size() >0, ExcInternalError());
     
     const Parameters& p = *parameters;
     Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
     			 parameters->alpha1);
     Laplace::cell_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0),
     			 parameters->alpha2);
-    
+    if (info.values.size() > 0)
+      {
     AssertDimension(info.values[0].size(), 2);
     AssertDimension(info.values[0][0].size(), info.fe_values(0).n_quadrature_points);
     AssertDimension(info.values[0][1].size(), info.fe_values(0).n_quadrature_points);
@@ -108,8 +107,9 @@ namespace ReactionDiffusion
     L2::weighted_mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0), Dv_ru);
     L2::weighted_mass_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), Dv_rv);
     L2::weighted_mass_matrix(dinfo.matrix(3,false).matrix, info.fe_values(0), Du_rv);
+      }
   }
-
+  
 
   template <int dim>
   void Matrix<dim>::boundary(

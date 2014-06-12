@@ -6,7 +6,7 @@
  * @brief Instationary ReactionDiffusion problem
  * <ul>
  * <li>Instationary ReactionDiffusion model</li>
- * <li>Homogeneous Dirichlet boundary conditions</li>
+ * <li>Homogeneous Neumann boundary conditions</li>
  * <li>Exact polynomial solutionExact polynomial solution</li>
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -78,7 +78,7 @@ int main(int argc, const char** argv)
   boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, 0., 1.);
+  GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
@@ -89,14 +89,13 @@ int main(int argc, const char** argv)
   Integrators::Theta<d> matrix_integrator(m_integrator, true);
   matrix_integrator.input_vector_names.push_back("Newton iterate");
   ReactionDiffusion::Residual<d> r_integrator(parameters);
-  Integrators::Theta<d> explicit_integrator(r_integrator, false);
-  explicit_integrator.input_vector_names.push_back("Previous iterate");
   Integrators::Theta<d> implicit_integrator(r_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
+  Integrators::Theta<d> explicit_integrator(r_integrator, false);
+  explicit_integrator.input_vector_names.push_back("Previous iterate");
 
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  //AmandusUMFPACK<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);
