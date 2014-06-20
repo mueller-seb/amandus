@@ -52,6 +52,7 @@ int main(int argc, const char** argv)
   LaplacePolynomialError<d> error_integrator(solution1d);
   
   AmandusUMFPACK<d>     app(tr, *fe);
+  app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);

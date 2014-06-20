@@ -53,12 +53,13 @@ int main(int argc, const char** argv)
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   LaplacePolynomialError<d> error_integrator(solution1d);
   
-  AmandusApplication<d> app(tr, *fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.initialize(app.dof_handler);
+  newout.initialize(app.dofs());
   
   param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);

@@ -124,8 +124,22 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 			     bool use_umfpack = false);
 
     /**
-     * Declare parameters
+     * Set the boundary components that should be constrained if the
+     * boundary indicator is equal to index.
+     *
+     * The constraints for these boundary values are set in
+     * setup_constraints(), and they are always constrained to
+     * zero. Inhomogeneous boundary conditions are obtained by setting
+     * the boundary values of the start vector of a dealii::Newton or a
+     * dealii::ThetaTimestepping method.
+     *
+     * @param `index`: the boundary indicator for which the boundary
+     * constraints re being set.
+     *
+     * @param `mask`: the object selecting the blocks of an dealii::FESystem
+     * to which the constraints are to be applied.
      */
+    void set_boundary (unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
     
     /**
      * Initialize the vector <code>v</code> to the size matching the
@@ -152,7 +166,12 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 				  const AmandusIntegrator<dim>& integrator) const;
   
     void refine_mesh (const bool global = false);
-  
+
+    /**
+     * The object describing the finite element space.
+     */
+    const dealii::DoFHandler<dim>& dofs () const;
+    
   public:
     /**
      * Set up hanging node constraints for leaf mesh and for level
@@ -209,12 +228,27 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * The object controlling the iteration in solve().
      */
     dealii::ReductionControl control;
-    //  protected:
-    dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim> > triangulation;
-    const dealii::MappingQ1<dim>      mapping;
-    dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationSparse<dim> > fe;
-    dealii::DoFHandler<dim> dof_handler;
     
+  protected:
+    /// The mesh
+    dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim> > triangulation;
+    
+    /// The default mapping
+    const dealii::MappingQ1<dim>      mapping;
+
+    /// The finite element constructed from the string
+    dealii::SmartPointer<const dealii::FiniteElement<dim>, AmandusApplicationSparse<dim> > fe;
+
+    /// The object handling the degrees of freedom
+    dealii::DoFHandler<dim> dof_handler;
+
+    /**
+     * @brief The masks used to set boundary conditions, indexed by the
+     * boundary indicator
+     */
+    std::vector<dealii::ComponentMask> boundary_masks;
+    
+    /// The object holding the constraints for the active mesh
     dealii::ConstraintMatrix     constraints;
   
     dealii::SparsityPattern      sparsity;
@@ -396,6 +430,14 @@ class AmandusSolve
     /// The pointer to the local integrator for assembling matrices
     dealii::SmartPointer<AmandusIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
+
+
+template <int dim>
+inline const dealii::DoFHandler<dim>&
+AmandusApplicationSparse<dim>::dofs () const
+{
+  return dof_handler;
+}
 
 
 #endif

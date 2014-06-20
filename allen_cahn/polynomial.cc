@@ -52,7 +52,7 @@ int main()
   AmandusResidual<d> residual(app, rhs_integrator);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.initialize(app.dof_handler);
+  newout.initialize(app.dofs());
   
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);

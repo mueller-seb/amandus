@@ -57,7 +57,7 @@ int main()
   app.control.set_reduction(1.e-10);
   
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.initialize(app.dof_handler);
+  newout.initialize(app.dofs());
   
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(residual, solver);
   timestepping.set_output(newout);

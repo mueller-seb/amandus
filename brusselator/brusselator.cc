@@ -104,7 +104,7 @@ int main(int argc, const char** argv)
   param.enter_subsection("Output");
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.parse_parameters(param);
-  newout.initialize(app.dof_handler);
+  newout.initialize(app.dofs());
   param.leave_subsection();
   
   param.enter_subsection("Newton");
@@ -126,7 +126,7 @@ int main(int argc, const char** argv)
   app.setup_vector(solution);
   
   Startup<d> startup;
-  VectorTools::interpolate(app.dof_handler, startup, solution);
+  VectorTools::interpolate(app.dofs(), startup, solution);
   
   dealii::AnyData indata;
   indata.add(&solution, "solution");

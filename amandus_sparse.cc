@@ -88,9 +88,22 @@ AmandusApplicationSparse<dim>::setup_system()
 
 
 template <int dim>
+void
+AmandusApplicationSparse<dim>::set_boundary(unsigned int index, dealii::ComponentMask mask)
+{
+  if (boundary_masks.size() <= index)
+    boundary_masks.resize(index+1);
+  boundary_masks[index] = mask;
+}
+
+
+template <int dim>
 void AmandusApplicationSparse<dim>::setup_constraints()
 {
   constraints.clear();
+  for (unsigned int i=0;i<boundary_masks.size();++i)
+    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraints, boundary_masks[i]);
+  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
   constraints.close();
 }
 
