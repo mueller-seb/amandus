@@ -1,0 +1,4 @@
+include_guard __elasticity_parameters_h
+namespace Elasticity
+parameter double mu "1." "Mu"
+parameter double lambda "100." "Lambda"

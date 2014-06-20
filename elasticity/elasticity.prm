@@ -1,0 +1,4 @@
+subsection Discretization
+  set FE         = FESystem[FE_DGQ(2)^d]
+  set Refinement = 1
+end
