@@ -48,7 +48,7 @@
 using namespace dealii;
 
 template <int dim>
-AmandusApplicationSparseMultigrid<dim>::AmandusApplicationSparseMultigrid(
+AmandusApplication<dim>::AmandusApplication(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
@@ -59,7 +59,7 @@ AmandusApplicationSparseMultigrid<dim>::AmandusApplicationSparseMultigrid(
 
 template <int dim>
 void
-AmandusApplicationSparseMultigrid<dim>::setup_system()
+AmandusApplication<dim>::setup_system()
 {
   this->dof_handler.distribute_mg_dofs(*this->fe);
   mg_transfer.clear();
@@ -96,7 +96,7 @@ AmandusApplicationSparseMultigrid<dim>::setup_system()
 
 
 template <int dim>
-void AmandusApplicationSparseMultigrid<dim>::setup_constraints()
+void AmandusApplication<dim>::setup_constraints()
 {
   this->constraints.clear();
   for (unsigned int i=0;i<this->boundary_masks.size();++i)
@@ -111,7 +111,7 @@ void AmandusApplicationSparseMultigrid<dim>::setup_constraints()
 
 template <int dim>
 void
-AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
+AmandusApplication<dim>::assemble_mg_matrix(
   const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
@@ -149,7 +149,7 @@ AmandusApplicationSparseMultigrid<dim>::assemble_mg_matrix(
 
 template <int dim>
 void
-AmandusApplicationSparseMultigrid<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
   const unsigned int minlevel = 0;
   SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
@@ -208,8 +208,6 @@ AmandusApplicationSparseMultigrid<dim>::solve(Vector<double>& sol, const Vector<
 }
 
 
-
-
-template class AmandusApplicationSparseMultigrid<2>;
-template class AmandusApplicationSparseMultigrid<3>;
+template class AmandusApplication<2>;
+template class AmandusApplication<3>;
 

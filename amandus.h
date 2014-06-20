@@ -78,7 +78,7 @@ class AmandusParameters : public dealii::ParameterHandler
  * An application class with a plain GMRES solver and optional UMFPack
  * as a preconditioner (see constructor arguments). This is mostly to
  * test discretizations and it sould be improved by a derived class
- * with a multigrid solver like AmandusApplicationSparseMultigrid.
+ * with a multigrid solver like AmandusApplication.
  *
  * This class provides storage for the DoFHandler object and the
  * matrix associated with a finite element discretization. The basic
@@ -291,7 +291,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
  * @ingroup apps
  */
 template <int dim>
-class AmandusApplicationSparseMultigrid
+class AmandusApplication
   : public AmandusApplicationSparse<dim>
 {
   public:
@@ -303,8 +303,8 @@ class AmandusApplicationSparseMultigrid
      * of freedom or initialize sparsity patterns, which has to be
      * achieved by calling setup_system().
      */
-    AmandusApplicationSparseMultigrid(dealii::Triangulation<dim>& triangulation,
-				      const dealii::FiniteElement<dim>& fe);
+    AmandusApplication(dealii::Triangulation<dim>& triangulation,
+		       const dealii::FiniteElement<dim>& fe);
 
     /**
      * Initialize the finite element system on the current mesh.  This
@@ -349,23 +349,8 @@ class AmandusApplicationSparseMultigrid
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
 };
 
-
-/**
- * The same as AmandusApplicationSparse, but with multigrid constraints
- * and homogeneous Dirichlet boundary conditions.
- *
- * @ingroup apps
- */
-template <int dim>
-class AmandusApplication : public AmandusApplicationSparseMultigrid<dim>
-{
-  public:
-    AmandusApplication(dealii::Triangulation<dim>& triangulation,
-		       const dealii::FiniteElement<dim>& fe);
-  private:
-    virtual void setup_constraints ();
-};
-
+/// Compatibility definition
+#define AmandusApplicationSparseMultigrid AmandusApplication
 
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints

@@ -50,35 +50,6 @@ using namespace dealii;
 
 
 template <int dim>
-AmandusApplication<dim>::AmandusApplication(
-  Triangulation<dim>& triangulation,
-  const FiniteElement<dim>& fe)
-		:
-  AmandusApplicationSparseMultigrid<dim>(triangulation, fe)
-{}
-
-
-template <int dim>
-void AmandusApplication<dim>::setup_constraints()
-{
-  this->constraints.clear();
-
-  typename FunctionMap<dim>::type homogen_bc;
-  ZeroFunction<dim> zero_function (dim);
-  homogen_bc[0] = &zero_function;
-
-  DoFTools::make_zero_boundary_constraints(this->dof_handler, this->constraints);
-  this->constraints.close();
-
-  this->mg_constraints.clear();
-  this->mg_constraints.initialize(this->dof_handler, homogen_bc);
-}
-
-
-//----------------------------------------------------------------------//
-
-
-template <int dim>
 AmandusUMFPACK<dim>::AmandusUMFPACK(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
@@ -155,9 +126,6 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 //  deallog << "Norms " << rhs->l2_norm() << ' ' << solution->l2_norm() << std::endl;
 }
 
-
-template class AmandusApplication<2>;
-template class AmandusApplication<3>;
 
 template class AmandusUMFPACK<2>;
 template class AmandusUMFPACK<3>;
