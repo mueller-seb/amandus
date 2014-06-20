@@ -23,7 +23,7 @@ int main()
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
-  tr.refine_global(3);
+  tr.refine_global(1);
   
   const unsigned int degree = 1;
   FE_BDM<d> vec(degree+1);
@@ -47,7 +47,8 @@ int main()
   DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
   DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
-  AmandusApplication<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   

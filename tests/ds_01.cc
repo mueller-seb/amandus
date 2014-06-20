@@ -48,7 +48,8 @@ int main()
   Brinkman::Matrix<d> matrix_integrator(coefficients);
   RhsOne<d> rhs_integrator;
 
-  AmandusApplication<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
