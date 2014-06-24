@@ -171,6 +171,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * The object describing the finite element space.
      */
     const dealii::DoFHandler<dim>& dofs () const;
+
+    /**
+     * The object describing the constraints.
+     */
+    const dealii::ConstraintMatrix& constraints() const;
     
   public:
     /**
@@ -249,7 +254,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     std::vector<dealii::ComponentMask> boundary_masks;
     
     /// The object holding the constraints for the active mesh
-    dealii::ConstraintMatrix     constraints;
+    dealii::ConstraintMatrix     constraint_matrix;
   
     dealii::SparsityPattern      sparsity;
     dealii::SparseMatrix<double> matrix;
@@ -422,6 +427,14 @@ inline const dealii::DoFHandler<dim>&
 AmandusApplicationSparse<dim>::dofs () const
 {
   return dof_handler;
+}
+
+
+template <int dim>
+inline const dealii::ConstraintMatrix&
+AmandusApplicationSparse<dim>::constraints () const
+{
+  return constraint_matrix;
 }
 
 

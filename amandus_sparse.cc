@@ -81,7 +81,7 @@ AmandusApplicationSparse<dim>::setup_system()
   setup_constraints ();
 
   CompressedSparsityPattern c_sparsity(n_dofs);
-  DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints);
+  DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints());
   sparsity.copy_from(c_sparsity);
   matrix.reinit(sparsity);  
 }
@@ -100,11 +100,12 @@ AmandusApplicationSparse<dim>::set_boundary(unsigned int index, dealii::Componen
 template <int dim>
 void AmandusApplicationSparse<dim>::setup_constraints()
 {
-  constraints.clear();
+  constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraints, boundary_masks[i]);
-  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
-  constraints.close();
+    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, boundary_masks[i]);
+  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraint_matrix);
+  constraint_matrix.close();
+  deallog << "Constrained " << constraint_matrix.n_constraints() << " dofs" << std::endl;
 }
 
 
@@ -132,7 +133,7 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   MeshWorker::Assembler::MatrixSimple<SparseMatrix<double> > assembler;
   assembler.initialize_local_blocks(dof_handler.block_info().local());
   assembler.initialize(matrix);
-  assembler.initialize(constraints);
+  assembler.initialize(constraints());
 
   MeshWorker::LoopControl control;
   control.cells_first = false;
@@ -141,7 +142,7 @@ AmandusApplicationSparse<dim>::assemble_matrix(
     dof_info, info_box, integrator, assembler, control);
   
   for (unsigned int i=0;i<matrix.m();++i)
-    if (constraints.is_constrained(i))
+    if (constraints().is_constrained(i))
       matrix.diag_element(i) = 1.;
 
   if (use_umfpack)
@@ -184,7 +185,7 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
   MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;  
-  assembler.initialize(this->constraints);
+  assembler.initialize(this->constraints());
   assembler.initialize(out);
   
   MeshWorker::LoopControl control;
@@ -220,7 +221,7 @@ AmandusApplicationSparse<dim>::verify_residual(
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
   MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;  
-  assembler.initialize(this->constraints);
+  assembler.initialize(this->constraint_matrix);
   assembler.initialize(out);
   
   MeshWorker::LoopControl control;
@@ -248,7 +249,7 @@ AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& 
     solver.solve(matrix, sol, rhs, this->inverse);
   else
     solver.solve(matrix, sol, rhs, identity);
-  constraints.distribute(sol);
+  constraints().distribute(sol);
 }
 
 
