@@ -5,12 +5,13 @@
 
 #include <deal.II/meshworker/integration_info.h>
 #include <integrator.h>
+#include <elasticity/parameters.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
+#include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/elasticity.h>
 
-using namespace dealii;
-using namespace LocalIntegrators;
+using namespace dealii::MeshWorker;
 
 
 namespace Elasticity
@@ -26,47 +27,63 @@ namespace Elasticity
  *
  * @ingroup integrators
  */
-template <int dim>
-class Matrix : public AmandusIntegrator<dim>
-{
-public:
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
-};
+  template <int dim>
+  class Matrix : public AmandusIntegrator<dim>
+  {
+    public:
+      Matrix(const Parameters& par);
+      
+      virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+      virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+      virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2,
+			IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const;
+    private:
+      dealii::SmartPointer<const Parameters, class Matrix<dim> > parameters;
+  };
 
 
-template <int dim>
-void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
-{
-  AssertDimension (dinfo.n_matrices(), 1);
-  Elasticity::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
-}
-
-
-template <int dim>
-void Matrix<dim>::boundary(
-  MeshWorker::DoFInfo<dim>& dinfo,
-  typename MeshWorker::IntegrationInfo<dim>& info) const
-{
-  const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  Elasticity::nitsche_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-			     Elasticity::compute_penalty(dinfo, dinfo, deg, deg));
-}
-
-
-template <int dim>
-void Matrix<dim>::face(
-  MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-  MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
-{
-  const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-  Elasticity::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
-			dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
-			info1.fe_values(0), info2.fe_values(0),
-			Elasticity::compute_penalty(dinfo1, dinfo2, deg, deg));
-}
+  template <int dim>
+  Matrix<dim>::Matrix(const Parameters& par)
+		  :
+		  parameters(&par)
+  {
+    this->use_boundary = false;
+    this->use_face = true;
+    //this->input_vector_names.push_back("Newton iterate");
+  }
+  
+  template <int dim>
+  void Matrix<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  {
+    AssertDimension (dinfo.n_matrices(), 1);
+    dealii::LocalIntegrators::Elasticity::cell_matrix(
+      dinfo.matrix(0,false).matrix, info.fe_values(0));
+  }
+  
+  
+  template <int dim>
+  void Matrix<dim>::boundary(
+    DoFInfo<dim>& dinfo,
+    IntegrationInfo<dim>& info) const
+  {
+    const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
+    dealii::LocalIntegrators::Elasticity::nitsche_matrix(
+      dinfo.matrix(0,false).matrix, info.fe_values(0),
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg));
+  }
+  
+  
+  template <int dim>
+  void Matrix<dim>::face(
+    DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2,
+    IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const
+  {
+    const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
+    dealii::LocalIntegrators::Elasticity::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
+						    dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
+						    info1.fe_values(0), info2.fe_values(0),
+						    dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+  }
 }
 
 
