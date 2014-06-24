@@ -66,7 +66,7 @@ class Residual : public AmandusIntegrator<dim>
   {
     Assert(info.values.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
     Assert(info.gradients.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
-
+    
     const double mu = parameters->mu;
     const double lambda = parameters->lambda;
     
@@ -93,22 +93,25 @@ void Residual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-  std::vector<std::vector<double> > bdry(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+  std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+
+  if (dinfo.face->boundary_indicator() == 0)
+    std::fill(null[0].begin(), null[0].end(), -.1);
+  if (dinfo.face->boundary_indicator() == 1)
+    std::fill(null[0].begin(), null[0].end(), .1);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
-    {
-      boundary_values->vector_values(info.fe_values(0).get_quadrature_points(), bdry);
-      dealii::LocalIntegrators::Elasticity::nitsche_residual(
-	dinfo.vector(0).block(0), info.fe_values(0),
-	dealii::make_slice(info.values[0], 0, dim),
-	dealii::make_slice(info.gradients[0], 0, dim),
-	bdry,
-	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-	2.*parameters->mu);
-    }
+    dealii::LocalIntegrators::Elasticity::nitsche_residual(
+      dinfo.vector(0).block(0), info.fe_values(0),
+      dealii::make_slice(info.values[0], 0, dim),
+      dealii::make_slice(info.gradients[0], 0, dim),
+      null,
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+      2.*parameters->mu);
 }
   
+
 
   template <int dim>
   void Residual<dim>::face(
