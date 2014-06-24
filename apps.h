@@ -100,7 +100,7 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       if (initial_vector)
 	{
 	  dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+1);
-	  dealii::VectorTools::project(app.dofs(), app.constraints(), quadrature, *initial_vector, sol);
+	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
 	}
       else
 	sol = 0.;

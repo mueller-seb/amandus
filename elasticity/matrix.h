@@ -8,6 +8,7 @@
 #include <elasticity/parameters.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
+#include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/elasticity.h>
 
@@ -47,8 +48,8 @@ namespace Elasticity
 		  :
 		  parameters(&par)
   {
-    this->use_boundary = false;
-    this->use_face = true;
+//    this->use_boundary = false;
+//    this->use_face = false;
     //this->input_vector_names.push_back("Newton iterate");
   }
   
@@ -57,7 +58,9 @@ namespace Elasticity
   {
     AssertDimension (dinfo.n_matrices(), 1);
     dealii::LocalIntegrators::Elasticity::cell_matrix(
-      dinfo.matrix(0,false).matrix, info.fe_values(0));
+      dinfo.matrix(0,false).matrix, info.fe_values(0), parameters->mu);
+    dealii::LocalIntegrators::Divergence::grad_div_matrix(
+      dinfo.matrix(0,false).matrix, info.fe_values(0), parameters->lambda);
   }
   
   
@@ -67,9 +70,11 @@ namespace Elasticity
     IntegrationInfo<dim>& info) const
   {
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-    dealii::LocalIntegrators::Elasticity::nitsche_matrix(
-      dinfo.matrix(0,false).matrix, info.fe_values(0),
-      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg));
+    if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
+      dealii::LocalIntegrators::Elasticity::nitsche_matrix(
+	dinfo.matrix(0,false).matrix, info.fe_values(0),
+	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+	parameters->mu);
   }
   
   
@@ -79,10 +84,12 @@ namespace Elasticity
     IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const
   {
     const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-    dealii::LocalIntegrators::Elasticity::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
-						    dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
-						    info1.fe_values(0), info2.fe_values(0),
-						    dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+    dealii::LocalIntegrators::Elasticity::ip_matrix(
+      dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
+      dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
+      info1.fe_values(0), info2.fe_values(0),
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
+      parameters->mu);
   }
 }
 

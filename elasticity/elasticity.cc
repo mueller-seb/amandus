@@ -56,9 +56,9 @@ Startup<dim>::vector_value_list (
     {
       const Point<dim>& p = points[k];
       if (p(0) < 0.)
-	values[k](0) = -1.;
+	values[k](0) = -.1;
       else if (p(0) > 0.)
-	values[k](0) = 1.;	
+	values[k](0) = .1;	
     }
 }
 
@@ -90,7 +90,7 @@ int main(int argc, const char** argv)
   ::Elasticity::Residual<d> rhs_integrator(parameters);
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   
-  AmandusApplication<d> app(tr, *fe);
+  AmandusUMFPACK<d> app(tr, *fe);
   app.set_boundary(0);
   app.set_boundary(1);
   AmandusSolve<d>       solver(app, matrix_integrator);
@@ -108,5 +108,5 @@ int main(int argc, const char** argv)
   newton.debug_vectors = true;
 
   Startup<d> startup;
-  global_refinement_nonlinear_loop<d>(5, app, newton, 0, 0, &startup);
+  global_refinement_nonlinear_loop<d>(2, app, newton, 0, 0, &startup);
 }
