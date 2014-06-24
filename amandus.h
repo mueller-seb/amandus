@@ -168,14 +168,20 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     void refine_mesh (const bool global = false);
 
     /**
-     * The object describing the finite element space.
+     * \brief The object describing the finite element space.
      */
     const dealii::DoFHandler<dim>& dofs () const;
 
     /**
-     * The object describing the constraints.
+     * \brief The object describing the constraints.
      */
     const dealii::ConstraintMatrix& constraints() const;
+    
+    /**
+     * \brief The object describing the constraints for hanging nodes, not
+     * for the boundary.
+     */
+    const dealii::ConstraintMatrix& hanging_nodes() const;
     
   public:
     /**
@@ -256,6 +262,9 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     /// The object holding the constraints for the active mesh
     dealii::ConstraintMatrix     constraint_matrix;
   
+    /// The object holding the hanging node constraints for the active mesh
+    dealii::ConstraintMatrix     hanging_node_constraints;
+  
     dealii::SparsityPattern      sparsity;
     dealii::SparseMatrix<double> matrix;
     const bool use_umfpack;
@@ -319,14 +328,10 @@ class AmandusApplication
      * @note This function calls the virtual function setup_constraints().
      */
     void setup_system ();
-  
+
+    void setup_constraints ();
+    
   public:
-    /**
-     * Set up hanging node constraints for leaf mesh and for level
-     * meshes. Use redefinition in derived classes to add boundary
-     * constraints.
-     */
-    virtual void setup_constraints ();
     /**
      * Use the integrator to build the matrix for the level meshes. This
      * also automatically generates the transfer matrices needed for
@@ -369,8 +374,6 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
   public:
     AmandusUMFPACK(dealii::Triangulation<dim>& triangulation,
 		   const dealii::FiniteElement<dim>& fe);
-  private:
-    virtual void setup_constraints ();
 };
 
 
@@ -435,6 +438,14 @@ inline const dealii::ConstraintMatrix&
 AmandusApplicationSparse<dim>::constraints () const
 {
   return constraint_matrix;
+}
+
+
+template <int dim>
+inline const dealii::ConstraintMatrix&
+AmandusApplicationSparse<dim>::hanging_nodes () const
+{
+  return hanging_node_constraints;
 }
 
 

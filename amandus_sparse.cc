@@ -100,6 +100,11 @@ AmandusApplicationSparse<dim>::set_boundary(unsigned int index, dealii::Componen
 template <int dim>
 void AmandusApplicationSparse<dim>::setup_constraints()
 {
+  hanging_node_constraints.clear();
+  DoFTools::make_hanging_node_constraints(this->dof_handler, this->hanging_node_constraints);
+  hanging_node_constraints.close();
+  deallog << "Hanging nodes " << hanging_node_constraints.n_constraints() << std::endl;
+  
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
     DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, boundary_masks[i]);

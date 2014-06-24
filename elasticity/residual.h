@@ -51,9 +51,8 @@ class Residual : public AmandusIntegrator<dim>
 		  :
 		  parameters(&par)
   {
-    this->use_boundary = false;
-    this->use_face = true;
-    
+//    this->use_boundary = false;
+//    this->use_face = false;
     this->input_vector_names.push_back("Newton iterate");
   }
   
@@ -67,7 +66,10 @@ class Residual : public AmandusIntegrator<dim>
     
     dealii::LocalIntegrators::Elasticity::cell_residual(
       dinfo.vector(0).block(0), info.fe_values(0),
-      dealii::make_slice(info.gradients[0], 0, dim));
+      dealii::make_slice(info.gradients[0], 0, dim), parameters->mu);
+    dealii::LocalIntegrators::Divergence::grad_div_residual(
+      dinfo.vector(0).block(0), info.fe_values(0),
+      dealii::make_slice(info.gradients[0], 0, dim), parameters->lambda);
   }
 
 
@@ -77,14 +79,21 @@ void Residual<dim>::boundary(
   IntegrationInfo<dim>& info) const
 {
   std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+
+  if (dinfo.face->boundary_indicator() == 0)
+    std::fill(null[0].begin(), null[0].end(), -.1);
+  if (dinfo.face->boundary_indicator() == 1)
+    std::fill(null[0].begin(), null[0].end(), .1);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  dealii::LocalIntegrators::Elasticity::nitsche_residual(
-    dinfo.vector(0).block(0), info.fe_values(0),
-    dealii::make_slice(info.values[0], 0, dim),
-    dealii::make_slice(info.gradients[0], 0, dim),
-    null,
-    dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg));
+  if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
+    dealii::LocalIntegrators::Elasticity::nitsche_residual(
+      dinfo.vector(0).block(0), info.fe_values(0),
+      dealii::make_slice(info.values[0], 0, dim),
+      dealii::make_slice(info.gradients[0], 0, dim),
+      null,
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+      parameters->mu);
 }
 
 
@@ -103,7 +112,8 @@ void Residual<dim>::boundary(
       dealii::make_slice(info1.gradients[0], 0, dim),
       dealii::make_slice(info2.values[0], 0, dim),
       dealii::make_slice(info2.gradients[0], 0, dim),
-      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
+      parameters->mu);
   }
 }
 

@@ -10,7 +10,7 @@ subsection Newton
   set Debug level         = 0
   set Debug vectors       = false
   set Log frequency       = 1
-  set Log history         = false
+  set Log history         = true
   set Log result          = true
   set Max steps           = 100
   set Reduction           = 1.e-14

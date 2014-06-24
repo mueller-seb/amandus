@@ -98,12 +98,7 @@ AmandusApplication<dim>::setup_system()
 template <int dim>
 void AmandusApplication<dim>::setup_constraints()
 {
-  this->constraint_matrix.clear();
-  for (unsigned int i=0;i<this->boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, this->boundary_masks[i]);
-  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraint_matrix);
-  deallog << "Constrained " << this->constraint_matrix.n_constraints() << " dofs" << std::endl;
-  this->constraint_matrix.close();
+  AmandusApplicationSparse<dim>::setup_constraints();
   
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
