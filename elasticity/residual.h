@@ -57,19 +57,18 @@ class Residual : public AmandusIntegrator<dim>
     this->input_vector_names.push_back("Newton iterate");
   }
   
-
-template <int dim>
-void Residual<dim>::cell(
-  DoFInfo<dim>& dinfo, 
-  IntegrationInfo<dim>& info) const
-{
-  Assert(info.values.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
-  Assert(info.gradients.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
-  
-  dealii::LocalIntegrators::Elasticity::cell_residual(
-    dinfo.vector(0).block(0), info.fe_values(0),
-    dealii::make_slice(info.gradients[0], 0, dim));
-}
+  template <int dim>
+  void Residual<dim>::cell(
+    DoFInfo<dim>& dinfo, 
+    IntegrationInfo<dim>& info) const
+  {
+    Assert(info.values.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
+    Assert(info.gradients.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
+    
+    dealii::LocalIntegrators::Elasticity::cell_residual(
+      dinfo.vector(0).block(0), info.fe_values(0),
+      dealii::make_slice(info.gradients[0], 0, dim));
+  }
 
 
 template <int dim>
@@ -89,23 +88,23 @@ void Residual<dim>::boundary(
 }
 
 
-template <int dim>
-void Residual<dim>::face(
-  DoFInfo<dim>& dinfo1, 
-  DoFInfo<dim>& dinfo2,
-  IntegrationInfo<dim>& info1, 
-  IntegrationInfo<dim>& info2) const
-{
-  const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-  dealii::LocalIntegrators::Elasticity::ip_residual(
-    dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
-    info1.fe_values(0), info2.fe_values(0),
-    dealii::make_slice(info1.values[0], 0, dim),
-    dealii::make_slice(info1.gradients[0], 0, dim),
-    dealii::make_slice(info2.values[0], 0, dim),
-    dealii::make_slice(info2.gradients[0], 0, dim),
-    dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
-}
+  template <int dim>
+  void Residual<dim>::face(
+    DoFInfo<dim>& dinfo1, 
+    DoFInfo<dim>& dinfo2,
+    IntegrationInfo<dim>& info1, 
+    IntegrationInfo<dim>& info2) const
+  {
+    const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
+    dealii::LocalIntegrators::Elasticity::ip_residual(
+      dinfo1.vector(0).block(0), dinfo2.vector(0).block(0),
+      info1.fe_values(0), info2.fe_values(0),
+      dealii::make_slice(info1.values[0], 0, dim),
+      dealii::make_slice(info1.gradients[0], 0, dim),
+      dealii::make_slice(info2.values[0], 0, dim),
+      dealii::make_slice(info2.gradients[0], 0, dim),
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+  }
 }
 
 

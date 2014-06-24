@@ -17,7 +17,6 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <deal.II/base/function.h>
 #include <apps.h>
 #include <elasticity/parameters.h>
 #include <elasticity/residual.h>
@@ -61,7 +60,6 @@ Startup<dim>::vector_value_list (
 	values[k](0) = 1.;	
     }
 }
-
 
   
 int main(int argc, const char** argv)
