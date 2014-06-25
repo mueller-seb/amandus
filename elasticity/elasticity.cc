@@ -56,9 +56,9 @@ Startup<dim>::vector_value_list (
     {
       const Point<dim>& p = points[k];
       if (p(0) < 0.)
-	values[k](0) = -.1;
+	values[k](0) = -.2;
       else if (p(0) > 0.)
-	values[k](0) = .1;	
+	values[k](0) = .2;	
     }
 }
 
@@ -105,7 +105,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
 
   newton.initialize(newout);
-  newton.debug_vectors = true;
+//  newton.debug_vectors = true;
 
   Startup<d> startup;
   global_refinement_nonlinear_loop<d>(2, app, newton, 0, 0, &startup);

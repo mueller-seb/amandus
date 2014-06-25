@@ -81,9 +81,9 @@ void Residual<dim>::boundary(
   std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
 
   if (dinfo.face->boundary_indicator() == 0)
-    std::fill(null[0].begin(), null[0].end(), -.1);
+    std::fill(null[0].begin(), null[0].end(), -.2);
   if (dinfo.face->boundary_indicator() == 1)
-    std::fill(null[0].begin(), null[0].end(), .1);
+    std::fill(null[0].begin(), null[0].end(), .2);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
