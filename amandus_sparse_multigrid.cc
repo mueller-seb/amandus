@@ -53,7 +53,7 @@ AmandusApplication<dim>::AmandusApplication(
   const FiniteElement<dim>& fe)
 		:
 		AmandusApplicationSparse<dim>(triangulation, fe, false),
-  mg_transfer(this->constraint_matrix, mg_constraints)
+		mg_transfer(this->constraint_matrix, mg_constraints)
 {}
 
 
