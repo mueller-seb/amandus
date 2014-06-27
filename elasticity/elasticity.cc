@@ -34,6 +34,8 @@ class Startup : public dealii::Function<dim>
     Startup();
     virtual void vector_value_list (const std::vector<Point<dim> > &points,
 				    std::vector<Vector<double> >   &values) const;
+    virtual void vector_values (const std::vector<Point<dim> > &points,
+				std::vector<std::vector<double> > & values) const;
 };
 
 
@@ -56,9 +58,28 @@ Startup<dim>::vector_value_list (
     {
       const Point<dim>& p = points[k];
       if (p(0) < 0.)
-	values[k](0) = -.2;
+	values[k](0) = -1.;
       else if (p(0) > 0.)
-	values[k](0) = .2;	
+	values[k](0) = 1.;	
+    }
+}
+
+  
+template <int dim>
+void
+Startup<dim>::vector_values (
+  const std::vector<Point<dim> > &points,
+  std::vector<std::vector<double> >   &values) const
+{
+  AssertVectorVectorDimension(values, this->n_components, points.size());
+  
+  for (unsigned int k=0;k<points.size();++k)
+    {
+      const Point<dim>& p = points[k];
+      if (p(0) < 0.)
+	values[0][k] = -1.;
+      else if (p(0) > 0.)
+	values[0][k] = 1.;	
     }
 }
 
@@ -83,11 +104,13 @@ int main(int argc, const char** argv)
   GridGenerator::hyper_cube (tr, -1, 1, true);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
-
+  
+  Startup<d> startup;
+  
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
   ::Elasticity::Matrix<d> matrix_integrator(parameters);
-  ::Elasticity::Residual<d> rhs_integrator(parameters);
+  ::Elasticity::Residual<d> rhs_integrator(parameters, startup);
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   
   AmandusUMFPACK<d> app(tr, *fe);
@@ -107,6 +130,5 @@ int main(int argc, const char** argv)
   newton.initialize(newout);
 //  newton.debug_vectors = true;
 
-  Startup<d> startup;
   global_refinement_nonlinear_loop<d>(2, app, newton, 0, 0, &startup);
 }

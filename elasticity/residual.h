@@ -29,7 +29,7 @@ template <int dim>
 class Residual : public AmandusIntegrator<dim>
 {
   public:
-    Residual(const Parameters& par);
+    Residual(const Parameters& par, const dealii::Function<dim>& bdry);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -41,15 +41,17 @@ class Residual : public AmandusIntegrator<dim>
 		      IntegrationInfo<dim>& info2) const;
     private:
     dealii::SmartPointer<const Parameters, class Residual<dim> > parameters;
+    dealii::SmartPointer<const dealii::Function<dim>, class Residual<dim> > boundary_values;
 };
 
 
 //----------------------------------------------------------------------//
 
   template <int dim>
-  Residual<dim>::Residual(const Parameters& par)
+  Residual<dim>::Residual(const Parameters& par, const dealii::Function<dim>& bdry)
 		  :
-		  parameters(&par)
+		  parameters(&par),
+		  boundary_values(&bdry)
   {
 //    this->use_boundary = false;
 //    this->use_face = false;
@@ -78,24 +80,22 @@ void Residual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-  std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-
-  if (dinfo.face->boundary_indicator() == 0)
-    std::fill(null[0].begin(), null[0].end(), -.2);
-  if (dinfo.face->boundary_indicator() == 1)
-    std::fill(null[0].begin(), null[0].end(), .2);
+  std::vector<std::vector<double> > bdry(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
-    dealii::LocalIntegrators::Elasticity::nitsche_residual(
-      dinfo.vector(0).block(0), info.fe_values(0),
-      dealii::make_slice(info.values[0], 0, dim),
-      dealii::make_slice(info.gradients[0], 0, dim),
-      null,
-      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-      parameters->mu);
+    {
+      boundary_values->vector_values(info.fe_values(0).get_quadrature_points(), bdry);
+      dealii::LocalIntegrators::Elasticity::nitsche_residual(
+	dinfo.vector(0).block(0), info.fe_values(0),
+	dealii::make_slice(info.values[0], 0, dim),
+	dealii::make_slice(info.gradients[0], 0, dim),
+	bdry,
+	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+	parameters->mu);
+    }
 }
-
+  
 
   template <int dim>
   void Residual<dim>::face(
