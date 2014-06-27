@@ -48,8 +48,8 @@ namespace Elasticity
 		  :
 		  parameters(&par)
   {
-//    this->use_boundary = false;
-//    this->use_face = false;
+    this->use_boundary = false;
+    this->use_face = false;
     //this->input_vector_names.push_back("Newton iterate");
   }
   
@@ -58,7 +58,7 @@ namespace Elasticity
   {
     AssertDimension (dinfo.n_matrices(), 1);
     dealii::LocalIntegrators::Elasticity::cell_matrix(
-      dinfo.matrix(0,false).matrix, info.fe_values(0), parameters->mu);
+      dinfo.matrix(0,false).matrix, info.fe_values(0), 2.*parameters->mu);
     dealii::LocalIntegrators::Divergence::grad_div_matrix(
       dinfo.matrix(0,false).matrix, info.fe_values(0), parameters->lambda);
   }
@@ -74,7 +74,7 @@ namespace Elasticity
       dealii::LocalIntegrators::Elasticity::nitsche_matrix(
 	dinfo.matrix(0,false).matrix, info.fe_values(0),
 	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-	parameters->mu);
+	2.*parameters->mu);
   }
   
   
@@ -89,9 +89,19 @@ namespace Elasticity
       dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
       info1.fe_values(0), info2.fe_values(0),
       dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      parameters->mu);
+      2.*parameters->mu);
   }
 }
 
 
 #endif
+
+
+
+
+
+
+
+
+
+

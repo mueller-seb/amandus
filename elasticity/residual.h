@@ -14,6 +14,7 @@
 #include <deal.II/integrators/divergence.h>
 #include <integrator.h>
 #include <elasticity/parameters.h>
+#include <elasticity/integrators.h>
 
 using namespace dealii::MeshWorker;
 
@@ -53,8 +54,8 @@ class Residual : public AmandusIntegrator<dim>
 		  parameters(&par),
 		  boundary_values(&bdry)
   {
-//    this->use_boundary = false;
-//    this->use_face = false;
+   this->use_boundary = false;
+   this->use_face = false;
     this->input_vector_names.push_back("Newton iterate");
   }
   
@@ -65,13 +66,25 @@ class Residual : public AmandusIntegrator<dim>
   {
     Assert(info.values.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
     Assert(info.gradients.size() >= 1, dealii::ExcDimensionMismatch(info.values.size(), 1));
+
+    const double mu = parameters->mu;
+    const double lambda = parameters->lambda;
     
-    dealii::LocalIntegrators::Elasticity::cell_residual(
-      dinfo.vector(0).block(0), info.fe_values(0),
-      dealii::make_slice(info.gradients[0], 0, dim), parameters->mu);
-    dealii::LocalIntegrators::Divergence::grad_div_residual(
-      dinfo.vector(0).block(0), info.fe_values(0),
-      dealii::make_slice(info.gradients[0], 0, dim), parameters->lambda);
+    if (parameters->linear)
+      {
+	dealii::LocalIntegrators::Elasticity::cell_residual(
+	  dinfo.vector(0).block(0), info.fe_values(0),
+	  dealii::make_slice(info.gradients[0], 0, dim), 2.*mu);
+	dealii::LocalIntegrators::Divergence::grad_div_residual(
+	  dinfo.vector(0).block(0), info.fe_values(0),
+	  dealii::make_slice(info.gradients[0], 0, dim), lambda);
+      }
+    else
+      {
+	Hooke_finite_strain_residual(dinfo.vector(0).block(0), info.fe_values(0),
+				     dealii::make_slice(info.gradients[0], 0, dim),
+				     lambda, mu);
+      }
   }
 
 
@@ -92,7 +105,7 @@ void Residual<dim>::boundary(
 	dealii::make_slice(info.gradients[0], 0, dim),
 	bdry,
 	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-	parameters->mu);
+	2.*parameters->mu);
     }
 }
   
@@ -113,10 +126,20 @@ void Residual<dim>::boundary(
       dealii::make_slice(info2.values[0], 0, dim),
       dealii::make_slice(info2.gradients[0], 0, dim),
       dealii::LocalIntegrators::Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-      parameters->mu);
+      2.*parameters->mu);
   }
 }
 
 
 #endif
   
+
+
+
+
+
+
+
+
+
+
