@@ -56,10 +56,7 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      if (p(0) < 0.)
-	values[k](0) = -1.;
-      else if (p(0) > 0.)
-	values[k](0) = 1.;	
+      values[k](0) = .0001*p(0)*p(0)*p(0);	
     }
 }
 
@@ -75,10 +72,7 @@ Startup<dim>::vector_values (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      if (p(0) < 0.)
-	values[0][k] = -1.;
-      else if (p(0) > 0.)
-	values[0][k] = 1.;	
+      values[0][k] = .0001*p(0)*p(0)*p(0);	
     }
 }
 
@@ -126,7 +120,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
 
   newton.initialize(newout);
-//  newton.debug_vectors = true;
+  newton.debug_vectors = true;
 
   global_refinement_nonlinear_loop<d>(2, app, newton, 0, 0, &startup);
 }

@@ -12,6 +12,7 @@ my %pattern =
 (
     'int' => 'Integer()',
     'double' => 'Double()',
+    'bool' => 'Bool()',
     'std::string' => 'Anything()'
 );
 
@@ -19,6 +20,7 @@ my %get =
 (
     'int' => 'get_integer',
     'double' => 'get_double',
+    'bool' => 'get_bool',
     'std::string' => 'get'
 );
 

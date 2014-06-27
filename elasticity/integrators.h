@@ -1,25 +1,32 @@
 
 
-namespace Elasiticity
+namespace Elasticity
 {
   template <int dim>
-  double elasticity_contract(const Tensor<2,dim>& e1,
-			     const Tensor<2,dim>& e2,
-			     const double Poisson)
+  double elasticity_contract(const dealii::Tensor<2,dim>& e1,
+			     const dealii::Tensor<2,dim>& e2,
+			     const double lambda,
+			     const double mu)
   {
-    AssertDimension(dim, 2);
+    Assert(dim==2, dealii::ExcNotImplemented());
+    double trace1 = 0.;
+    double trace2 = 0.;
     double result = 0.;
     
     for (unsigned int d1=0;d1<dim;++d1)
       {
-	result += e1[d1][d1]*e2[d1][d1];
+	trace1 += e1[d1][d1];
+	trace2 += e2[d1][d1];
+	
+ 	result += 2.* mu * e1[d1][d1]*e2[d1][d1];
 	for (unsigned int d2=d1+1;d2<dim;++d2)
 	  {
-	    result += nu * (e1[d1][d1] * e2[d2][d2] +
-			    e2[d1][d1] * e1[d2][d2]);
-	    result += (1.-nu)/2. * e1[d1][d2] * e2[d1][d2];
+	    result += 4.* mu * e1[d1][d2] * e2[d1][d2];
 	  }
       }
+
+    result += lambda * trace1 * trace2;
+    
     return result;
   }
   
@@ -52,34 +59,36 @@ namespace Elasiticity
   template <int dim, typename number>
   inline void
   Hooke_finite_strain_residual(
-    Vector<number> &result,
-    const FEValuesBase<dim> &fe,
-    const VectorSlice<const std::vector<std::vector<Tensor<1,dim> > > > &input,
-    double Poisson = 0.,
-    double Young = 1.)
+    dealii::Vector<number> &result,
+    const dealii::FEValuesBase<dim> &fe,
+    const dealii::VectorSlice<const std::vector<std::vector<dealii::Tensor<1,dim> > > > &input,
+    double lambda = 0.,
+    double mu = 1.)
     {
       const unsigned int nq = fe.n_quadrature_points;
       const unsigned int n_dofs = fe.dofs_per_cell;
-      AssertDimension(fe.get_fe().n_components(), dim);
-
-      AssertVectorVectorDimension(input, dim, fe.n_quadrature_points);
-      Assert(result.size() == n_dofs, ExcDimensionMismatch(result.size(), n_dofs));
+      
+      // AssertDimension(fe.get_fe().n_components(), dim);
+      // AssertVectorVectorDimension(input, dim, fe.n_quadrature_points);
+      // Assert(result.size() == n_dofs, ExcDimensionMismatch(result.size(), n_dofs));
 
       for (unsigned int k=0; k<nq; ++k)
         {
-          const double dx = Young / (1.-Poisson*Poisson) * fe.JxW(k);
-	  Tensor<2,dim> Du;
+          const double dx = fe.JxW(k);
+	  dealii::Tensor<2,dim> Du;
 	  for (unsigned int d1=0; d1<dim; ++d1)
 	    for (unsigned int d2=d1; d2<dim; ++d2)
 	    {
 	      Du[d1][d2] = .5 * (input[d1][k][d2] + input[d2][k][d1]);
+	      double t = Du[d1][d2];
 	      for (unsigned int dd=0; dd<dim; ++dd)
-		Du[d1][d2] += .5* input[dd][k][d1] * input[dd][k][d2];
+	      	Du[d1][d2] += .5* input[dd][k][d1] * input[dd][k][d2];
+//	      dealii::deallog << '[' << (Du[d1][d2]-t)/t << ']';
 	    }
 	  
           for (unsigned int i=0; i<n_dofs; ++i)
 	    {
-	      Tensor<2,dim> Dv;
+	      dealii::Tensor<2,dim> Dv;
 	      for (unsigned int d1=0; d1<dim; ++d1)
 		for (unsigned int d2=d1; d2<dim; ++d2)
 		  {
@@ -88,8 +97,10 @@ namespace Elasiticity
 		      Dv[d1][d2] += .5 * (fe.shape_grad_component(i,k,dd)[d1] * fe.shape_grad_component(i,k,dd)[d2]);
 		  }
 	      
-	      result(i) += dx * elasticity_contract(Du, Dv, Poisson);
+	      result(i) += dx * elasticity_contract(Du, Dv, lambda, mu);
 	    }
         }
     }
 }
+
+
