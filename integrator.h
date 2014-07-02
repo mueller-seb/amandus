@@ -54,15 +54,15 @@ namespace Integrators
        * negative for the explicit.
        *
        *
-       * \param <code>client</code> is the integrator for the
+       * \param client is the integrator for the
        * stationary problem. Copied into the dealii::SmartPointer #client.
        *
-       * \param <code>implicit</code> selects whether the Newton
+       * \param implicit selects whether the Newton
        * residual of the implicit
        * side (true) or the explicit side of the theta scheme is
        * integrated. Copied into the variable #is_implicit.
        *
-       * \param <code>blocks</code> If the system is a DAE, for
+       * \param blocks If the system is a DAE, for
        * instance the Stokes equations, then the timestepping applies
        * only to some parts of the system, for instance only the
        * velocities. Thus, the mass matrix in the fomula above would

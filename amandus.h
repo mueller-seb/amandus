@@ -116,7 +116,9 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     * of freedom or initialize sparsity patterns, which has to be
     * achieved by calling setup_system().
     *
-    * If the argument <tt>use_umfpack</tt> is true, assemble_matrix() not only generates a matrix,
+    * \param triangulation The mesh used to build the application
+    * \param fe The finite element space used for discretization
+    * \param use_umfpack if true implies that assemble_matrix() not only generates a matrix,
     * but also the inverse, using SparseDirectUMFPACK.
     */
     AmandusApplicationSparse(dealii::Triangulation<dim>& triangulation,
@@ -133,10 +135,10 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * the boundary values of the start vector of a dealii::Newton or a
      * dealii::ThetaTimestepping method.
      *
-     * @param `index`: the boundary indicator for which the boundary
+     * @param index the boundary indicator for which the boundary
      * constraints re being set.
      *
-     * @param `mask`: the object selecting the blocks of an dealii::FESystem
+     * @param mask the object selecting the blocks of an dealii::FESystem
      * to which the constraints are to be applied.
      */
     void set_boundary (unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
