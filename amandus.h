@@ -41,6 +41,7 @@
 #include <deal.II/multigrid/mg_coarse.h>
 #include <deal.II/multigrid/mg_smoother.h>
 
+#include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -122,6 +123,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     AmandusApplicationSparse(dealii::Triangulation<dim>& triangulation,
 			     const dealii::FiniteElement<dim>& fe,
 			     bool use_umfpack = false);
+
+    /**
+     * Parse the paramaters from a handler
+     */
+    void parse_parameters(dealii::ParameterHandler& param);
 
     /**
      * Set the boundary components that should be constrained if the
