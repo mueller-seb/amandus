@@ -58,6 +58,16 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
   deallog << "Finite element: " << fe.get_name() << std::endl;
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler &param)
+{
+  param.enter_subsection("Linear Solver");
+  control.parse_parameters(param);
+  param.leave_subsection();
+}
+
+
 
 template <int dim>
 void

@@ -18,14 +18,13 @@ AmandusParameters::AmandusParameters ()
   declare_entry("FE", "FE_Nothing", Patterns::Anything());
   declare_entry("Refinement", "1", Patterns::Integer());
   leave_subsection();
-  
-  enter_subsection("Newton");
-  Algorithms::Newton<Vector<double> >::declare_parameters(*this);
+
+  enter_subsection("Linear Solver");
+  ReductionControl::declare_parameters(*this);
   leave_subsection();
   
-  enter_subsection("ThetaTimestepping");
+  Algorithms::Newton<Vector<double> >::declare_parameters(*this);  
   Algorithms::ThetaTimestepping<Vector<double> >::declare_parameters(*this);
-  leave_subsection();
   
   enter_subsection("Output");
   DataOutInterface<2>::declare_parameters(*this);
