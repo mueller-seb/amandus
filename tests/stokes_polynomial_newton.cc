@@ -60,10 +60,8 @@ int main(int argc, const char** argv)
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
-  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
-  param.leave_subsection();
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }

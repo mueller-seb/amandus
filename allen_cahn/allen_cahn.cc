@@ -132,16 +132,12 @@ int main(int argc, const char** argv)
   newout.initialize(app.dofs());
   param.leave_subsection();
   
-  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
-  param.leave_subsection();
-  
-  param.enter_subsection("ThetaTimestepping");
+
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
   timestepping.parse_parameters(param);
-  param.leave_subsection();
   
   // Now we prepare for the actual timestepping
   
