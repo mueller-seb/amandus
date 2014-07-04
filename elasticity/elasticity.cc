@@ -57,7 +57,7 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[k](0) = .0001*p(0)*p(0)*p(0);	
+      values[k](0) = 1.*p(0)*p(0)*p(0);	
     }
 }
 
@@ -73,7 +73,7 @@ Startup<dim>::vector_values (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[0][k] = .0001*p(0)*p(0)*p(0);	
+      values[0][k] = 1.*p(0)*p(0)*p(0);	
     }
 }
 
@@ -99,7 +99,6 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-//  ZeroFunction<d> startup(d);
   Startup<d> startup;
   
   ::Elasticity::Parameters parameters;
