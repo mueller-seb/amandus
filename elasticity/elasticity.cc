@@ -99,7 +99,8 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-  ZeroFunction<d> startup(d);
+//  ZeroFunction<d> startup(d);
+  Startup<d> startup;
   
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
@@ -111,8 +112,6 @@ int main(int argc, const char** argv)
   app.parse_parameters(param);
   app.set_boundary(0);
   app.set_boundary(1);
-  app.set_boundary(2);
-  app.set_boundary(3);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   
@@ -125,5 +124,5 @@ int main(int argc, const char** argv)
   newton.initialize(newout);
   newton.debug_vectors = true;
 
-  global_refinement_nonlinear_loop<d>(2, app, newton, 0, 0, &startup);
+  global_refinement_nonlinear_loop<d>(1, app, newton, 0, 0, &startup);
 }

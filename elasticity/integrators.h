@@ -77,9 +77,10 @@ namespace Elasticity
 		    double dv = fe.shape_grad_component(i,k,d1)[d2];
 		    // Compute (F Sigma)_ij (Ciarlet Theorem 2.6.2)
 		    
-		    double stress = (d1==d2) ? 0. : lambda * trace;
+		    double stress = (d1==d2) ? 0. : (lambda * trace);
 		    for (unsigned int dd=0;dd<dim;++dd)
-		      stress += 2. * mu * F[d1][dd]*E[dd][d1];
+		      stress += 2. * mu * F[d1][dd]*E[dd][d2];
+//		    stress += 2. * mu * E[d1][d2];
 		    
 		    result(i) += dx * stress * dv;
 		  }

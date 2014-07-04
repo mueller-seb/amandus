@@ -72,7 +72,7 @@ class Residual : public AmandusIntegrator<dim>
     const double lambda = parameters->lambda;
 
     std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-    std::fill(null[0].begin(), null[0].end(), 1.);
+    std::fill(null[0].begin(), null[0].end(), 1);
     
     dealii::LocalIntegrators::L2::L2(
       dinfo.vector(0).block(0), info.fe_values(0), null);
