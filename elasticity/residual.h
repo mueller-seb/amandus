@@ -71,11 +71,10 @@ class Residual : public AmandusIntegrator<dim>
     const double mu = parameters->mu;
     const double lambda = parameters->lambda;
 
-    std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-    std::fill(null[0].begin(), null[0].end(), 1);
-    
-    dealii::LocalIntegrators::L2::L2(
-      dinfo.vector(0).block(0), info.fe_values(0), null);
+    // std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+    // std::fill(null[0].begin(), null[0].end(), 1);
+    // dealii::LocalIntegrators::L2::L2(
+    //   dinfo.vector(0).block(0), info.fe_values(0), null);
 
     if (parameters->linear)
       {
@@ -101,11 +100,8 @@ void Residual<dim>::boundary(
   IntegrationInfo<dim>& info) const
 {
   std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-
-  // if (dinfo.face->boundary_indicator() == 0)
-  //   std::fill(null[0].begin(), null[0].end(), -.1);
-  // if (dinfo.face->boundary_indicator() == 1)
-  //   std::fill(null[0].begin(), null[0].end(), .1);
+  
+  boundary_values->vector_values(info.fe_values(0).get_quadrature_points(), null);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
