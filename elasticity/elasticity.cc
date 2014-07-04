@@ -99,7 +99,7 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-  Startup<d> startup;
+  ZeroFunction<d> startup(d);
   
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
@@ -110,6 +110,8 @@ int main(int argc, const char** argv)
   AmandusUMFPACK<d> app(tr, *fe);
   app.set_boundary(0);
   app.set_boundary(1);
+  app.set_boundary(2);
+  app.set_boundary(3);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   

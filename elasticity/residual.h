@@ -58,6 +58,7 @@ class Residual : public AmandusIntegrator<dim>
    this->use_face = false;
     this->input_vector_names.push_back("Newton iterate");
   }
+
   
   template <int dim>
   void Residual<dim>::cell(
@@ -69,7 +70,13 @@ class Residual : public AmandusIntegrator<dim>
     
     const double mu = parameters->mu;
     const double lambda = parameters->lambda;
+
+    std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+    std::fill(null[0].begin(), null[0].end(), 1.);
     
+    dealii::LocalIntegrators::L2::L2(
+      dinfo.vector(0).block(0), info.fe_values(0), null);
+
     if (parameters->linear)
       {
 	dealii::LocalIntegrators::Elasticity::cell_residual(
@@ -95,10 +102,10 @@ void Residual<dim>::boundary(
 {
   std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
 
-  if (dinfo.face->boundary_indicator() == 0)
-    std::fill(null[0].begin(), null[0].end(), -.1);
-  if (dinfo.face->boundary_indicator() == 1)
-    std::fill(null[0].begin(), null[0].end(), .1);
+  // if (dinfo.face->boundary_indicator() == 0)
+  //   std::fill(null[0].begin(), null[0].end(), -.1);
+  // if (dinfo.face->boundary_indicator() == 1)
+  //   std::fill(null[0].begin(), null[0].end(), .1);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)

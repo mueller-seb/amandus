@@ -1,36 +1,7 @@
 
 
 namespace Elasticity
-{
-  template <int dim>
-  double elasticity_contract(const dealii::Tensor<2,dim>& e1,
-			     const dealii::Tensor<2,dim>& e2,
-			     const double lambda,
-			     const double mu)
-  {
-    Assert(dim==2, dealii::ExcNotImplemented());
-    double trace1 = 0.;
-    double trace2 = 0.;
-    double result = 0.;
-    
-    for (unsigned int d1=0;d1<dim;++d1)
-      {
-	trace1 += e1[d1][d1];
-	trace2 += e2[d1][d1];
-	
- 	result += 2.* mu * e1[d1][d1]*e2[d1][d1];
-	for (unsigned int d2=d1+1;d2<dim;++d2)
-	  {
-	    result += 4.* mu * e1[d1][d2] * e2[d1][d2];
-	  }
-      }
-
-    result += lambda * trace1 * trace2;
-    
-    return result;
-  }
-  
-  
+{  
   /**
    * The residual resulting from the linear strain-stress relationship
    * (plane strain)
@@ -75,32 +46,56 @@ namespace Elasticity
       for (unsigned int k=0; k<nq; ++k)
         {
           const double dx = fe.JxW(k);
-	  dealii::Tensor<2,dim> Du;
+	  // Deformation gradient F = I + grad u
+	  dealii::Tensor<2,dim> F;
+	  // The Green - St. Venant strain tensor (F^TF - I)/2
+	  dealii::Tensor<2,dim> E;
 	  for (unsigned int d1=0; d1<dim; ++d1)
-	    for (unsigned int d2=d1; d2<dim; ++d2)
 	    {
-	      Du[d1][d2] = .5 * (input[d1][k][d2] + input[d2][k][d1]);
-	      double t = Du[d1][d2];
-	      for (unsigned int dd=0; dd<dim; ++dd)
-	      	Du[d1][d2] += .5* input[dd][k][d1] * input[dd][k][d2];
-//	      dealii::deallog << '[' << (Du[d1][d2]-t)/t << ']';
+	      F[d1][d1] = 1.;
+	      for (unsigned int d2=0; d2<dim; ++d2)
+		{
+		  F[d1][d2] += input[d1][k][d2];
+		  E[d1][d2] = .5 * (input[d1][k][d2] + input[d2][k][d1]);
+		  for (unsigned int dd=0; dd<dim; ++dd)
+		    E[d1][d2] += .5* input[dd][k][d1] * input[dd][k][d2];
+		}
 	    }
+	  
+	  double trace = 0.;
+	  for (unsigned int dd=0; dd<dim; ++dd)
+	    trace += E[dd][dd];
+
+	  // Now that we have all the variables, let's test against
+	  // the gradient(!) of the test functions
 	  
           for (unsigned int i=0; i<n_dofs; ++i)
 	    {
-	      dealii::Tensor<2,dim> Dv;
 	      for (unsigned int d1=0; d1<dim; ++d1)
-		for (unsigned int d2=d1; d2<dim; ++d2)
+		for (unsigned int d2=0; d2<dim; ++d2)
 		  {
-		    Dv[d1][d2] = .5 * (fe.shape_grad_component(i,k,d1)[d2] + fe.shape_grad_component(i,k,d2)[d1]);
-		    for (unsigned int dd=0; dd<dim; ++dd)
-		      Dv[d1][d2] += .5 * (fe.shape_grad_component(i,k,dd)[d1] * fe.shape_grad_component(i,k,dd)[d2]);
+		    double dv = fe.shape_grad_component(i,k,d1)[d2];
+		    // Compute (F Sigma)_ij (Ciarlet Theorem 2.6.2)
+		    
+		    double stress = (d1==d2) ? 0. : lambda * trace;
+		    for (unsigned int dd=0;dd<dim;++dd)
+		      stress += 2. * mu * F[d1][dd]*E[dd][d1];
+		    
+		    result(i) += dx * stress * dv;
 		  }
-	      
-	      result(i) += dx * elasticity_contract(Du, Dv, lambda, mu);
 	    }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
