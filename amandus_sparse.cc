@@ -256,7 +256,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
-  SolverGMRES<Vector<double> >::AdditionalData solver_data(40);
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
   SolverGMRES<Vector<double> > solver(control, solver_data);
 
   PreconditionIdentity identity;
