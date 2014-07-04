@@ -1,7 +1,7 @@
 
 
 namespace Elasticity
-{  
+{
   /**
    * The residual resulting from the linear strain-stress relationship
    * (plane strain)
@@ -27,14 +27,16 @@ namespace Elasticity
    * u_x +  \\ \epsilon_y \\ \gamma_{xy}
    * \end{array}\right]
    */
-  template <int dim, typename number>
-  inline void
-  Hooke_finite_strain_residual(
-    dealii::Vector<number> &result,
-    const dealii::FEValuesBase<dim> &fe,
-    const dealii::VectorSlice<const std::vector<std::vector<dealii::Tensor<1,dim> > > > &input,
-    double lambda = 0.,
-    double mu = 1.)
+  namespace HookeFiniteStrain
+  {
+    template <int dim, typename number>
+    inline void
+    cell_residual(
+      dealii::Vector<number> &result,
+      const dealii::FEValuesBase<dim> &fe,
+      const dealii::VectorSlice<const std::vector<std::vector<dealii::Tensor<1,dim> > > > &input,
+      double lambda = 0.,
+      double mu = 1.)
     {
       const unsigned int nq = fe.n_quadrature_points;
       const unsigned int n_dofs = fe.dofs_per_cell;
@@ -42,7 +44,7 @@ namespace Elasticity
       // AssertDimension(fe.get_fe().n_components(), dim);
       // AssertVectorVectorDimension(input, dim, fe.n_quadrature_points);
       // Assert(result.size() == n_dofs, ExcDimensionMismatch(result.size(), n_dofs));
-
+      
       for (unsigned int k=0; k<nq; ++k)
         {
           const double dx = fe.JxW(k);
@@ -88,6 +90,7 @@ namespace Elasticity
 	    }
         }
     }
+  }
 }
 
 

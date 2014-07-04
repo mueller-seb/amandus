@@ -87,9 +87,9 @@ class Residual : public AmandusIntegrator<dim>
       }
     else
       {
-	Hooke_finite_strain_residual(dinfo.vector(0).block(0), info.fe_values(0),
-				     dealii::make_slice(info.gradients[0], 0, dim),
-				     lambda, mu);
+	HookeFiniteStrain::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
+					 dealii::make_slice(info.gradients[0], 0, dim),
+					 lambda, mu);
       }
   }
 
