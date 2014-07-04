@@ -57,7 +57,7 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[k](0) = 1.*p(0)*p(0)*p(0);	
+      values[k](0) = 1.*p(0);	
     }
 }
 
@@ -73,7 +73,7 @@ Startup<dim>::vector_values (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[0][k] = 1.*p(0)*p(0)*p(0);	
+      values[0][k] = 1.*p(0);	
     }
 }
 
