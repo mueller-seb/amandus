@@ -108,6 +108,7 @@ int main(int argc, const char** argv)
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   
   AmandusUMFPACK<d> app(tr, *fe);
+  app.parse_parameters(param);
   app.set_boundary(0);
   app.set_boundary(1);
   app.set_boundary(2);
@@ -118,10 +119,8 @@ int main(int argc, const char** argv)
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dofs());
 
-  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
-  param.leave_subsection();
 
   newton.initialize(newout);
   newton.debug_vectors = true;
