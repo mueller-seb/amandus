@@ -3,7 +3,6 @@ subsection Discretization
   set Refinement = 1
 end
 subsection Newton
-  subsection Newton
     set Assemble threshold  = 0.2
     set Debug level         = 0
     set Debug vectors       = false
@@ -14,5 +13,4 @@ subsection Newton
     set Reduction           = 1.e-14
     set Stepsize iterations = 21
     set Tolerance           = 1.e-10
-  end
 end

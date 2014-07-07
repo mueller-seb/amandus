@@ -61,11 +61,9 @@ int main(int argc, const char** argv)
   Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   newout.initialize(app.dofs());
   
-  param.enter_subsection("Newton");
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
   newton.initialize(newout);
-  param.leave_subsection();
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
 }
