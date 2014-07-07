@@ -3,7 +3,6 @@ subsection Discretization
   set Refinement = 5
 end
 subsection Newton
-  subsection Newton
     set Assemble threshold  = 0.2
     set Debug level         = 0
     set Debug vectors       = false
@@ -14,7 +13,6 @@ subsection Newton
     set Reduction           = 1.e-14
     set Stepsize iterations = 21
     set Tolerance           = 1.e-10
-  end
 end
 subsection Output
   set Output format = vtk
@@ -30,7 +28,6 @@ subsection Output
   end
 end
 subsection ThetaTimestepping
-  subsection ThetaTimestepping
     set Adaptive   = false
     set Final      = 20.
     set First step = .1
@@ -40,5 +37,4 @@ subsection ThetaTimestepping
     set Strategy   = uniform
     set Theta      = .5
     set Tolerance  = 1.e-2
-  end
 end
