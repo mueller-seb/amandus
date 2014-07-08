@@ -36,14 +36,18 @@ while(<>)
 	push @description, $5;
     }
     
-    if (m/^namespace\s+(\w+)/)
+    elsif (m/^namespace\s+(\w+)/)
     {
 	$namespace = $1;
     }
     
-    if (m/^include_guard\s+(\w+)/)
+    elsif (m/^include_guard\s+(\w+)/)
     {
 	$guard = $1;
+    }
+    else
+    {
+	die "Error: could not parse line $,\n >> $_\n";
     }
 }
 
