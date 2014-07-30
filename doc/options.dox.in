@@ -2,7 +2,7 @@
 
 PROJECT_NAME           = "Amandus: Simulations based on multilevel Schwarz methods"
 FULL_PATH_NAMES        = NO
-STRIP_FROM_PATH        =
+STRIP_FROM_PATH        = @DOXYGEN_STRIP_FROM_PATH@
 STRIP_FROM_INC_PATH    =
 BUILTIN_STL_SUPPORT    = YES
 
@@ -24,7 +24,7 @@ CALL_GRAPH	       = YES
 GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
-INPUT                  = ..
+INPUT                  = @DOXYGEN_INPUT@
 RECURSIVE	       = YES
 
 UML_LOOK	       = NO

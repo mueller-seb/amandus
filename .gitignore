@@ -1,5 +1,6 @@
 **/*~
 TAGS
+tags
 build
 
 **/CMakeCache.txt
@@ -16,4 +17,5 @@ deallog
 **/*_0*n
 
 **/*_0*u
-
+*.swp
+*.swo
