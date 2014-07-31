@@ -17,3 +17,14 @@ ADD_SUBDIRECTORY(brusselator)
 ADD_SUBDIRECTORY(readiff)
 ADD_SUBDIRECTORY(tests)
 ADD_SUBDIRECTORY(doc)
+
+OPTION(BUILD_TESTING "Build tests." ON)
+
+IF(BUILD_TESTING)
+  # enable ADD_TEST functionality
+  ENABLE_TESTING()
+
+  ADD_SUBDIRECTORY(testing)
+ENDIF()
+
+
