@@ -8,6 +8,13 @@ IF(TEST_USEAGE)
   LIST(APPEND coveredTests bar_useage)
 ENDIF()
 
+OPTION(TEST_DARCY "Test darcy." ON)
+IF(TEST_DARCY)
+  ADD_SUBDIRECTORY(darcy)
+  LIST(APPEND coveredTests darcy)
+ENDIF()
+
+
 
 # No need to modify behind this; should be sufficient for most cases.
 # make tests available to ctest
