@@ -11,7 +11,7 @@ ENDIF()
 OPTION(TEST_DARCY "Test darcy." ON)
 IF(TEST_DARCY)
   ADD_SUBDIRECTORY(darcy)
-  LIST(APPEND coveredTests darcy)
+  LIST(APPEND coveredTests darcy_test)
 ENDIF()
 
 

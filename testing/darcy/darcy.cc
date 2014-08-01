@@ -42,10 +42,10 @@ int main()
   scalar_potential += Polynomials::Monomial<double>(1, 3.);
   
   Polynomials::Polynomial<double> pressure_source(1);
-//  pressure_source += Polynomials::Monomial<double>(3, 1.);
+  pressure_source += Polynomials::Monomial<double>(3, 1.);
   
   DarcyMatrix<d> matrix_integrator;
-  DarcyPolynomial::Residual<d> rhs_integrator(
+  DarcyPolynomial::RHS<d> rhs_integrator(
       vector_potential, scalar_potential, pressure_source);
   DarcyPolynomial::Error<d> error_integrator(
       vector_potential, scalar_potential, pressure_source);
@@ -56,5 +56,5 @@ int main()
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(3, app, solver, residual);
+  global_refinement_linear_loop(2, app, solver, residual, &error_integrator);
 }
