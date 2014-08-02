@@ -3,7 +3,7 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Maxwell equations (curl-curl problem)</li>
+ * <li> Stationary Maxwell equations (divergence-free curl-curl problem)</li>
  * <li> Homogeneous tangential boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
@@ -35,7 +35,7 @@ int main()
   FE_Q<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
   
-  CurlCurlMatrix<d> matrix_integrator;
+  ::Maxwell::DivCurl::Matrix<d> matrix_integrator;
   RhsOne<d> rhs_integrator;
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);

@@ -1,5 +1,5 @@
 
-FILE(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+FILE(GLOB sources *.cc)
 FILE(GLOB prms RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/" *.prm)
 
 FOREACH(ccfile ${sources})

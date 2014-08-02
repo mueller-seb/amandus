@@ -9,10 +9,13 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/maxwell.h>
 
-using namespace dealii;
-using namespace LocalIntegrators;
 
 
+/**
+ * Integrators for Maxwell equations in various forms
+ */
+namespace Maxwell
+{
 /**
  * Integrator for curl-curl problems in weakly divergence free
  * subspace.
@@ -39,22 +42,28 @@ using namespace LocalIntegrators;
  * <li> The divergence operator as transpose of the gradient</li>
  * <li> Empty</li>
  * </ol>
+ */
+namespace DivCurl
+{
+/**
+ * The matrix integrator for the weakly divergence-free curl-curl
+ * problem.
  *
  * @ingroup integrators
  */
 template <int dim>
-class CurlCurlMatrix : public AmandusIntegrator<dim>
+class Matrix : public AmandusIntegrator<dim>
 {
 public:
   /**
    * Very simple constructor, entering a single coefficient with value
    * one into #curl_coefficient and zero into #mass_coefficient, respectively.
    */
-  CurlCurlMatrix();
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
+  Matrix();
+    virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>& dinfo2,
+		    dealii::MeshWorker::IntegrationInfo<dim>& info1, dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
   
   std::vector<double> curl_coefficient;
   std::vector<double> mass_coefficient;
@@ -62,15 +71,18 @@ public:
 
 
 template <int dim>
-CurlCurlMatrix<dim>::CurlCurlMatrix()
+Matrix<dim>::Matrix()
 		:
 		curl_coefficient(1, 1.),
 		mass_coefficient(1, 0.)
-{}
+{
+  this->use_boundary = false;
+  this->use_face = false;
+}
 
 
 template <int dim>
-void CurlCurlMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void Matrix<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension (dinfo.n_matrices(), 4);
   const unsigned int id = dinfo.cell->material_id();
@@ -79,26 +91,28 @@ void CurlCurlMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::Inte
   const double mu = curl_coefficient[id];
   const double sigma = mass_coefficient[id];
   
-  Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), mu);
+  dealii::LocalIntegrators::Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), mu);
   if (sigma != 0.)
-    L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
-  Divergence::gradient_matrix(dinfo.matrix(1,false).matrix, info.fe_values(1), info.fe_values(0));
+    dealii::LocalIntegrators::L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
+  dealii::LocalIntegrators::Divergence::gradient_matrix(dinfo.matrix(1,false).matrix, info.fe_values(1), info.fe_values(0));
   dinfo.matrix(2,false).matrix.copy_transposed(dinfo.matrix(1,false).matrix);
 }
 
 
 template <int dim>
-void CurlCurlMatrix<dim>::boundary(MeshWorker::DoFInfo<dim>& /*dinfo*/,
-				       typename MeshWorker::IntegrationInfo<dim>& /*info*/) const
+void Matrix<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& /*dinfo*/,
+			   typename dealii::MeshWorker::IntegrationInfo<dim>& /*info*/) const
 {}
 
 
 template <int dim>
-void CurlCurlMatrix<dim>::face(MeshWorker::DoFInfo<dim>& /*dinfo1*/,
-			       MeshWorker::DoFInfo<dim>& /*dinfo2*/,
-			       MeshWorker::IntegrationInfo<dim>& /*info1*/,
-			       MeshWorker::IntegrationInfo<dim>& /*info2*/) const
+void Matrix<dim>::face(dealii::MeshWorker::DoFInfo<dim>& /*dinfo1*/,
+		       dealii::MeshWorker::DoFInfo<dim>& /*dinfo2*/,
+		       dealii::MeshWorker::IntegrationInfo<dim>& /*info1*/,
+		       dealii::MeshWorker::IntegrationInfo<dim>& /*info2*/) const
 {}
 
+}
+}
 
 #endif
