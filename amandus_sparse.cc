@@ -66,6 +66,8 @@ AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler &param)
   param.enter_subsection("Linear Solver");
   control.parse_parameters(param);
   param.leave_subsection();
+  
+  this->param = &param;
 }
 
 
@@ -383,40 +385,34 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
 						    const AnyData* in) const
 {
   DataOut<dim> data_out;
+  if(param != 0)
+  {
+    param->enter_subsection("Output");
+    data_out.parse_parameters(*param);
+    param->leave_subsection();
+  } else {
+    data_out.set_default_format(DataOutBase::none);
+  }
 
-  data_out.attach_dof_handler (dof_handler);
+  data_out.attach_dof_handler(dof_handler);
   if (in != 0)
-    {
-      for (unsigned int i=0;i<in->size();++i)
-	data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
-    }
+  {
+    for (unsigned int i=0;i<in->size();++i)
+      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+  }
   else
-    {    
-      AssertThrow(false, ExcNotImplemented());
-    }
+  {    
+    AssertThrow(false, ExcNotImplemented());
+  }
   data_out.build_patches (this->fe->tensor_degree());
 
   std::ostringstream filename;
   filename << "solution-"
     << cycle
-    << ".gpl";
+    << data_out.default_suffix();
 
-  std::ofstream output (filename.str().c_str());
-  data_out.write_gnuplot (output);
-
-  // std::ostringstream filename;
-  // filename << "solution-"
-  //   << cycle
-  //   << ".svg";
-
-  // DataOutBase::SvgFlags svg_flags;;
-  // svg_flags.height = 400;
-  // svg_flags.polar_angle=30;
-  
-  // data_out.set_flags(svg_flags);
-  
-  // std::ofstream output (filename.str().c_str());
-  // data_out.write_svg (output);
+  std::ofstream output(filename.str().c_str());
+  data_out.write(output);
 }
 
 template class AmandusApplicationSparse<2>;

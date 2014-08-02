@@ -248,6 +248,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * The object controlling the iteration in solve().
      */
     dealii::ReductionControl control;
+
+    /**
+     * Reference to parameters read by parse_parameters().
+     */
+    dealii::SmartPointer<dealii::ParameterHandler> param;
     
   protected:
     /// The mesh
