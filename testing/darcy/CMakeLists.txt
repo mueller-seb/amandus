@@ -1,0 +1,5 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
+
+ADD_EXECUTABLE(darcy_test darcy.cc)
+DEAL_II_SETUP_TARGET(darcy_test)
+TARGET_LINK_LIBRARIES(darcy_test amandus)
