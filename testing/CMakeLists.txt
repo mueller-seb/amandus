@@ -12,6 +12,7 @@ OPTION(TEST_DARCY "Test darcy." ON)
 IF(TEST_DARCY)
   ADD_SUBDIRECTORY(darcy)
   LIST(APPEND coveredTests darcy_test)
+  LIST(APPEND coveredTests test_darcy_solution_parameters)
 ENDIF()
 
 

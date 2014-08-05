@@ -3,3 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 ADD_EXECUTABLE(darcy_test darcy.cc)
 DEAL_II_SETUP_TARGET(darcy_test)
 TARGET_LINK_LIBRARIES(darcy_test amandus)
+
+ADD_EXECUTABLE(test_darcy_solution_parameters test_solution_parameters.cc)
+DEAL_II_SETUP_TARGET(test_darcy_solution_parameters)
+TARGET_LINK_LIBRARIES(test_darcy_solution_parameters
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
