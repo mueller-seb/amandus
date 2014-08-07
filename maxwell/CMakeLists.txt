@@ -1,0 +1,3 @@
+ADD_EXECUTABLE(maxwell_example div_curl.cc)
+DEAL_II_SETUP_TARGET(maxwell_example)
+TARGET_LINK_LIBRARIES(maxwell_example amandus)
