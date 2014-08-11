@@ -29,6 +29,11 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
      */
     virtual void extract_data (const dealii::AnyData& data);
     double timestep;
+
+    dealii::UpdateFlags update_flags () const;
+    void add_flags(const dealii::UpdateFlags flags);
+ private:
+    dealii::UpdateFlags u_flags;
 };
 
 namespace Integrators
@@ -104,9 +109,30 @@ namespace Integrators
 template <int dim>
 inline
 AmandusIntegrator<dim>::AmandusIntegrator ()
-		:
-		timestep(0.)
+:
+timestep(0.)  , u_flags(dealii::update_JxW_values |
+			dealii::update_values |
+			dealii::update_gradients |
+			dealii::update_quadrature_points)
 {}
+
+
+template <int dim>
+inline
+dealii::UpdateFlags
+AmandusIntegrator<dim>::update_flags () const
+{
+  return u_flags;
+}
+
+
+template <int dim>
+inline
+void
+AmandusIntegrator<dim>::add_flags (const dealii::UpdateFlags flags)
+{
+  u_flags |= flags;
+}
 
 
 template <int dim>

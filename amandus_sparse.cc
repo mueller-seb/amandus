@@ -132,7 +132,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(
     {
       info_box.cell_selector.add(*i, true, true, false);
     }
-  UpdateFlags update_flags = update_values | update_gradients | update_hessians | update_quadrature_points;
+  UpdateFlags update_flags = integrator.update_flags();
+ 
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*fe, mapping, in, Vector<double>(),
 			&dof_handler.block_info());
@@ -222,7 +223,7 @@ AmandusApplicationSparse<dim>::verify_residual(
       info_box.face_selector.add(*i, true, true, false);
     }
   
-  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
+  UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
 		      &dof_handler.block_info());
@@ -344,7 +345,7 @@ AmandusApplicationSparse<dim>::error(
   const unsigned int degree = this->fe->tensor_degree();
   info_box.initialize_gauss_quadrature(degree+2, degree+2, degree+2);
   
-  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
+  UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, solution_data, Vector<double>(),
 		      &this->dof_handler.block_info());
