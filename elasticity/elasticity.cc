@@ -77,7 +77,6 @@ Startup<dim>::vector_values (
     }
 }
 
-
   
 int main(int argc, const char** argv)
 {
