@@ -14,7 +14,7 @@ soon, such that parallelization and imported solvers will be possible.
 
 ## Legal note
 
-Amandus is published under the [MIT License](LICENSE.md).
+Amandus is published under the [MIT License](./LICENSE.md).
 
 When you commit a pull request to the amandus repository, you publish
 your code together with the remaining parts of amandus under this
