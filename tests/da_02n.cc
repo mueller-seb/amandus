@@ -1,5 +1,9 @@
-// $Id$
-
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
 #include <deal.II/fe/fe_bdm.h>
 #include <deal.II/fe/fe_dgp.h>
 #include <deal.II/fe/fe_system.h>

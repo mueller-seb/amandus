@@ -1,5 +1,9 @@
-// $Id$
-
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
 /**
  * @file
  * Verify that Theta matrix and residual are consistent if the spacial
