@@ -20,12 +20,14 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+namespace Elasticity
+{
 /**
  * Provide the right hand side for a Elasticity problem with
  * polynomial solution. This class is matched by
- * ElasticityPolynomialError which operates on the same polynomial
+ * PolynomialError which operates on the same polynomial
  * solutions. The solution obtained is described in
- * ElasticityPolynomialError.
+ * PolynomialError.
  * 
  * @author Guido Kanschat
  * @date 2014
@@ -33,10 +35,10 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class ElasticityPolynomialRHS : public AmandusIntegrator<dim>
+class PolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
-    ElasticityPolynomialRHS(const Parameters& par,
+    PolynomialRHS(const Parameters& par,
 			    const std::vector<Polynomials::Polynomial<double> > potentials_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
@@ -54,27 +56,21 @@ class ElasticityPolynomialRHS : public AmandusIntegrator<dim>
  * Computes the error between a numerical solution and a known exact
  * polynomial solution of a Elasticity problem.
  *
- * For two dimensions, the two constructor arguments are two
- * one-dimensional polynomials \f$\psi(t)\f$ and \f$\phi(t)\f$. The
- * solution to such the Elasticity problem is then determined as
+ * Since we are planning to use this even in the nearly incompressible
+ * case, we use Helmholtz decomposition and represent the solution as
+ * the sum of the gradient of one polynomial and the curl of either
+ * one (id 2D) or three (in 3D) polynomials. These are in the vector
+ * of polynomials $\phi$ given to the constructor, such that the gradient
+ * potential is first.
  *
  * \f{alignat*}{{2}
- * \mathbf u &= \nabla\times \Psi \qquad\qquad
- * & \Psi((x_1,\ldots,x_d) &= \prod \psi(x_i) \\
- * p &= \Phi
- * & \Phi((x_1,\ldots,x_d) &= \prod \phi(x_i)
+ * \mathbf u &= \nabla \phi_0 + \nabla\times \phi_1 & \text{2D} \\
+ * \mathbf u &= \nabla \phi_0 + \nabla\times (\phi_1,\dots,\phi_3)^T & \text{3D} \\
  * \f}
  *
  * The according right hand sides of the Elasticity equations and the
  * residuals are integrated by the functions of the classes
- * ElasticityPolynomialRHS and ElasticityPolynomialResidual.
- *
- * If computing on a square, say \f$[-1,1]^2\f$, the boundary
- * conditions of the Elasticity problem are determined as follows: if
- * \f$\psi(-1)=\psi(1)=0\f$, the velocity has the boundary condition
- * \f$\mathbf u\cdot \mathbf n=0\f$ (slip). If in addition
- * \f$\psi'(-1)=\psi'(1)=0\f$, then there holds on the boundary
- * \f$\mathbf u=0\f$ (no-slip).
+ * PolynomialRHS.
  *
  * @author Guido Kanschat
  * @date 2014
@@ -82,10 +78,10 @@ class ElasticityPolynomialRHS : public AmandusIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class ElasticityPolynomialError : public AmandusIntegrator<dim>
+class PolynomialError : public AmandusIntegrator<dim>
 {
   public:
-    ElasticityPolynomialError(const Parameters& par,
+    PolynomialError(const Parameters& par,
 			      const std::vector<Polynomials::Polynomial<double> > potentials_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
@@ -104,7 +100,7 @@ class ElasticityPolynomialError : public AmandusIntegrator<dim>
 //----------------------------------------------------------------------//
 
 template <int dim>
-ElasticityPolynomialRHS<dim>::ElasticityPolynomialRHS(
+PolynomialRHS<dim>::PolynomialRHS(
   const Parameters& par,
   const std::vector<Polynomials::Polynomial<double> > potentials_1d)
 		:
@@ -118,34 +114,40 @@ ElasticityPolynomialRHS<dim>::ElasticityPolynomialRHS(
 
 
 template <int dim>
-void ElasticityPolynomialRHS<dim>::cell(
+void PolynomialRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
   std::vector<std::vector<double> > rhs (dim,
 					 std::vector<double>(info.fe_values(0).n_quadrature_points));
-
-  std::vector<double> px(4);
-  std::vector<double> py(4);
+  std::vector<std::vector<double> > phi(dim, std::vector<double>(4));
+  
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
-      const double x = info.fe_values(0).quadrature_point(k)(0);
-      const double y = info.fe_values(0).quadrature_point(k)(1);
-
-      if (dim==2)
-      curl_potential_1d.value(x, px);
-      curl_potential_1d.value(y, py);
+      const Point<dim>& x = info.fe_values(0).quadrature_point(k);
+      Tensor<1,dim> DivDu;
+      Tensor<1,dim> DDivu;
       
-      rhs[0][k] = -px[2]*py[1]-px[0]*py[3];
-      rhs[1][k] =  px[3]*py[0]+px[1]*py[2];
+      if (dim == 2)
+	{
+	  // The gradient potential
+	  potentials_1d[0].value(x(0), phi[0]);
+	  potentials_1d[0].value(x(1), phi[1]);
+	  DivDu[0] -= phi[0][3]*phi[1][0] + 0.5 * (phi[0][1]*phi[1][2] + phi[0][1]*phi[1][2]);
+	  DivDu[1] -= phi[0][0]*phi[1][3] + 0.5 * (phi[0][2]*phi[1][1] + phi[0][2]*phi[1][1]);
+	  DDivu[0] -= phi[0][2]*phi[1][0] + phi[0][1]*phi[1][1];
+	  DDivu[1] -= phi[0][1]*phi[1][1] + phi[0][0]*phi[1][2];
+	  // The curl potential
+	  potentials_1d[1].value(x(0), phi[0]);
+	  potentials_1d[1].value(x(1), phi[1]);
+	  // div epsilon(curl) = Delta?
+	  DivDu[0] -= -phi[0][2]*phi[1][1] + 0.5 * (phi[0][1]*phi[1][2] - phi[0][1]*phi[1][2]);
+	  DivDu[1] -=  phi[0][1]*phi[1][2] + 0.5 * (phi[0][2]*phi[1][1] - phi[0][2]*phi[1][1]);
+	  // div curl = 0
+	}
 
-				       // Add a gradient part to the
-				       // right hand side to test for
-				       // pressure
-      grad_potential_1d.value(x, px);
-      grad_potential_1d.value(y, py);
-      rhs[0][k] += px[1]*py[0];
-      rhs[1][k] += px[0]*py[1];
+      for (unsigned int d=0;d<dim;++d)
+	rhs[d][k] = 2. * parameters->mu * DivDu[d] + parameters->lambda * DDivu[d];
     }
   
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
@@ -153,7 +155,7 @@ void ElasticityPolynomialRHS<dim>::cell(
 
 
 template <int dim>
-void ElasticityPolynomialRHS<dim>::boundary(
+void PolynomialRHS<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
@@ -161,7 +163,7 @@ void ElasticityPolynomialRHS<dim>::boundary(
 //----------------------------------------------------------------------//
 
 template <int dim>
-StokesPolynomialError<dim>::StokesPolynomialError(
+PolynomialError<dim>::PolynomialError(
   const Parameters& par,
   const std::vector<Polynomials::Polynomial<double> > potentials_1d)
 		:
@@ -175,13 +177,13 @@ StokesPolynomialError<dim>::StokesPolynomialError(
 
 
 template <int dim>
-void StokesPolynomialError<dim>::cell(
+void PolynomialError<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
 //  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
   
-  std::vector<std::vector<double> > p(dim, std::vector<double>(3));
+  std::vector<std::vector<double> > phi(dim, std::vector<double>(3));
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
       const Point<dim>& x = info.fe_values(0).quadrature_point(k);
@@ -196,23 +198,23 @@ void StokesPolynomialError<dim>::cell(
 	  Du[d] = info.gradients[0][d][k];
 	}
       
-      if (dim = 2)
+      if (dim == 2)
 	{
-	  potentials_1d[1].value(x(0), p[0]);
-	  potentials_1d[1].value(x(1), p[1]);
+	  potentials_1d[1].value(x(0), phi[0]);
+	  potentials_1d[1].value(x(1), phi[1]);
 	  
-	  Du[0][0] -= p[0][1]*p[1][1];
-	  Du[0][1] -= p[0][0]*p[1][2];
-	  Du[1][0] += p[0][2]*p[1][0];
-	  Du[1][1] += p[0][1]*p[1][1];
-	  u[0] -= p[0][0]*p[1][1];
-	  u[1] += p[0][1]*p[1][0];
+	  Du[0][0] -= phi[0][1]*phi[1][1];
+	  Du[0][1] -= phi[0][0]*phi[1][2];
+	  Du[1][0] += phi[0][2]*phi[1][0];
+	  Du[1][1] += phi[0][1]*phi[1][1];
+	  u[0] -= phi[0][0]*phi[1][1];
+	  u[1] += phi[0][1]*phi[1][0];
 	}
       
-      potentials[0]_1d.value(x(0), p[0]);
-      potentials[0]_1d.value(x(1), p[1]);
-      u[0] += p[0][1]*p[1][0];
-      u[1] += p[0][0]*p[1][1];
+      potentials_1d[0].value(x(0), phi[0]);
+      potentials_1d[0].value(x(1), phi[1]);
+      u[0] += phi[0][1]*phi[1][0];
+      u[1] += phi[0][0]*phi[1][1];
 
       double uu = 0., Duu= 0., div = 0.;
       for (unsigned int d=0;d<dim;++d)
@@ -237,19 +239,21 @@ void StokesPolynomialError<dim>::cell(
 
 
 template <int dim>
-void StokesPolynomialError<dim>::boundary(
+void PolynomialError<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void StokesPolynomialError<dim>::face(
+void PolynomialError<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
+
+}
 
 #endif
   
