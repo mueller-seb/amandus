@@ -133,10 +133,10 @@ void PolynomialRHS<dim>::cell(
 	  // The gradient potential
 	  potentials_1d[0].value(x(0), phi[0]);
 	  potentials_1d[0].value(x(1), phi[1]);
-	  DivDu[0] -= phi[0][3]*phi[1][0] + 0.5 * (phi[0][1]*phi[1][2] + phi[0][1]*phi[1][2]);
-	  DivDu[1] -= phi[0][0]*phi[1][3] + 0.5 * (phi[0][2]*phi[1][1] + phi[0][2]*phi[1][1]);
-	  DDivu[0] -= phi[0][2]*phi[1][0] + phi[0][1]*phi[1][1];
-	  DDivu[1] -= phi[0][1]*phi[1][1] + phi[0][0]*phi[1][2];
+	  DivDu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
+	  DivDu[1] -= phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1];
+	  DDivu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
+	  DDivu[1] -= phi[0][2]*phi[1][1] + phi[0][0]*phi[1][3];
 	  // The curl potential
 	  potentials_1d[1].value(x(0), phi[0]);
 	  potentials_1d[1].value(x(1), phi[1]);
