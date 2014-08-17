@@ -4,7 +4,7 @@ set Linear = true
 subsection Discretization
   set FE         = FESystem[FESystem[FE_Q(4)^d]]
 #  set FE         = FE_RaviartThomas(1)
-  set Refinement = 1
+  set Refinement = 0
 end
 subsection Newton
   set Assemble threshold  = 0.2
@@ -20,4 +20,5 @@ subsection Newton
 end
 subsection Output
   set Output format = gnuplot
+  set Subdivisions  = 4
 end

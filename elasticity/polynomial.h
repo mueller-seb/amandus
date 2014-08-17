@@ -198,23 +198,27 @@ void PolynomialError<dim>::cell(
 	  Du[d] = info.gradients[0][d][k];
 	}
       
+      potentials_1d[0].value(x(0), phi[0]);
+      potentials_1d[0].value(x(1), phi[1]);
+      u[0] -= phi[0][1]*phi[1][0];
+      u[1] -= phi[0][0]*phi[1][1];
+      Du[0][0] -= phi[0][2]*phi[1][0];
+      Du[0][1] -= phi[0][1]*phi[1][1];
+      Du[1][0] -= phi[0][1]*phi[1][1];
+      Du[1][1] -= phi[0][0]*phi[1][2];
+      
       if (dim == 2)
 	{
 	  potentials_1d[1].value(x(0), phi[0]);
 	  potentials_1d[1].value(x(1), phi[1]);
 	  
-	  Du[0][0] -= phi[0][1]*phi[1][1];
-	  Du[0][1] -= phi[0][0]*phi[1][2];
-	  Du[1][0] += phi[0][2]*phi[1][0];
-	  Du[1][1] += phi[0][1]*phi[1][1];
-	  u[0] -= phi[0][0]*phi[1][1];
-	  u[1] += phi[0][1]*phi[1][0];
+	  u[0] += phi[0][0]*phi[1][1];
+	  u[1] -= phi[0][1]*phi[1][0];
+	  Du[0][0] += phi[0][1]*phi[1][1];
+	  Du[0][1] += phi[0][0]*phi[1][2];
+	  Du[1][0] -= phi[0][2]*phi[1][0];
+	  Du[1][1] -= phi[0][1]*phi[1][1];
 	}
-      
-      potentials_1d[0].value(x(0), phi[0]);
-      potentials_1d[0].value(x(1), phi[1]);
-      u[0] += phi[0][1]*phi[1][0];
-      u[1] += phi[0][0]*phi[1][1];
 
       double uu = 0., Duu= 0., div = 0.;
       for (unsigned int d=0;d<dim;++d)

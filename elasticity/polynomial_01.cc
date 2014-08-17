@@ -92,9 +92,12 @@ int main(int argc, const char** argv)
   grad_potential += Polynomials::Monomial<double>(2, -2.);
   grad_potential += Polynomials::Monomial<double>(0, 1.);
   grad_potential.print(std::cout);
+  Polynomials::Polynomial<double> null;
+  null += Polynomials::Monomial<double>(0, 0.);
+
   std::vector<Polynomials::Polynomial<double> > potentials(2);
   potentials[0] = grad_potential;
-  potentials[1] = grad_potential;
+  potentials[1] = null;
   
   Startup<d> startup;
   
@@ -104,7 +107,7 @@ int main(int argc, const char** argv)
   ::Elasticity::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Elasticity::PolynomialError<d> error_integrator(parameters, potentials);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusUMFPACK<d> app(tr, *fe);
   app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
