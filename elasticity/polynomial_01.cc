@@ -92,12 +92,13 @@ int main(int argc, const char** argv)
   grad_potential += Polynomials::Monomial<double>(2, -2.);
   grad_potential += Polynomials::Monomial<double>(0, 1.);
   grad_potential.print(std::cout);
-  Polynomials::Polynomial<double> null;
-  null += Polynomials::Monomial<double>(0, 0.);
-
+  Polynomials::Polynomial<double> curl_potential = grad_potential;
+  grad_potential *= 7.;
+  curl_potential *= 3.;
+  
   std::vector<Polynomials::Polynomial<double> > potentials(2);
   potentials[0] = grad_potential;
-  potentials[1] = null;
+  potentials[1] = curl_potential;
   
   Startup<d> startup;
   

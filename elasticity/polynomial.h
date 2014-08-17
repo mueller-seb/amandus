@@ -141,8 +141,8 @@ void PolynomialRHS<dim>::cell(
 	  potentials_1d[1].value(x(0), phi[0]);
 	  potentials_1d[1].value(x(1), phi[1]);
 	  // div epsilon(curl) = Delta?
-	  DivDu[0] -= -phi[0][2]*phi[1][1] + 0.5 * (phi[0][1]*phi[1][2] - phi[0][1]*phi[1][2]);
-	  DivDu[1] -=  phi[0][1]*phi[1][2] + 0.5 * (phi[0][2]*phi[1][1] - phi[0][2]*phi[1][1]);
+	  DivDu[0] += 0.5 * (phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1]);
+	  DivDu[1] -= 0.5 * (phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2]);
 	  // div curl = 0
 	}
 
@@ -197,7 +197,8 @@ void PolynomialError<dim>::cell(
 	  u[d] = info.values[0][d][k];
 	  Du[d] = info.gradients[0][d][k];
 	}
-      
+
+      // The gradient potential
       potentials_1d[0].value(x(0), phi[0]);
       potentials_1d[0].value(x(1), phi[1]);
       u[0] -= phi[0][1]*phi[1][0];
@@ -206,7 +207,8 @@ void PolynomialError<dim>::cell(
       Du[0][1] -= phi[0][1]*phi[1][1];
       Du[1][0] -= phi[0][1]*phi[1][1];
       Du[1][1] -= phi[0][0]*phi[1][2];
-      
+
+      // The curl potential
       if (dim == 2)
 	{
 	  potentials_1d[1].value(x(0), phi[0]);
@@ -233,11 +235,10 @@ void PolynomialError<dim>::cell(
       // 1. H^1(u)
       dinfo.value(1) += Duu * dx;
       // 2. div u
-      dinfo.value(2) =
-	Divergence::norm(info.fe_values(0), make_slice(info.gradients[0], 0, dim));
+      dinfo.value(2) = div * dx;
     }
   
-  for (unsigned int i=0;i<=4;++i)
+  for (unsigned int i=0;i<=2;++i)
     dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
 
