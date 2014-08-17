@@ -13,3 +13,10 @@ FOREACH(file ${prms})
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${file}
     ${CMAKE_CURRENT_BINARY_DIR}/${file} COPYONLY)
 ENDFOREACH()
+
+ADD_CUSTOM_COMMAND(
+  OUTPUT parameters.h
+  COMMAND perl ${CMAKE_SOURCE_DIR}/scripts/make_parameters.pl
+  ${CMAKE_CURRENT_SOURCE_DIR}/parameters.input > parameters.h
+  DEPENDS parameters.input ${CMAKE_SOURCE_DIR}/scripts/make_parameters.pl)
+  
