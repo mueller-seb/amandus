@@ -3,10 +3,9 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Elasticity equations</li>
+ * <li> Stationary linear elasticity equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact polynomial solution</li>
- * <li> Newton solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
@@ -27,44 +26,6 @@
 #include <boost/scoped_ptr.hpp>
 
 using namespace dealii;
-
-// Keeping this dealii::Function class here for consistency, but
-// leaving all values equal to zero.
-template <int dim>
-class Startup : public dealii::Function<dim>
-{
-  public:
-    Startup();
-    virtual void vector_value_list (const std::vector<Point<dim> > &points,
-				    std::vector<Vector<double> >   &values) const;
-    virtual void vector_values (const std::vector<Point<dim> > &points,
-				std::vector<std::vector<double> > & values) const;
-};
-
-
-template <int dim>
-Startup<dim>::Startup ()
-		:
-		Function<dim> (dim)
-{}
-
-
-template <int dim>
-void
-Startup<dim>::vector_value_list (
-  const std::vector<Point<dim> > &,
-  std::vector<Vector<double> >   &) const
-{
-}
-
-  
-template <int dim>
-void
-Startup<dim>::vector_values (
-  const std::vector<Point<dim> > &,
-  std::vector<std::vector<double> >   &) const
-{
-}
 
   
 int main(int argc, const char** argv)
@@ -100,15 +61,13 @@ int main(int argc, const char** argv)
   potentials[0] = grad_potential;
   potentials[1] = curl_potential;
   
-  Startup<d> startup;
-  
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
   ::Elasticity::Matrix<d> matrix_integrator(parameters);
   ::Elasticity::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Elasticity::PolynomialError<d> error_integrator(parameters, potentials);
   
-  AmandusUMFPACK<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
