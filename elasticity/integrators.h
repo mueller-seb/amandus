@@ -4,9 +4,10 @@ namespace Elasticity
 {
   /**
    * Integrators for linear stress-strain relation in the case of
-   * geometrically nonlinear elasticity.
+   * geometrically nonlinear elasticity, also known as
+   * St. Venant-Kirchhoff materials or as large displacement/small strain.
    */
-  namespace HookeFiniteStrain
+  namespace StVenantKirchhoff
   {
     template <int dim, typename number>
     inline void

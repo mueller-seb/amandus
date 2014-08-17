@@ -74,7 +74,7 @@ using namespace dealii::MeshWorker;
  * \f]
  *
  * The local integrators for this equation a re part of the deal.II
- * library. The integrators in the namespace HookeFiniteStrain extend
+ * library. The integrators in the namespace StVenantKirchhoff extend
  * this to the geometrically nonlinear weak formulation above, but
  * with the linear stress-strain relation established by Hooke's law.
  *
@@ -147,7 +147,7 @@ class Residual : public AmandusIntegrator<dim>
       }
     else
       {
-	HookeFiniteStrain::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
+	StVenantKirchhoff::cell_residual(dinfo.vector(0).block(0), info.fe_values(0),
 					 dealii::make_slice(info.gradients[0], 0, dim),
 					 lambda, mu);
       }
