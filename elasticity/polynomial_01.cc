@@ -66,6 +66,13 @@ int main(int argc, const char** argv)
   ::Elasticity::Matrix<d> matrix_integrator(parameters);
   ::Elasticity::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Elasticity::PolynomialError<d> error_integrator(parameters, potentials);
+  if (fe->conforms(FiniteElementData<d>::H1))
+    {
+      matrix_integrator.use_boundary = false;
+      matrix_integrator.use_face = false;
+      rhs_integrator.use_boundary = false;
+      rhs_integrator.use_face = false;
+    }
   
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);

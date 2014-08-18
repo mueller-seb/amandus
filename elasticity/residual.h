@@ -114,8 +114,6 @@ class Residual : public AmandusIntegrator<dim>
 		  parameters(&par),
 		  boundary_values(&bdry)
   {
-   this->use_boundary = false;
-   this->use_face = false;
     this->input_vector_names.push_back("Newton iterate");
   }
 
