@@ -27,7 +27,8 @@ global_refinement_linear_loop(unsigned int n_steps,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
 			      const AmandusIntegrator<dim>* error = 0,
-			      const AmandusIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* estimator = 0,
+			      const dealii::Function<dim>* initial_vector = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -40,6 +41,9 @@ global_refinement_linear_loop(unsigned int n_steps,
       app.setup_system();
       app.setup_vector(res);
       app.setup_vector(sol);
+
+      if (initial_vector)
+	dealii::VectorTools::interpolate(app.dofs(), *initial_vector, sol);
       
       dealii::AnyData solution_data;
       dealii::Vector<double>* p = &sol;
@@ -81,7 +85,8 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
 			      const AmandusIntegrator<dim>* error = 0,
-			      const AmandusIntegrator<dim>* estimator = 0)
+			      const AmandusIntegrator<dim>* estimator = 0,
+			      const dealii::Function<dim>* initial_vector = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -93,11 +98,16 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       solve.notify(dealii::Algorithms::Events::remesh);
       app.setup_system();
       app.setup_vector(sol);
-      sol = 0.;
+      if (initial_vector)
+	{
+	  dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+1);
+	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
+	}
+      else
+	sol = 0.;
       
       dealii::AnyData solution_data;
-      dealii::Vector<double>* p = &sol;
-      solution_data.add(p, "solution");
+      solution_data.add(&sol, "solution");
       
       dealii::AnyData data;
       solve(solution_data, data);

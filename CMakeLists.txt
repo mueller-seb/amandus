@@ -12,6 +12,7 @@ ADD_LIBRARY(amandus
 
 DEAL_II_SETUP_TARGET(amandus)  
 
+ADD_SUBDIRECTORY(elasticity)
 ADD_SUBDIRECTORY(allen_cahn)
 ADD_SUBDIRECTORY(brusselator)
 ADD_SUBDIRECTORY(maxwell)

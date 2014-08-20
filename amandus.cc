@@ -59,17 +59,6 @@ AmandusUMFPACK<dim>::AmandusUMFPACK(
 {}
 
 
-template <int dim>
-void AmandusUMFPACK<dim>::setup_constraints()
-{
-  this->constraints.clear();
-  for (unsigned int i=0;i<this->boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraints, this->boundary_masks[i]);
-  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
-  this->constraints.close();
-}
-
-
 //----------------------------------------------------------------------//
 
 template <int dim>
