@@ -109,8 +109,8 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
       application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }
-  const Vector<double>* rhs = in.read_ptr<Vector<double> >(0);
-  Vector<double>* solution = out.entry<Vector<double>*>(0);
+  const Vector<double>* rhs = in.read_ptr<Vector<double> >("RHS");
+  Vector<double>* solution = out.entry<Vector<double>*>("solution");
   
   application->solve(*solution, *rhs);
 //  deallog << "Norms " << rhs->l2_norm() << ' ' << solution->l2_norm() << std::endl;

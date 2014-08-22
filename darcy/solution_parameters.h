@@ -1,3 +1,6 @@
+#ifndef __solution_parameters_h
+#define __solution_parameters_h
+
 #include <deal.II/base/function.h>
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/algorithms/any_data.h>
@@ -198,6 +201,7 @@ namespace DarcyCoefficient
       f->vector_value(p, *out.entry<VECTOR*>(0));
     }
 
+
   /**
    * Wrapper for a function with implementented gradient to supply Newton's
    * method with the inverse Jacobian.
@@ -304,3 +308,5 @@ namespace DarcyCoefficient
     find_root(parameter_equation, parameters);
   }
 }
+
+#endif

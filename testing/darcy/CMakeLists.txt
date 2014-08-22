@@ -8,3 +8,13 @@ ADD_EXECUTABLE(test_darcy_solution_parameters test_solution_parameters.cc)
 DEAL_II_SETUP_TARGET(test_darcy_solution_parameters)
 TARGET_LINK_LIBRARIES(test_darcy_solution_parameters
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+ADD_EXECUTABLE(test_darcy_coefficient_integrators
+  test_coefficient_integrators.cc)
+DEAL_II_SETUP_TARGET(test_darcy_coefficient_integrators)
+TARGET_LINK_LIBRARIES(test_darcy_coefficient_integrators
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+ADD_EXECUTABLE(test_darcy_jumping darcy_jumping.cc)
+DEAL_II_SETUP_TARGET(test_darcy_jumping)
+TARGET_LINK_LIBRARIES(test_darcy_jumping amandus)

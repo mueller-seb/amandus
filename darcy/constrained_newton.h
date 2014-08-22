@@ -1,3 +1,6 @@
+#ifndef __constrained_newton_h
+#define __constrained_newton_h
+
 #include <deal.II/algorithms/newton.h>
 
 #include <deal.II/base/logstream.h>
@@ -138,3 +141,5 @@ namespace DarcyCoefficient
       return false;
     }
 }
+
+#endif

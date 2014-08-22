@@ -124,7 +124,11 @@ AmandusApplication<dim>::assemble_mg_matrix(
   
     
   MeshWorker::IntegrationInfoBox<dim> info_box;
-  UpdateFlags update_flags = update_values | update_gradients | update_hessians;
+  // TODO: expose update_flags to integrator
+  UpdateFlags update_flags = (update_values 
+                              | update_gradients 
+                              | update_hessians
+                              | update_quadrature_points);
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, &this->dof_handler.block_info());
 

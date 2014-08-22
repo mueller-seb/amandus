@@ -9,6 +9,7 @@
 #ifndef __amandus_integrator_h
 #define __amandus_integrator_h
 
+#include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/local_integrator.h>
 #include <deal.II/fe/block_mask.h>
 #include <deal.II/algorithms/any_data.h>
