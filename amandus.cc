@@ -1,7 +1,8 @@
 /**********************************************************************
- * $Id$
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
+ * See the files AUTHORS and LICENSE in the project root directory
  *
  **********************************************************************/
 
@@ -56,17 +57,6 @@ AmandusUMFPACK<dim>::AmandusUMFPACK(
 		:
 		AmandusApplicationSparse<dim>(triangulation, fe, true)
 {}
-
-
-template <int dim>
-void AmandusUMFPACK<dim>::setup_constraints()
-{
-  this->constraints.clear();
-  for (unsigned int i=0;i<this->boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraints, this->boundary_masks[i]);
-  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
-  this->constraints.close();
-}
 
 
 //----------------------------------------------------------------------//

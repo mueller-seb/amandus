@@ -1,7 +1,8 @@
 /**********************************************************************
- * $Id$
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
+ * See the files AUTHORS and LICENSE in the project root directory
  *
  **********************************************************************/
 
@@ -176,9 +177,20 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     void refine_mesh (const bool global = false);
 
     /**
-     * The object describing the finite element space.
+     * \brief The object describing the finite element space.
      */
     const dealii::DoFHandler<dim>& dofs () const;
+
+    /**
+     * \brief The object describing the constraints.
+     */
+    const dealii::ConstraintMatrix& constraints() const;
+    
+    /**
+     * \brief The object describing the constraints for hanging nodes, not
+     * for the boundary.
+     */
+    const dealii::ConstraintMatrix& hanging_nodes() const;
     
   public:
     /**
@@ -257,7 +269,10 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     std::vector<dealii::ComponentMask> boundary_masks;
     
     /// The object holding the constraints for the active mesh
-    dealii::ConstraintMatrix     constraints;
+    dealii::ConstraintMatrix     constraint_matrix;
+  
+    /// The object holding the hanging node constraints for the active mesh
+    dealii::ConstraintMatrix     hanging_node_constraints;
   
     dealii::SparsityPattern      sparsity;
     dealii::SparseMatrix<double> matrix;
@@ -322,14 +337,10 @@ class AmandusApplication
      * @note This function calls the virtual function setup_constraints().
      */
     void setup_system ();
-  
+
+    void setup_constraints ();
+    
   public:
-    /**
-     * Set up hanging node constraints for leaf mesh and for level
-     * meshes. Use redefinition in derived classes to add boundary
-     * constraints.
-     */
-    virtual void setup_constraints ();
     /**
      * Use the integrator to build the matrix for the level meshes. This
      * also automatically generates the transfer matrices needed for
@@ -372,8 +383,6 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
   public:
     AmandusUMFPACK(dealii::Triangulation<dim>& triangulation,
 		   const dealii::FiniteElement<dim>& fe);
-  private:
-    virtual void setup_constraints ();
 };
 
 
@@ -430,6 +439,22 @@ inline const dealii::DoFHandler<dim>&
 AmandusApplicationSparse<dim>::dofs () const
 {
   return dof_handler;
+}
+
+
+template <int dim>
+inline const dealii::ConstraintMatrix&
+AmandusApplicationSparse<dim>::constraints () const
+{
+  return constraint_matrix;
+}
+
+
+template <int dim>
+inline const dealii::ConstraintMatrix&
+AmandusApplicationSparse<dim>::hanging_nodes () const
+{
+  return hanging_node_constraints;
 }
 
 

@@ -1,7 +1,8 @@
 /**********************************************************************
- * $Id$
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
+ * See the files AUTHORS and LICENSE in the project root directory
  *
  **********************************************************************/
 
@@ -53,7 +54,7 @@ AmandusApplication<dim>::AmandusApplication(
   const FiniteElement<dim>& fe)
 		:
 		AmandusApplicationSparse<dim>(triangulation, fe, false),
-  mg_transfer(this->constraints, mg_constraints)
+		mg_transfer(this->constraint_matrix, mg_constraints)
 {}
 
 
@@ -70,7 +71,7 @@ AmandusApplication<dim>::setup_system()
     deallog << ' ' << this->dof_handler.n_dofs(l);
   deallog << std::endl;
 
-  mg_transfer.initialize_constraints(this->constraints, mg_constraints);
+  mg_transfer.initialize_constraints(this->constraint_matrix, mg_constraints);
   mg_transfer.build_matrices(this->dof_handler);
   
   const unsigned int n_levels = this->triangulation->n_levels();
@@ -98,11 +99,7 @@ AmandusApplication<dim>::setup_system()
 template <int dim>
 void AmandusApplication<dim>::setup_constraints()
 {
-  this->constraints.clear();
-  for (unsigned int i=0;i<this->boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraints, this->boundary_masks[i]);
-  DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraints);
-  this->constraints.close();
+  AmandusApplicationSparse<dim>::setup_constraints();
   
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
@@ -204,7 +201,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
       solver.solve(this->matrix, sol, rhs, preconditioner);
     }
   catch(...) {}
-  this->constraints.distribute(sol);
+  this->constraints().distribute(sol);
 }
 
 
