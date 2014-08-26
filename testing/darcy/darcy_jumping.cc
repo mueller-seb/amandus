@@ -15,7 +15,7 @@
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 
-//#include <debug/visualize_solution.h>
+#include <debug/visualize_solution.h>
 
 int main(int argc, const char** argv)
 {
@@ -25,7 +25,7 @@ int main(int argc, const char** argv)
 
   const int initial_refinement = 3;
   const int degree = 1;
-  //const int quadrature_degree = degree + 2;
+  const int quadrature_degree = degree + 2;
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
@@ -65,7 +65,6 @@ int main(int argc, const char** argv)
 
   global_refinement_linear_loop(1, app, solver, residual);
 
-  /*
   param.enter_subsection("Output");
   QGauss<d> quadrature(quadrature_degree);
   debug::output_solution(problem_parameters.mixed_solution,
@@ -73,7 +72,6 @@ int main(int argc, const char** argv)
                          quadrature,
                          param);
   param.leave_subsection();
-  */
 
   return 0;
 }
