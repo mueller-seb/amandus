@@ -1,18 +1,18 @@
-/**********************************************************************
- *  Copyright (C) 2011 - 2014 by the authors
- *  Distributed under the MIT License
- *
- * See the files AUTHORS and LICENSE in the project root directory
- **********************************************************************/
+// $Id$
+
 /**
  * @file
  *
- * @brief Instationary Brusselator problem
+ * @brief Brusselator problem as instationary ReactionDiffusion problem
  * <ul>
- * <li>Instationary Brusselator model</li>
- * <li>Homogeneous Dirichlet boundary conditions</li>
+ * <li>Instationary ReactionDiffusion model</li>
+ * <li>Homogeneous Neumann boundary conditions</li>
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
+ *
+ * Parameter set and initial condition can be found in
+ * Hairer, Norsett, Wanner: Solving Ordinary Differential
+ * Equations I, 2000.
  *
  * @ingroup Examples
  */
@@ -23,10 +23,10 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/utilities.h>
 #include <apps.h>
-#include <brusselator/implicit.h>
-#include <brusselator/explicit.h>
-#include <brusselator/matrix.h>
+#include <readiff/residual.h>
+#include <readiff/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -58,8 +58,10 @@ Startup<dim>::vector_value_list (
   for (unsigned int k=0;k<points.size();++k)
     {
       const Point<dim>& p = points[k];
-      values[k](0) = 2. + .25*p(1);
-      values[k](1) = 1. + .8*p(0);
+
+      values[k](0) = .5 + p(1);
+      values[k](1) = 1. + 5.*p(0);
+
     }
 }
 
@@ -74,6 +76,7 @@ int main(int argc, const char** argv)
   deallog.depth_console(2);
   
   AmandusParameters param;
+  ReactionDiffusion::Parameters::declare_parameters(param);
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -81,23 +84,24 @@ int main(int argc, const char** argv)
   boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
   
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, 0., 1.);
+  GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-  Brusselator::Parameters parameters;
-  parameters.alpha0 = 1.;
-  parameters.alpha1 = .1;
-  parameters.A = 3.4;
-  parameters.B = 1.;
-  Brusselator::Matrix<d> matrix_integrator(parameters);
-  Brusselator::ExplicitResidual<d> explicit_integrator(parameters);
-  explicit_integrator.input_vector_names.push_back("Previous iterate");
-  Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
+  ReactionDiffusion::Parameters parameters;
+  parameters.parse_parameters(param);
+  
+  ReactionDiffusion::Matrix<d> m_integrator(parameters);
+  Integrators::Theta<d> matrix_integrator(m_integrator, true);
+  matrix_integrator.input_vector_names.push_back("Newton iterate");
+  ReactionDiffusion::Residual<d> r_integrator(parameters);
+  Integrators::Theta<d> implicit_integrator(r_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
+  Integrators::Theta<d> explicit_integrator(r_integrator, false);
+  explicit_integrator.input_vector_names.push_back("Previous iterate");
+
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  //AmandusUMFPACK<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);
