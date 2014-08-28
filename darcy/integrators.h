@@ -6,6 +6,8 @@
 #include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/dof_info.h>
 #include <deal.II/base/tensor_function.h>
+#include <deal.II/base/tensor.h>
+#include <deal.II/base/point.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -69,15 +71,15 @@ namespace Darcy
    * for the weight.
    */
   template <int dim>
-    class IdentityTensorFunction : public TensorFunction<2, dim>
+    class IdentityTensorFunction : public dealii::TensorFunction<2, dim>
   {
     public:
-      typedef typename TensorFunction<2, dim>::value_type value_type;
+      typedef typename dealii::TensorFunction<2, dim>::value_type value_type;
       IdentityTensorFunction();
 
-      virtual value_type value(const Point<dim>& p) const;
+      virtual value_type value(const dealii::Point<dim>& p) const;
 
-      Tensor<2, dim> identity;
+      dealii::Tensor<2, dim> identity;
   };
 
   template <int dim>
@@ -91,7 +93,7 @@ namespace Darcy
 
   template <int dim>
     typename IdentityTensorFunction<dim>::value_type
-    IdentityTensorFunction<dim>::value(const Point<dim>& p) const
+    IdentityTensorFunction<dim>::value(const dealii::Point<dim>& p) const
     {
       return identity;
     }
@@ -165,6 +167,11 @@ namespace Darcy
       this->use_cell = true;
       this->use_boundary = false;
       this->use_face = false;
+
+      this->add_flags(dealii::update_JxW_values |
+                      dealii::update_values |
+                      dealii::update_gradients |
+                      dealii::update_quadrature_points);
     }
 
 
@@ -239,6 +246,10 @@ namespace Darcy
     this->use_cell = false;
     this->use_boundary = true;
     this->use_face = false;
+
+    this->add_flags(dealii::update_JxW_values |
+                    dealii::update_values |
+                    dealii::update_quadrature_points);
   }
 
   template <int dim>
