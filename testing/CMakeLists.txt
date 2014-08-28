@@ -11,10 +11,10 @@ ENDIF()
 OPTION(TEST_DARCY "Test darcy." ON)
 IF(TEST_DARCY)
   ADD_SUBDIRECTORY(darcy)
-  LIST(APPEND coveredTests darcy_test)
+  LIST(APPEND coveredTests test_darcy_integrators)
+  LIST(APPEND coveredTests test_darcy_polynomial)
   LIST(APPEND coveredTests test_darcy_solution_parameters)
-  LIST(APPEND coveredTests test_darcy_coefficient_integrators)
-  LIST(APPEND coveredTests test_darcy_jumping)
+  LIST(APPEND coveredTests test_darcy_checkerboard)
 ENDIF()
 
 

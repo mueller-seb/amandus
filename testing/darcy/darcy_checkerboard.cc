@@ -50,10 +50,10 @@ int main(int argc, const char** argv)
   coefficient_parameters.push_back(1.0);
 
   // a diffusion tensor that is piecewise constant in the quadrants
-  Darcy::Checkerboard::CheckerboardTensorFunction<2>
+  Darcy::Checkerboard::CheckerboardTensorFunction
     d_tensor(coefficient_parameters);
   // divergence free mixed solution corresponding to the diffusion tensor
-  Darcy::Checkerboard::MixedSolution<2> mixed_solution(coefficient_parameters);
+  Darcy::Checkerboard::MixedSolution mixed_solution(coefficient_parameters);
 
   // System integrator for mixed discretization of Darcy's equation for
   // given weight tensor
@@ -61,14 +61,6 @@ int main(int argc, const char** argv)
   // Right hand side corresponding to the exact solution's boundary values
   // and zero divergence
   Darcy::RHSIntegrator<2> rhs_integrator(mixed_solution.scalar_solution);
-
-
-  /*
-  DarcyCoefficient::Parameters<d> problem_parameters(coefficient_parameters);
-
-  DarcyCoefficient::SystemIntegrator<d> system_integrator(problem_parameters);
-  DarcyCoefficient::RHSIntegrator<d> rhs_integrator(problem_parameters);
-  */
 
   AmandusApplicationSparse<d> app(tr, fe, true);
   AmandusSolve<d> solver(app, system_integrator);
@@ -81,6 +73,7 @@ int main(int argc, const char** argv)
 
   global_refinement_linear_loop(steps, app, solver, residual);
 
+  // output of exact mixed solution for comparison
   param.enter_subsection("Output");
   QGauss<d> quadrature(quadrature_degree);
   debug::output_solution(mixed_solution,

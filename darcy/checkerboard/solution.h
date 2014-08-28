@@ -27,42 +27,38 @@ namespace Darcy
     /**
      * A tensor valued function which is piecewise constant on each of the
      * four quadrants taking the values given in the constructor.
-     * TODO: inverse
      */
-    template <int dim>
-      class CheckerboardTensorFunction : public TensorFunction<2, dim>
+    class CheckerboardTensorFunction : public TensorFunction<2, 2>
     {
       public:
-        typedef typename TensorFunction<2, dim>::value_type value_type;
+        typedef typename TensorFunction<2, 2>::value_type value_type;
         CheckerboardTensorFunction(const std::vector<double>& parameters);
         ~CheckerboardTensorFunction();
 
-        virtual value_type value(const Point<dim>& p) const;
+        virtual value_type value(const Point<2>& p) const;
 
-        CheckerboardTensorFunction<dim>& inverse();
+        CheckerboardTensorFunction& inverse();
       private:
-        CheckerboardTensorFunction(CheckerboardTensorFunction<dim>* parent,
+        CheckerboardTensorFunction(CheckerboardTensorFunction* parent,
                                    bool nocopyconstructor);
         std::vector<double> parameters;
         CheckerboardTensorFunction* inverse_ptr;
         bool is_inverse;
     };
 
-    template <int dim>
-      CheckerboardTensorFunction<dim>::CheckerboardTensorFunction(
-          const std::vector<double>& parameters) :
-        parameters(parameters),
-        is_inverse(false)
+    CheckerboardTensorFunction::CheckerboardTensorFunction(
+        const std::vector<double>& parameters) :
+      parameters(parameters),
+      is_inverse(false)
     {
-      inverse_ptr = new CheckerboardTensorFunction<dim>(this, true);
+      inverse_ptr = new CheckerboardTensorFunction(this, true);
     }
 
-    template <int dim>
-      CheckerboardTensorFunction<dim>::CheckerboardTensorFunction(
-          CheckerboardTensorFunction<dim>* parent,
-          bool nocopyconstructor) :
-        parameters(4),
-        is_inverse(true)
+    CheckerboardTensorFunction::CheckerboardTensorFunction(
+        CheckerboardTensorFunction* parent,
+        bool nocopyconstructor) :
+      parameters(4),
+      is_inverse(true)
     {
       inverse_ptr = parent;
       for(unsigned int i = 0; i < 4; ++i)
@@ -71,28 +67,24 @@ namespace Darcy
       }
     }
 
-    template <int dim>
-      CheckerboardTensorFunction<dim>::~CheckerboardTensorFunction()
+    CheckerboardTensorFunction::~CheckerboardTensorFunction()
+    {
+      if(!is_inverse)
       {
-        if(!is_inverse)
-        {
-          delete inverse_ptr;
-        }
+        delete inverse_ptr;
       }
+    }
 
-    template <int dim>
-      CheckerboardTensorFunction<dim>& CheckerboardTensorFunction<dim>::inverse()
-      {
-        return *inverse_ptr;
-      }
+    CheckerboardTensorFunction& CheckerboardTensorFunction::inverse()
+    {
+      return *inverse_ptr;
+    }
 
-    template <int dim>
-      typename CheckerboardTensorFunction<dim>::value_type
-      CheckerboardTensorFunction<dim>::value(const Point<dim>& p) const
+    typename CheckerboardTensorFunction::value_type
+      CheckerboardTensorFunction::value(const Point<2>& p) const
       {
-        Assert(dim == 2, ExcNotImplemented());
-        Tensor<2, dim> identity;
-        for(unsigned int i = 0; i < dim; ++i)
+        Tensor<2, 2> identity;
+        for(unsigned int i = 0; i < 2; ++i)
         {
           identity[i][i] = 1.0;
         }
@@ -251,7 +243,6 @@ namespace Darcy
     }
 
 
-
     /**
      * The exact mixed solution to a divergence free
      * solution of Darcy's equation with a checkerboard coefficient as given
@@ -264,13 +255,12 @@ namespace Darcy
      *  p
      *  \f]
      */
-    template <int dim>
-      class MixedSolution : public Function<dim>
+    class MixedSolution : public Function<2>
     {
       public:
         MixedSolution(const std::vector<double>& parameters);
 
-        virtual double value(const Point<dim>& p,
+        virtual double value(const Point<2>& p,
                              const unsigned int component) const;
 
         /**
@@ -280,72 +270,31 @@ namespace Darcy
         /**
          * \brief The corresponding checkerboard coefficient.
          */
-        const CheckerboardTensorFunction<dim> coefficient;
+        const CheckerboardTensorFunction coefficient;
     };
 
-    template <int dim>
-      MixedSolution<dim>::MixedSolution(const std::vector<double>& parameters) :
-        Function<dim>(dim + 1), 
-        scalar_solution(parameters), 
-        coefficient(parameters)
+    MixedSolution::MixedSolution(const std::vector<double>& parameters) :
+      Function<2>(2 + 1), 
+      scalar_solution(parameters), 
+      coefficient(parameters)
     {}
 
 
-    template <int dim>
-      double MixedSolution<dim>::value(const Point<dim>& p,
-                                       const unsigned int component) const
+    double MixedSolution::value(const Point<2>& p,
+                                     const unsigned int component) const
+    {
+      if(component == 2)
       {
-        if(component == dim)
-        {
-          return scalar_solution.value(p);
-        } else {
-          Tensor<1, dim> grad_u = scalar_solution.gradient(p);
-          Tensor<2, dim> coefficient_value = coefficient.value(p);
+        return scalar_solution.value(p);
+      } else {
+        Tensor<1, 2> grad_u = scalar_solution.gradient(p);
+        Tensor<2, 2> coefficient_value = coefficient.value(p);
 
-          Tensor<1, dim> value = -1.0 * coefficient_value * grad_u;
-          return value[component];
-        }
+        Tensor<1, 2> value = -1.0 * coefficient_value * grad_u;
+        return value[component];
       }
+    }
 
-
-    /*
-       template <int dim>
-       class Parameters
-       {
-       public:
-       Parameters(const std::vector<double>& parameters);
-
-       const std::vector<double> parameters;
-       CheckerboardTensorFunction<dim> coefficient_tensor;
-       CheckerboardTensorFunction<dim> inverse_coefficient_tensor;
-       MixedSolution<dim> mixed_solution;
-
-       private:
-       std::vector<double> inverse_parameters(
-       const std::vector<double>& parameters);
-       };
-
-       template <int dim>
-       Parameters<dim>::Parameters(const std::vector<double>& parameters) :
-       parameters(parameters),
-       coefficient_tensor(parameters),
-       inverse_coefficient_tensor(inverse_parameters(parameters)),
-       mixed_solution(parameters)
-       {}
-
-       template <int dim>
-       std::vector<double> Parameters<dim>::inverse_parameters(
-       const std::vector<double>& parameters)
-       {
-       std::vector<double> inverse_parameters(parameters.size());
-       for(unsigned int i = 0; i < parameters.size(); ++i)
-       {
-       inverse_parameters[i] = 1.0 / parameters[i];
-       }
-
-       return inverse_parameters;
-       }
-       */
   }
 }
 

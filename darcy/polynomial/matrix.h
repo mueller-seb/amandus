@@ -4,8 +4,8 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-#ifndef __matrix_darcy_h
-#define __matrix_darcy_h
+#ifndef __darcy_polynomial_matrix_h
+#define __darcy_polynomial_matrix_h
 
 #include <deal.II/meshworker/integration_info.h>
 #include <integrator.h>
@@ -34,49 +34,55 @@ using namespace LocalIntegrators;
  *
  * @ingroup integrators
  */
-template <int dim>
-class DarcyMatrix : public AmandusIntegrator<dim>
+namespace Darcy
 {
-public:
-    DarcyMatrix ();
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
-};
+  namespace Polynomial
+  {
+    template <int dim>
+      class DarcyMatrix : public AmandusIntegrator<dim>
+    {
+      public:
+        DarcyMatrix ();
+        virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+        virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+        virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+                          MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
+    };
 
 
-template <int dim>
-DarcyMatrix<dim>::DarcyMatrix ()
-{
-  this->use_boundary = false;
-  this->use_face = false;
+    template <int dim>
+      DarcyMatrix<dim>::DarcyMatrix ()
+      {
+        this->use_boundary = false;
+        this->use_face = false;
+      }
+
+
+
+    template <int dim>
+      void DarcyMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+      {
+        AssertDimension (dinfo.n_matrices(), 4);
+        L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+        Divergence::cell_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), info.fe_values(1));
+        dinfo.matrix(1,false).matrix.copy_transposed(dinfo.matrix(2,false).matrix);
+      }
+
+
+    template <int dim>
+      void DarcyMatrix<dim>::boundary(
+          MeshWorker::DoFInfo<dim>&,
+          typename MeshWorker::IntegrationInfo<dim>&) const
+      {}
+
+
+    template <int dim>
+      void DarcyMatrix<dim>::face(
+          MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>&,
+          MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>&) const
+      {}
+  }
 }
-
-
-
-template <int dim>
-void DarcyMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
-{
-  AssertDimension (dinfo.n_matrices(), 4);
-  L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
-  Divergence::cell_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), info.fe_values(1));
-  dinfo.matrix(1,false).matrix.copy_transposed(dinfo.matrix(2,false).matrix);
-}
-
-
-template <int dim>
-void DarcyMatrix<dim>::boundary(
-  MeshWorker::DoFInfo<dim>&,
-  typename MeshWorker::IntegrationInfo<dim>&) const
-{}
-
-
-template <int dim>
-void DarcyMatrix<dim>::face(
-  MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>&,
-  MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>&) const
-{}
 
 
 #endif

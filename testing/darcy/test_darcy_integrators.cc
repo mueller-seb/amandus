@@ -1,8 +1,7 @@
-#define BOOST_TEST_MODULE test_coefficient_integrators.h
+#define BOOST_TEST_MODULE test_darcy_integrators.h
 #include <boost/test/included/unit_test.hpp>
 
-#include <darcy/coefficient_integrators.h>
-#include <darcy/coefficient_parameters.h>
+#include <darcy/integrators.h>
 
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/fe/fe_q.h>
@@ -76,7 +75,7 @@ void CoefficientIntegrator<dim>::cell(
     DoFInfo<dim>& dinfo,
     IntegrationInfo<dim>& info) const 
 {
-  LocalIntegrators::L2::tensor_weighted_mass_matrix(
+  Darcy::weighted_mass_matrix(
       dinfo.matrix(0).matrix, info.fe_values(0),
       identity);
 }

@@ -12,25 +12,31 @@
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
 #include <apps.h>
-#include <darcy/polynomial.h>
-#include <darcy/matrix.h>
+#include <darcy/polynomial/polynomial.h>
+#include <darcy/polynomial/matrix.h>
+#include <deal.II/fe/fe_tools.h>
 
-int main()
+int main(int argc, const char** argv)
 {
   const unsigned int d=2;
   
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+
+  AmandusParameters param;
+  param.read(argc, argv);
+  param.log_parameters(deallog);
+
+  param.enter_subsection("Discretization");
+
+  const FiniteElement<d>* fe(
+      FETools::get_fe_from_name<d>(param.get("FE")));
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
-  //tr.refine_global(1);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
   
-  const unsigned int degree = 1;
-  FE_RaviartThomas<d> vec(degree);
-  FE_DGQ<d> scal(degree);
-  FESystem<d> fe(vec, 1, scal, 1);
-
   Polynomials::Polynomial<double> vector_potential;
   vector_potential += Polynomials::Monomial<double>(4, 1.);
   vector_potential += Polynomials::Monomial<double>(2, -2.);
@@ -44,13 +50,14 @@ int main()
   Polynomials::Polynomial<double> pressure_source(1);
   pressure_source += Polynomials::Monomial<double>(3, 1.);
   
-  DarcyMatrix<d> matrix_integrator;
-  DarcyPolynomial::RHS<d> rhs_integrator(
+  Darcy::Polynomial::DarcyMatrix<d> matrix_integrator;
+  Darcy::Polynomial::RHS<d> rhs_integrator(
       vector_potential, scalar_potential, pressure_source);
-  DarcyPolynomial::Error<d> error_integrator(
+  Darcy::Polynomial::Error<d> error_integrator(
       vector_potential, scalar_potential, pressure_source);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
