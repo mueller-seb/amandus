@@ -64,6 +64,37 @@ namespace Darcy
       }
     }
             
+  /**
+   * Simple function returning the identity tensor. Used as default value
+   * for the weight.
+   */
+  template <int dim>
+    class IdentityTensorFunction : public TensorFunction<2, dim>
+  {
+    public:
+      typedef typename TensorFunction<2, dim>::value_type value_type;
+      IdentityTensorFunction();
+
+      virtual value_type value(const Point<dim>& p) const;
+
+      Tensor<2, dim> identity;
+  };
+
+  template <int dim>
+    IdentityTensorFunction<dim>::IdentityTensorFunction()
+    {
+      for(unsigned int i = 0; i < dim; ++i)
+      {
+        identity[i][i] = 1.0;
+      }
+    }
+
+  template <int dim>
+    typename IdentityTensorFunction<dim>::value_type
+    IdentityTensorFunction<dim>::value(const Point<dim>& p) const
+    {
+      return identity;
+    }
 
   /**
    * Local system integrator for mixed discretization of Darcy's equation.
@@ -78,12 +109,15 @@ namespace Darcy
    * \f]
    * The weight \f$K^{-1}\f$ is given as an argument to the constructor.
    * Notice that it is the _inverse_ of the diffusion tensor.
+   * No argument implies the identity tensor as weight.
    */
   template <int dim>
     class SystemIntegrator : public AmandusIntegrator<dim>
   {
     public:
+      SystemIntegrator();
       SystemIntegrator(const dealii::TensorFunction<2, dim>& weight);
+      ~SystemIntegrator();
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                         dealii::MeshWorker::IntegrationInfo<dim>& info) const;
       virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
@@ -93,18 +127,46 @@ namespace Darcy
                         dealii::MeshWorker::IntegrationInfo<dim>& info1,
                         dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
     private:
-      const dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
+      void init();
+      const dealii::TensorFunction<2, dim>* const weight_ptr;
+      dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
   };
+
+  template <int dim>
+    SystemIntegrator<dim>::SystemIntegrator() : 
+      weight_ptr(new IdentityTensorFunction<dim>),
+      weight(weight_ptr)
+  {
+    init();
+  }
 
   template <int dim>
     SystemIntegrator<dim>::SystemIntegrator(
         const dealii::TensorFunction<2, dim>& weight) :
+      weight_ptr(0),
       weight(&weight)
+  {
+    init();
+  }
+
+  template <int dim>
+    SystemIntegrator<dim>::~SystemIntegrator()
+    {
+      if(weight_ptr != 0) 
+      {
+        weight = 0;
+        delete weight_ptr;
+      }
+    }
+
+  template <int dim>
+    void SystemIntegrator<dim>::init()
     {
       this->use_cell = true;
       this->use_boundary = false;
       this->use_face = false;
     }
+
 
   template <int dim>
     void SystemIntegrator<dim>::cell(

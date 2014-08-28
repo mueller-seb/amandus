@@ -13,7 +13,7 @@
 #include <deal.II/fe/fe_system.h>
 #include <apps.h>
 #include <darcy/polynomial/polynomial.h>
-#include <darcy/polynomial/matrix.h>
+#include <darcy/integrators.h>
 #include <deal.II/fe/fe_tools.h>
 
 int main(int argc, const char** argv)
@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
   Polynomials::Polynomial<double> pressure_source(1);
   pressure_source += Polynomials::Monomial<double>(3, 1.);
   
-  Darcy::Polynomial::DarcyMatrix<d> matrix_integrator;
+  Darcy::SystemIntegrator<d> matrix_integrator;
   Darcy::Polynomial::RHS<d> rhs_integrator(
       vector_potential, scalar_potential, pressure_source);
   Darcy::Polynomial::Error<d> error_integrator(
