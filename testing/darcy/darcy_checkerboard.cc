@@ -61,6 +61,8 @@ int main(int argc, const char** argv)
   // Right hand side corresponding to the exact solution's boundary values
   // and zero divergence
   Darcy::RHSIntegrator<2> rhs_integrator(mixed_solution.scalar_solution);
+  // Error integrator, use d_tensor weighted L2 inner product for velocity
+  Darcy::ErrorIntegrator<2> error(mixed_solution, d_tensor);
 
   AmandusApplicationSparse<d> app(tr, fe, true);
   AmandusSolve<d> solver(app, system_integrator);
@@ -71,7 +73,7 @@ int main(int argc, const char** argv)
   app.control.set_reduction(1.e-10);
   app.control.set_max_steps(50000);
 
-  global_refinement_linear_loop(steps, app, solver, residual);
+  global_refinement_linear_loop(steps, app, solver, residual, &error);
 
   // output of exact mixed solution for comparison
   param.enter_subsection("Output");

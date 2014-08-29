@@ -286,6 +286,161 @@ namespace Darcy
         dealii::MeshWorker::IntegrationInfo<dim>&)
     const
     {}
+
+
+  /**
+   * Error integrator computing the error w.r.t. the exact solution given as
+   * the constructor's argument.
+   */
+  template <int dim>
+    class ErrorIntegrator : public AmandusIntegrator<dim>
+  {
+    public:
+      ErrorIntegrator(const dealii::Function<dim>& exact_solution);
+      ErrorIntegrator(const dealii::Function<dim>& exact_solution,
+                      const dealii::TensorFunction<2, dim>& weight);
+      ~ErrorIntegrator();
+
+      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
+                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+    private:
+      void init();
+
+      const dealii::SmartPointer<const dealii::Function<dim> > exact_solution;
+
+      const dealii::TensorFunction<2, dim>* const owned_weight;
+      dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
+  };
+
+  template <int dim>
+    ErrorIntegrator<dim>::ErrorIntegrator(
+        const dealii::Function<dim>& exact_solution) :
+      exact_solution(&exact_solution),
+      owned_weight(new IdentityTensorFunction<dim>),
+      weight(owned_weight)
+  {
+    init();
+  }
+
+  template <int dim>
+    ErrorIntegrator<dim>::ErrorIntegrator(
+        const dealii::Function<dim>& exact_solution,
+        const dealii::TensorFunction<2, dim>& weight) :
+      exact_solution(&exact_solution),
+      owned_weight(0),
+      weight(&weight)
+  {
+    init();
+  }
+
+
+  template <int dim>
+    ErrorIntegrator<dim>::~ErrorIntegrator()
+    {
+      if(owned_weight != 0)
+      {
+        weight = 0;
+        delete owned_weight;
+      }
+    }
+
+  template <int dim>
+    void ErrorIntegrator<dim>::init()
+    {
+      AssertDimension(exact_solution->n_components, dim + 1);
+      this->use_cell = true;
+      this->use_boundary = false;
+      this->use_face = false;
+
+      this->add_flags(dealii::update_JxW_values |
+                      dealii::update_values |
+                      dealii::update_gradients |
+                      dealii::update_quadrature_points);
+
+    }
+
+  template <int dim>
+    void ErrorIntegrator<dim>::cell(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo,
+        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
+    {
+      const dealii::FEValuesBase<dim>& velocity_fe_values = info.fe_values(0);
+      const dealii::FEValuesBase<dim>& pressure_fe_values = info.fe_values(1);
+
+      const std::vector<std::vector<double> >& 
+        velocity_approximation = info.values[0];
+      const std::vector<double>&
+        pressure_approximation = info.values[0][dim];
+
+      std::vector<std::vector<double> > velocity_exact(
+          dim, std::vector<double>(velocity_fe_values.n_quadrature_points));
+      std::vector<double> pressure_exact(pressure_fe_values.n_quadrature_points);
+      for(unsigned int i = 0; i < dim; ++i)
+      {
+        exact_solution->value_list(velocity_fe_values.get_quadrature_points(),
+                                   velocity_exact[i],
+                                   i);
+      }
+      exact_solution->value_list(pressure_fe_values.get_quadrature_points(),
+                                 pressure_exact,
+                                 dim);
+
+      std::vector<dealii::Tensor<2, dim> > weight_values(
+          velocity_fe_values.n_quadrature_points);
+      weight->value_list(velocity_fe_values.get_quadrature_points(),
+                         weight_values);
+
+      // L2 error of velocity
+      double velocity_l2_error = 0;
+      for(unsigned int i = 0; i < dim; ++i)
+      {
+        for(unsigned int j = 0; j < dim; ++j)
+        {
+          for(unsigned int q = 0; q < velocity_fe_values.n_quadrature_points; ++q)
+          {
+            velocity_l2_error += (
+                weight_values[q][i][j] *
+                (velocity_exact[j][q] - velocity_approximation[j][q]) *
+                (velocity_exact[i][q] - velocity_approximation[i][q]) *
+                velocity_fe_values.JxW(q));
+          }
+        }
+      }
+      dinfo.value(0) = std::sqrt(velocity_l2_error);
+
+      // L2 error of pressure
+      double pressure_l2_error = 0;
+      for(unsigned int q = 0; q < pressure_fe_values.n_quadrature_points; ++q)
+      {
+        pressure_l2_error += (
+            std::pow(pressure_exact[q] - pressure_approximation[q], 2) *
+            pressure_fe_values.JxW(q));
+      }
+      dinfo.value(1) = std::sqrt(pressure_l2_error);
+    }
+
+  template <int dim>
+    void ErrorIntegrator<dim>::boundary(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo,
+        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
+    {
+    }
+
+  template <int dim>
+    void ErrorIntegrator<dim>::face(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo1,
+        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
+        dealii::MeshWorker::IntegrationInfo<dim>& info1, 
+        dealii::MeshWorker::IntegrationInfo<dim>& info2) const 
+    {
+    }
+
 }
 
 #endif
