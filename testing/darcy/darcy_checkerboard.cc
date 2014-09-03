@@ -14,8 +14,10 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
+#include <deal.II/fe/fe_tools.h>
 
 #include <debug/visualize_solution.h>
+
 
 int main(int argc, const char** argv)
 {
@@ -23,31 +25,40 @@ int main(int argc, const char** argv)
 
   const unsigned int d = 2;
 
-  const int initial_refinement = 3;
-  const unsigned int steps = 1;
-  const int degree = 1;
-  const int quadrature_degree = degree + 2;
-
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
   
   AmandusParameters param;
+
+  param.enter_subsection("CheckerboardPattern");
+  param.declare_entry("Quadrant1", "1.0", Patterns::Double());
+  param.declare_entry("Quadrant2", "1.0", Patterns::Double());
+  param.declare_entry("Quadrant3", "1.0", Patterns::Double());
+  param.declare_entry("Quadrant4", "1.0", Patterns::Double());
+  param.leave_subsection();
+  param.enter_subsection("AmandusApplication");
+  param.declare_entry("Multigrid", "false", Patterns::Bool());
+  param.declare_entry("Steps", "1", Patterns::Integer());
+  param.leave_subsection();
+
   param.read(argc, argv);
   param.log_parameters(deallog);
 
+  param.enter_subsection("Discretization");
+  const FiniteElement<d>* fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);
-  tr.refine_global(initial_refinement);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
 
-  FE_RaviartThomas<d> vec(degree);
-  FE_DGQ<d> scal(degree);
-  FESystem<d> fe(vec, 1, scal, 1);
-
+  param.enter_subsection("CheckerboardPattern");
   std::vector<double> coefficient_parameters;
-  coefficient_parameters.push_back(10.0);
-  coefficient_parameters.push_back(1.0);
-  coefficient_parameters.push_back(10.0);
-  coefficient_parameters.push_back(1.0);
+  coefficient_parameters.push_back(param.get_double("Quadrant1"));
+  coefficient_parameters.push_back(param.get_double("Quadrant2"));
+  coefficient_parameters.push_back(param.get_double("Quadrant3"));
+  coefficient_parameters.push_back(param.get_double("Quadrant4"));
+  param.leave_subsection();
 
   // a diffusion tensor that is piecewise constant in the quadrants
   Darcy::Checkerboard::CheckerboardTensorFunction
@@ -64,25 +75,42 @@ int main(int argc, const char** argv)
   // Error integrator, use d_tensor weighted L2 inner product for velocity
   Darcy::ErrorIntegrator<2> error(mixed_solution, d_tensor);
 
-  AmandusApplicationSparse<d> app(tr, fe, true);
-  AmandusSolve<d> solver(app, system_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator); // really just rhs
+  param.enter_subsection("AmandusApplication");
+  AmandusApplicationSparse<d>* app;
+  unsigned int steps = param.get_integer("Steps");
+  // construct both, otherwise we run into problems with subscriptions...
+  AmandusApplication<d> amandus_mg(tr, *fe);
+  AmandusApplicationSparse<d> amandus_umf(tr, *fe, true);
+  if(param.get_bool("Multigrid"))
+  {
+    //app = new AmandusApplication<d>(tr, *fe);
+    app = &amandus_mg;
+  } else {
+    //app = new AmandusApplicationSparse<d>(tr, *fe, true);
+    app = &amandus_umf;
+  }
+  param.leave_subsection();
 
-  app.parse_parameters(param);
+  AmandusSolve<d> solver(*app, system_integrator);
+  AmandusResidual<d> residual(*app, rhs_integrator);
 
-  app.control.set_reduction(1.e-10);
-  app.control.set_max_steps(50000);
+  app->parse_parameters(param);
 
-  global_refinement_linear_loop(steps, app, solver, residual, &error);
+  global_refinement_linear_loop(steps, *app, solver, residual, &error);
 
   // output of exact mixed solution for comparison
   param.enter_subsection("Output");
-  QGauss<d> quadrature(quadrature_degree);
+  QGauss<d> quadrature(fe->tensor_degree() + 2);
   debug::output_solution(mixed_solution,
-                         app.dofs(),
+                         app->dofs(),
                          quadrature,
                          param);
   param.leave_subsection();
+
+  //solver.~AmandusSolve<d>();
+  //residual.~AmandusResidual<d>();
+  //delete app;
+  //delete fe;
 
   return 0;
 }

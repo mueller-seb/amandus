@@ -49,7 +49,7 @@ namespace debug
       data_out.attach_dof_handler(dof_handler);
       data_out.add_data_vector(projection,
                                names);
-      data_out.build_patches();
+      data_out.build_patches(dof_handler.get_fe().tensor_degree());
 
       std::ostringstream filename;
       filename << "projected_solution" << data_out.default_suffix();
