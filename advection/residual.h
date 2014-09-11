@@ -1,10 +1,9 @@
 /**********************************************************************
- * $Id$
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
- *
+ * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-
 #ifndef __advection_residual_h
 #define __advection_residual_h
 
@@ -16,65 +15,7 @@
 using namespace dealii::MeshWorker;
 
 /**
- * Discretization of elastic deformation. Formulation of stress and
- * strain relationship follows the book of Ciarlet (Volume I).
- *
- * Here a list of quantities of the deformation \f$ x \mapsto \phi(x) \f$
- * and their meaning:
- * <dl>
- * <dt>\f$ u(x) = \phi(x)-x \f$</dt> <dd>Displacement</dd>
- * <dt> \f$ F(x) = \nabla \phi(x) = I + \nabla u(x) \f$</dt>
- * <dd>Deformation gradient</dd>
- * <dt>\f$ C = F^TF = I + \nabla u + (\nabla u)^T
- * + (\nabla u)^T(\nabla u)\f$</dt><dd>The right Cauchy-Green strain
- * tensor</dd>
- * <dt>\f$ E = \tfrac12 (C-I) = \tfrac12\bigl(\nabla u + (\nabla u)^T
- * + (\nabla u)^T(\nabla u)\bigr)\f$</dt><dd>The Green-St. Venant strain
- * tensor</dd>
- * <dt>\f$ J = \operatorname{det} F \f$</dt><dd>The deformed volume element</dd>
- *</dl>
- *
- * The quantity describing the forces in an elastically deformed body
- * is the stress. Depending on whether the stress is measured in
- * deformed or undeformed coordinates, we have the Cauchy or the two
- * Piola-Kirchhoff stress tensors. Material laws are typically given
- * as either the Cauchy stress \f$\hat T\f$ or the second Piola-Kirchhoff
- * stress tensor \f$ \Sigma = J F^{-1} \hat T F^{-T}\f$. Using the
- * second, we can write the equations of nonlinear advection in weak
- * form as
- * \f[
- * \int_\Omega \bigl((I+F) \Sigma\bigr) \colon \nabla v \,dx =
- * \int_\Omega f \cdot v \,dx +
- * \int_{\Gamma_N} \sigma_n \cdot v \,ds.
- * \f]
- *
- * This equation is complemented by a stress-strain relation \f$\Sigma
- * = \Sigma(E)\f$ depending on the material, for instance Hooke's law
- * (with Lamé-Navier coefficients)
- * \f[
- * \Sigma = \lambda (\operatorname{tr} E) I + 2 \mu E.
- * \f]
- *
- * The model is called <b>geometrically linear</b> if in this equation
- * \f$F\f$ is replaced by zero, and the quadratic term in the
- * Green-St. Venant stress tensor is neglected. Combining this with
- * Hooke's law and the fact that \f$\tfrac12(A+A^T)\f$ is the
- * projection of a matrix \f$A\f$ to the subspace of symmetric
- * matrices and \f$ (\operatorname{tr} A) I \f$ its projection on the
- * subspace spanned by the identity, we obtain the Lamé-Navier
- * equations
- * \f[
- * 2\mu \int_\Omega \epsilon(u):\epsilon(v) \,dx +
- * \lambda \int_\Omega \nabla\!\cdot\!u \nabla\!\cdot\!v \,dx =
- * \int_\Omega f \cdot v \,dx +
- * \int_{\Gamma_N} \sigma_n \cdot v \,ds.
- * \f]
- *
- * The local integrators for this equation a re part of the deal.II
- * library. The integrators in the namespace StVenantKirchhoff extend
- * this to the geometrically nonlinear weak formulation above, but
- * with the linear stress-strain relation established by Hooke's law.
- *
+ * Local integrators for advection problem.
  */
 namespace Advection
 {

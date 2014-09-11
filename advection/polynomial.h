@@ -1,10 +1,9 @@
 /**********************************************************************
- * $Id$
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
  *
- * Copyright Guido Kanschat, 2010, 2012, 2013
- *
+ * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-
 #ifndef __advection_polynomial_h
 #define __advection_polynomial_h
 
