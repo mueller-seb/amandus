@@ -47,8 +47,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
+  solution1d += Polynomials::Monomial<double>(2, -1.);
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
   
@@ -61,10 +60,9 @@ int main(int argc, const char** argv)
   ::Advection::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Advection::PolynomialError<d> error_integrator(parameters, potentials);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  app.set_boundary(0);
-  AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d>    residual(app, rhs_integrator);
+  AmandusUMFPACK<d>  app(tr, *fe);
+  AmandusSolve<d>    solver(app, matrix_integrator);
+  AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
   global_refinement_linear_loop(5, app, solver, residual, &error_integrator);

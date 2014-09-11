@@ -79,8 +79,10 @@ namespace Advection
     IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const
   {
     dealii::LocalIntegrators::Advection::upwind_value_matrix(
-      dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
-      dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
+      dinfo1.matrix(0,false).matrix,
+      dinfo1.matrix(0,true).matrix, 
+      dinfo2.matrix(0,true).matrix,
+      dinfo2.matrix(0,false).matrix,
       info1.fe_values(0), info2.fe_values(0),
       info1.fe_values(0), info2.fe_values(0),
       direction);

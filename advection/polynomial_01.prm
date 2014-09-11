@@ -1,6 +1,6 @@
 
 subsection Discretization
-  set FE         = FE_Q(4)
+  set FE         = FE_Q(2)
   set Refinement = 0
 end
 subsection Newton
