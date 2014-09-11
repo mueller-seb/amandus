@@ -107,7 +107,6 @@ PolynomialRHS<dim>::PolynomialRHS(
 		parameters(&par),
 		potentials_1d(potentials_1d)
 {
-  AssertDimension(potentials_1d.size(), (dim==2 ? 2 : dim+1));
   this->use_boundary = false;
   this->use_face = false;
 }
@@ -118,36 +117,19 @@ void PolynomialRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-  std::vector<std::vector<double> > rhs (dim,
-					 std::vector<double>(info.fe_values(0).n_quadrature_points));
-  std::vector<std::vector<double> > phi(dim, std::vector<double>(4));
-  
+  std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
+
+  std::vector<double> px(2);
+  std::vector<double> py(2);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
-      const Point<dim>& x = info.fe_values(0).quadrature_point(k);
-      Tensor<1,dim> DivDu;
-      Tensor<1,dim> DDivu;
+      const double x = info.fe_values(0).quadrature_point(k)(0);
+      const double y = info.fe_values(0).quadrature_point(k)(1);
+      potentials_1d[0].value(x, px);
+      potentials_1d[0].value(y, py);
       
-      if (dim == 2)
-	{
-	  // The gradient potential
-	  potentials_1d[0].value(x(0), phi[0]);
-	  potentials_1d[0].value(x(1), phi[1]);
-	  DivDu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
-	  DivDu[1] -= phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1];
-	  DDivu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
-	  DDivu[1] -= phi[0][2]*phi[1][1] + phi[0][0]*phi[1][3];
-	  // The curl potential
-	  potentials_1d[1].value(x(0), phi[0]);
-	  potentials_1d[1].value(x(1), phi[1]);
-	  // div epsilon(curl) = Delta?
-	  DivDu[0] += 0.5 * (phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1]);
-	  DivDu[1] -= 0.5 * (phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2]);
-	  // div curl = 0
-	}
-
-      for (unsigned int d=0;d<dim;++d)
-	rhs[d][k] =  DivDu[d] + DDivu[d];
+      //      rhs[k] = direction[0][0] * px[1]*py[0] + direction[0][1] * px[0]*py[1];
+      rhs[k] = 1. * px[1]*py[0] + 2. * px[0]*py[1];
     }
   
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
@@ -170,7 +152,6 @@ PolynomialError<dim>::PolynomialError(
 		parameters(&par),
 		potentials_1d(potentials_1d)
 {
-  AssertDimension(potentials_1d.size(), (dim==2 ? 2 : dim+1));
   this->use_boundary = false;
   this->use_face = false;
 }
@@ -181,61 +162,28 @@ void PolynomialError<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
-//  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
+  Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
   
-  std::vector<std::vector<double> > phi(dim, std::vector<double>(3));
+  std::vector<double> px(3);
+  std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
-      const Point<dim>& x = info.fe_values(0).quadrature_point(k);
-      
-      double u[dim];
-      Tensor<1,dim> Du[dim];
+      const double x = info.fe_values(0).quadrature_point(k)(0);
+      const double y = info.fe_values(0).quadrature_point(k)(1);
+      potentials_1d[0].value(x, px);
+      potentials_1d[0].value(y, py);
       const double dx = info.fe_values(0).JxW(k);
-
-      for (unsigned int d=0;d<dim;++d)
-	{
-	  u[d] = info.values[0][d][k];
-	  Du[d] = info.gradients[0][d][k];
-	}
-
-      // The gradient potential
-      potentials_1d[0].value(x(0), phi[0]);
-      potentials_1d[0].value(x(1), phi[1]);
-      u[0] -= phi[0][1]*phi[1][0];
-      u[1] -= phi[0][0]*phi[1][1];
-      Du[0][0] -= phi[0][2]*phi[1][0];
-      Du[0][1] -= phi[0][1]*phi[1][1];
-      Du[1][0] -= phi[0][1]*phi[1][1];
-      Du[1][1] -= phi[0][0]*phi[1][2];
-
-      // The curl potential
-      if (dim == 2)
-	{
-	  potentials_1d[1].value(x(0), phi[0]);
-	  potentials_1d[1].value(x(1), phi[1]);
-	  
-	  u[0] += phi[0][0]*phi[1][1];
-	  u[1] -= phi[0][1]*phi[1][0];
-	  Du[0][0] += phi[0][1]*phi[1][1];
-	  Du[0][1] += phi[0][0]*phi[1][2];
-	  Du[1][0] -= phi[0][2]*phi[1][0];
-	  Du[1][1] -= phi[0][1]*phi[1][1];
-	}
-
-      double uu = 0., Duu= 0., div = 0.;
-      for (unsigned int d=0;d<dim;++d)
-	{
-	  uu += u[d]*u[d];
-	  Duu += Du[d]*Du[d];
-	  div += Du[d][d]*Du[d][d];
-	}
       
+      Tensor<1,dim> Du = info.gradients[0][0][k];
+      Du[0] -= px[1]*py[0];
+      Du[1] -= px[0]*py[1];
+      double u = info.values[0][0][k];
+      u -= px[0]*py[0];
+
       // 0. L^2(u)
-      dinfo.value(0) += uu * dx;
+      dinfo.value(0) += (u*u) * dx;
       // 1. H^1(u)
-      dinfo.value(1) += Duu * dx;
-      // 2. div u
-      dinfo.value(2) = div * dx;
+      dinfo.value(1) += (Du*Du) * dx;
     }
   
   for (unsigned int i=0;i<=2;++i)

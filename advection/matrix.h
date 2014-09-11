@@ -44,12 +44,11 @@ namespace Advection
   Matrix<dim>::Matrix(const Parameters& par)
     :
     parameters(&par),
-    direction(1)
+    direction(dim,std::vector<double>(1))
   {
     //this->input_vector_names.push_back("Newton iterate");
-    direction[0].resize(dim);
     direction[0][0] = 1.;
-    direction[0][1] = 2.;
+    direction[1][0] = 2.;
   }
   
   template <int dim>
@@ -79,7 +78,6 @@ namespace Advection
     DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2,
     IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const
   {
-    const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
     dealii::LocalIntegrators::Advection::upwind_value_matrix(
       dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
       dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,

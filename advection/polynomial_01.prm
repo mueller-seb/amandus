@@ -1,7 +1,6 @@
 
 subsection Discretization
-  set FE         = FESystem[FESystem[FE_Q(4)^d]]
-#  set FE         = FE_RaviartThomas(1)
+  set FE         = FE_Q(4)
   set Refinement = 0
 end
 subsection Newton
