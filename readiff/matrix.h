@@ -24,17 +24,8 @@ using namespace LocalIntegrators;
  * These integrators deal with the equations
  *
  * \f{align*}{
- * 0 &= u' - \alpha_1\Delta u - A_1-B_1u+C_1v+D_1uv+E_1u^2+F_1v^2+G_1u^2v+H_1uv^2 \\
- * 0 &= v' - \alpha_2\Delta v - A_2-B_2u+C_2v+D_2uv+E_2u^2+F_2v^2+G_2u^2v+H_2uv^2
- * \f}
- *
- * A parameter set can be found in G. Adomian: The Diffusion
- * ReactionDiffusion Equation, Computers & Mathematics with Applications,
- * 29(5), pp. 1-3, 1995 with
- * \f{align*}{
- * A &= 3.4\\
- * B &= 1\\
- * \alpha &= .002.
+ * 0 &= u' - \alpha_1\Delta u + A_1+B_1u+C_1v+D_1uv+E_1u^2+F_1v^2+G_1u^2v+H_1uv^2 \\
+ * 0 &= v' - \alpha_2\Delta v + A_2+B_2u+C_2v+D_2uv+E_2u^2+F_2v^2+G_2u^2v+H_2uv^2
  * \f}
  *
  */

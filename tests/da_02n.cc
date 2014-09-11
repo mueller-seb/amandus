@@ -4,6 +4,19 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
+/**
+ * @file
+ *
+ * @brief Polynomial solution of Darcy equations
+ * <ul>
+ * <li>Exact polynomial solution to the Darcy problem</li>
+ * <li>BDM elements</li>
+ * <li>Homogeneous no-slip boundary condition</li>
+ * <li>Linear solver</li>
+ * </ul>
+ *
+ * @ingroup Examples
+ */
 #include <deal.II/fe/fe_bdm.h>
 #include <deal.II/fe/fe_dgp.h>
 #include <deal.II/fe/fe_system.h>
@@ -14,9 +27,6 @@
 #include <darcy/polynomial.h>
 #include <darcy/matrix.h>
 
-// Exact polynomial solution to the Darcy problem
-// Homogeneous no-slip boundary condition
-// Linear solver
 
 int main()
 {
@@ -40,15 +50,16 @@ int main()
   vector_potential += Polynomials::Monomial<double>(0, 1.);
   vector_potential.print(std::cout);
 
-  Polynomials::Polynomial<double> scalar_potential(1);
-  // scalar_potential += Polynomials::Monomial<double>(3, -1.);
-  // scalar_potential += Polynomials::Monomial<double>(1, 3.);
+  Polynomials::Polynomial<double> scalar_potential;
+  scalar_potential += Polynomials::Monomial<double>(3, -1.);
+  scalar_potential += Polynomials::Monomial<double>(1, 3.);
   
   Polynomials::Polynomial<double> pressure_source(1);
 //  pressure_source += Polynomials::Monomial<double>(3, 1.);
   
   DarcyMatrix<d> matrix_integrator;
   DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  rhs_integrator.input_vector_names.push_back("Newton iterate");
   DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
@@ -59,7 +70,6 @@ int main()
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.control.log_history(true);
   newton.control.set_reduction(1.e-14);
-  newton.control.set_tolerance(1.e-5);
   newton.threshold(.1);
   
   global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
