@@ -14,6 +14,11 @@ DEAL_II_SETUP_TARGET(test_darcy_integrators)
 TARGET_LINK_LIBRARIES(test_darcy_integrators
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
+ADD_EXECUTABLE(test_darcy_estimator test_darcy_estimator.cc)
+DEAL_II_SETUP_TARGET(test_darcy_estimator)
+TARGET_LINK_LIBRARIES(test_darcy_estimator
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
 ADD_EXECUTABLE(test_darcy_checkerboard darcy_checkerboard.cc)
 DEAL_II_SETUP_TARGET(test_darcy_checkerboard)
 TARGET_LINK_LIBRARIES(test_darcy_checkerboard amandus)

@@ -14,6 +14,7 @@ IF(TEST_DARCY)
   LIST(APPEND coveredTests test_darcy_integrators)
   LIST(APPEND coveredTests test_darcy_polynomial)
   LIST(APPEND coveredTests test_darcy_solution_parameters)
+  LIST(APPEND coveredTests test_darcy_estimator)
   LIST(APPEND coveredTests test_darcy_checkerboard)
 ENDIF()
 
