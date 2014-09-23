@@ -6,15 +6,19 @@
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/full_matrix.h>
+#include <deal.II/lac/lapack_full_matrix.h>
 #include <deal.II/algorithms/any_data.h>
 #include <deal.II/meshworker/assembler.h>
 #include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/dof_info.h>
 #include <deal.II/meshworker/loop.h>
+#include <deal.II/meshworker/local_integrator.h>
 #include <deal.II/fe/mapping.h>
 #include <deal.II/fe/mapping_q1.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/fe/fe_values_extractors.h>
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/numerics/fe_field_function.h>
 
 #include <integrator.h>
 
@@ -32,15 +36,14 @@ namespace Darcy
 
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                         dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+
     private:
-      void assemble_local_system(const dealii::FEValuesBase<dim>& fe_vals) const;
-      void assemble_local_rhs(const dealii::FEValuesBase<dim>& fe_vals) const;
+      void assemble_local_system(dealii::FullMatrix<double>& local_system,
+                                 const dealii::FEValuesBase<dim>& fe_vals) const;
+      void assemble_local_rhs(dealii::Vector<double>& local_rhs,
+                              const dealii::FEValuesBase<dim>& fe_vals,
+                              const dealii::Function<dim>&
+                              approximation_function) const;
       void weighted_stiffness_matrix(dealii::FullMatrix<double>& result,
                                      const dealii::FEValuesBase<dim>& fe_vals,
                                      const dealii::TensorFunction<2, dim>&
@@ -58,19 +61,6 @@ namespace Darcy
       const dealii::SmartPointer<const dealii::DoFHandler<dim> >
         approximation_dofh;
       dealii::SmartPointer<const dealii::Vector<double> > approximate_solution;
-      dealii::SmartPointer<dealii::FEValues<dim> > approximation_fe_vals;
-      const dealii::FEValuesExtractors::Vector velocity;
-      const dealii::FEValuesExtractors::Scalar pressure;
-
-      mutable dealii::FullMatrix<double> local_stiffness;
-      mutable dealii::FullMatrix<double> local_mixed_mass;
-      mutable dealii::FullMatrix<double> local_system;
-      mutable dealii::FullMatrix<double> inverse_local_system;
-      mutable dealii::Vector<double> local_rhs;
-      mutable dealii::Vector<double> local_result;
-      mutable std::vector<dealii::Tensor<2, dim> > local_weight_values;
-      mutable std::vector<dealii::Tensor<1, dim > > approximation_velocity_values;
-      mutable std::vector<double> approximation_pressure_values;
   };
 
   template <int dim>
@@ -82,10 +72,7 @@ namespace Darcy
       pp_dofh(&pp_dofh),
       weight(&weight),
       dof_info(pp_dofh),
-      approximation_dofh(&solution_dofh),
-      velocity(0),
-      pressure(dim)
-
+      approximation_dofh(&solution_dofh)
     {
       info_box.initialize_update_flags();
       info_box.add_update_flags_all(dealii::update_values |
@@ -110,20 +97,12 @@ namespace Darcy
         assembler;
       assembler.initialize(out);
       approximate_solution = &solution;
-      dealii::FEValues<dim>* approximation_fe_vals_ptr = 
-        new dealii::FEValues<dim>(
-          approximation_dofh->get_fe(),
-          info_box.cell_quadrature,
-          dealii::update_values);
-      approximation_fe_vals = approximation_fe_vals_ptr;
       dealii::MeshWorker::integration_loop(pp_dofh->begin_active(),
                                            pp_dofh->end(),
                                            dof_info,
                                            info_box,
                                            *this,
                                            assembler);
-      approximation_fe_vals = 0;
-      delete approximation_fe_vals_ptr;
       approximate_solution = 0;
     }
 
@@ -132,15 +111,31 @@ namespace Darcy
         dealii::MeshWorker::DoFInfo<dim>& dinfo,
         dealii::MeshWorker::IntegrationInfo<dim>& info) const
     {
-      assemble_local_system(info.fe_values(0));
-      assemble_local_rhs(info.fe_values(0));
+      dealii::FullMatrix<double>
+        local_system(info.fe_values(0).dofs_per_cell + 1,
+                     info.fe_values(0).dofs_per_cell + 1);
+      assemble_local_system(local_system, info.fe_values(0));
 
-      inverse_local_system.reinit(info.fe_values(0).dofs_per_cell + 1,
-                                  info.fe_values(0).dofs_per_cell + 1);
+      dealii::Functions::FEFieldFunction<dim>
+        approximation_function(*approximation_dofh, *approximate_solution);
+      typename dealii::DoFHandler<dim>::active_cell_iterator cell(
+          &(info.fe_values(0).get_cell()->get_triangulation()),
+          info.fe_values(0).get_cell()->level(),
+          info.fe_values(0).get_cell()->index(),
+          approximation_dofh);
+      approximation_function.set_active_cell(cell);
+      dealii::Vector<double> local_rhs(info.fe_values(0).dofs_per_cell + 1);
+      assemble_local_rhs(local_rhs, info.fe_values(0), approximation_function);
+
+      dealii::FullMatrix<double> inverse_local_system(
+          info.fe_values(0).dofs_per_cell + 1,
+          info.fe_values(0).dofs_per_cell + 1);
       inverse_local_system.invert(local_system);
-      local_result.reinit(info.fe_values(0).dofs_per_cell + 1);
+
+      dealii::Vector<double> local_result(info.fe_values(0).dofs_per_cell + 1);
       inverse_local_system.vmult(local_result,
                                  local_rhs);
+
       for(unsigned int i = 0; i < info.fe_values(0).dofs_per_cell; ++i)
       {
         dinfo.vector(0).block(0)(i) = local_result(i);
@@ -148,33 +143,18 @@ namespace Darcy
     }
 
   template <int dim>
-    void Postprocessor<dim>::boundary(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const
-    {}
-
-  template <int dim>
-    void Postprocessor<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-        dealii::MeshWorker::IntegrationInfo<dim>& info2) const
-    {}
-
-  template <int dim>
     void Postprocessor<dim>::assemble_local_system(
+        dealii::FullMatrix<double>& local_system,
         const dealii::FEValuesBase<dim>& fe_vals) const
     {
-      local_stiffness.reinit(fe_vals.dofs_per_cell, fe_vals.dofs_per_cell);
+      dealii::FullMatrix<double> local_stiffness(fe_vals.dofs_per_cell,
+                                                 fe_vals.dofs_per_cell);
       weighted_stiffness_matrix(
           local_stiffness, fe_vals, *weight);
       
-      local_mixed_mass.reinit(1, fe_vals.dofs_per_cell);
+      dealii::FullMatrix<double> local_mixed_mass(1, fe_vals.dofs_per_cell);
       mixed_mass_matrix(
           local_mixed_mass, fe_vals);
-
-      local_system.reinit(fe_vals.dofs_per_cell + 1,
-                          fe_vals.dofs_per_cell + 1);
 
       for(unsigned int i = 0; i < fe_vals.dofs_per_cell; ++i)
       {
@@ -200,7 +180,8 @@ namespace Darcy
     {
       AssertDimension(fe_vals.dofs_per_cell, result.m());
       AssertDimension(fe_vals.dofs_per_cell, result.n());
-      local_weight_values.resize(fe_vals.n_quadrature_points);
+      std::vector<dealii::Tensor<2, dim> >
+        local_weight_values(fe_vals.n_quadrature_points);
       weight.value_list(fe_vals.get_quadrature_points(),
                         local_weight_values);
 
@@ -250,30 +231,14 @@ namespace Darcy
 
   template <int dim>
     void Postprocessor<dim>::assemble_local_rhs(
-        const dealii::FEValuesBase<dim>& fe_vals) const
+        dealii::Vector<double>& local_rhs,
+        const dealii::FEValuesBase<dim>& fe_vals,
+        const dealii::Function<dim>& approximation_function) const
     {
-      local_rhs.reinit(fe_vals.dofs_per_cell + 1);
-
-      /*
-      Assert(fe_vals.get_cell()->get_triangulation() ==
-             approximation_dofh->get_tria(),
-             dealii::ExcInternalError());
-             */
-
-      typename dealii::DoFHandler<dim>::active_cell_iterator cell(
-          &(fe_vals.get_cell()->get_triangulation()),
-          fe_vals.get_cell()->level(),
-          fe_vals.get_cell()->index(),
-          approximation_dofh);
-      approximation_fe_vals->reinit(cell);
-      approximation_velocity_values.resize(fe_vals.n_quadrature_points);
-      (*approximation_fe_vals)[velocity].get_function_values(
-          *approximate_solution,
-          approximation_velocity_values);
-      approximation_pressure_values.resize(fe_vals.n_quadrature_points);
-      (*approximation_fe_vals)[pressure].get_function_values(
-          *approximate_solution,
-          approximation_pressure_values);
+      std::vector<dealii::Vector<double> > approximation_values(
+          fe_vals.n_quadrature_points, dealii::Vector<double>(dim + 1));
+      approximation_function.vector_value_list(fe_vals.get_quadrature_points(),
+                                               approximation_values);
 
       double dx;
       for(unsigned int q = 0; q < fe_vals.n_quadrature_points; ++q)
@@ -284,17 +249,207 @@ namespace Darcy
           for(unsigned int k = 0; k < dim; ++k)
           {
             local_rhs(i) += (-1 *
-                             approximation_velocity_values[q][k] *
+                             approximation_values[q][k] *
                              fe_vals.shape_grad(i, q)[k] *
                              dx);
           }
         }
-        local_rhs(fe_vals.dofs_per_cell) += (approximation_pressure_values[q] *
+        local_rhs(fe_vals.dofs_per_cell) += (approximation_values[q][dim] *
                                              1 *
                                              dx);
       }
     }
 
+
+  template <int dim>
+    class Interpolator : public dealii::MeshWorker::LocalIntegrator<dim>
+  {
+    public:
+      Interpolator(const dealii::DoFHandler<dim>& input_dofh,
+                   unsigned int interpolation_degree,
+                   const dealii::TensorFunction<2, dim>& weight);
+
+      const dealii::FE_Q<dim>& get_fe();
+      const dealii::DoFHandler<dim>& get_dofh();
+      void init_vector(dealii::Vector<double>& result);
+      void interpolate(dealii::Vector<double>& result,
+                       const dealii::Vector<double>& input);
+
+      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+
+    private:
+      dealii::FE_Q<dim> fe;
+      dealii::DoFHandler<dim> dofh;
+      dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
+      dealii::SmartPointer<const dealii::DoFHandler<dim> > input_dofh;
+
+      std::vector<double> normalization_map;
+
+      dealii::SmartPointer<const dealii::Vector<double> > input_fe_vector;
+
+      void init_normalization();
+      double squared_max_ev(
+          typename dealii::Triangulation<dim>::cell_iterator cell) const;
+  };
+
+  template <int dim>
+    Interpolator<dim>::Interpolator(
+        const dealii::DoFHandler<dim>& input_dofh,
+        unsigned int interpolation_degree,
+        const dealii::TensorFunction<2, dim>& weight) :
+      fe(interpolation_degree),
+      weight(&weight),
+      input_dofh(&input_dofh)
+    {
+      dofh.initialize(input_dofh.get_tria(), fe);
+
+      this->use_cell = true;
+      this->use_boundary = false;
+      this->use_face = false;
+    }
+
+  template <int dim>
+    const dealii::FE_Q<dim>& Interpolator<dim>::get_fe()
+    {
+      return fe;
+    }
+
+  template <int dim>
+    const dealii::DoFHandler<dim>& Interpolator<dim>::get_dofh()
+    {
+      return dofh;
+    }
+
+  template <int dim>
+    void Interpolator<dim>::init_vector(dealii::Vector<double>& result)
+    {
+      result.reinit(dofh.n_dofs());
+    }
+
+  template <int dim>
+    void Interpolator<dim>::interpolate(
+        dealii::Vector<double>& result,
+        const dealii::Vector<double>& input)
+    {
+      init_normalization();
+
+      dealii::AnyData out;
+      out.add<dealii::Vector<double>* >(&result, "result");
+
+      dealii::MeshWorker::Assembler::ResidualSimple<dealii::Vector<double> >
+        assembler;
+      assembler.initialize(out);
+
+      input_fe_vector = &input;
+
+      dealii::Quadrature<dim> continuous_support_points(
+          fe.get_unit_support_points());
+
+      dealii::MappingQ1<dim> mapping;
+      dealii::MeshWorker::DoFInfo<dim> dof_info(dofh);
+      dealii::MeshWorker::IntegrationInfoBox<dim> info_box;
+      info_box.initialize_update_flags();
+      info_box.add_update_flags_all(dealii::update_values |
+                                    dealii::update_quadrature_points);
+      info_box.initialize(fe, mapping);
+
+      dealii::MeshWorker::integration_loop(
+          dofh.begin_active(),
+          dofh.end(),
+          dof_info,
+          info_box,
+          *this,
+          assembler);
+
+      input_fe_vector = 0;
+
+      //TODO: apply boundary values
+    }
+
+  template <int dim>
+    void Interpolator<dim>::init_normalization()
+    {
+      normalization_map.assign(dofh.n_dofs(), 0.0);
+
+      std::vector<unsigned int> global_dof_indices(fe.dofs_per_cell);
+
+      for(typename dealii::DoFHandler<dim>::active_cell_iterator cell =
+          dofh.begin_active();
+          cell != dofh.end();
+          ++cell)
+      {
+        cell->get_dof_indices(global_dof_indices);
+        for(unsigned int i = 0; i < fe.dofs_per_cell; ++i)
+        {
+          normalization_map[global_dof_indices[i]] += squared_max_ev(cell);
+        }
+      }
+    }
+
+  template <int dim>
+    double Interpolator<dim>::squared_max_ev(
+        typename dealii::Triangulation<dim>::cell_iterator cell) const
+    {
+      // TODO: only works for piecewise constant weight tensor
+      dealii::Tensor<2, dim> cell_value = weight->value(cell->center());
+      dealii::LAPACKFullMatrix<double> lapack_cell_value(dim, dim);
+      for(unsigned int i = 0; i < dim; ++i)
+      {
+        for(unsigned int j = 0; j < dim; ++j)
+        {
+          lapack_cell_value(i, j) = cell_value[i][j];
+        }
+      }
+      lapack_cell_value.compute_eigenvalues();
+      double ev2 = std::abs(lapack_cell_value.eigenvalue(1));
+      if(dim == 3)
+      {
+        ev2 = std::max(ev2, std::abs(lapack_cell_value.eigenvalue(2)));
+      }
+        
+      return std::sqrt(std::max(std::abs(lapack_cell_value.eigenvalue(0)), ev2));
+    }
+
+  template <int dim>
+    void Interpolator<dim>::cell(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo,
+        dealii::MeshWorker::IntegrationInfo<dim>& info) const
+    {
+      dealii::Quadrature<dim> continuous_support_points(
+          dofh.get_fe().get_unit_support_points());
+
+      dealii::FEValues<dim> input_fe_vals(
+          input_dofh->get_fe(),
+          continuous_support_points,
+          dealii::update_values);
+      typename dealii::DoFHandler<dim>::active_cell_iterator cell(
+          &(dinfo.cell->get_triangulation()),
+          dinfo.cell->level(),
+          dinfo.cell->index(),
+          input_dofh);
+      input_fe_vals.reinit(cell);
+
+      std::vector<double> input_vals(info.fe_values(0).dofs_per_cell);
+      input_fe_vals.get_function_values(*input_fe_vector, input_vals);
+
+      typename dealii::DoFHandler<dim>::active_cell_iterator cell_pp(
+          &(dinfo.cell->get_triangulation()),
+          dinfo.cell->level(),
+          dinfo.cell->index(),
+          &dofh);
+      std::vector<unsigned int> global_dof_indices(fe.dofs_per_cell);
+      cell_pp->get_dof_indices(global_dof_indices);
+
+      double ev = squared_max_ev(dinfo.cell);
+
+      for(unsigned int i = 0; i < info.fe_values(0).dofs_per_cell; ++i)
+      {
+        dinfo.vector(0).block(0)(i) = (
+            ev * input_vals[i] /
+            normalization_map[global_dof_indices[i]]);
+      }
+    }
 
   /**
    * Provides the local integrator interface for Amandus to calculate the

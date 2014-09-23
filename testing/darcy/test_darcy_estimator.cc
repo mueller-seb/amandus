@@ -10,10 +10,12 @@
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/constraint_matrix.h>
 #include <deal.II/numerics/vector_tools.h>
+#include <deal.II/numerics/fe_field_function.h>
 #include <deal.II/base/quadrature_lib.h>
 
 #include <darcy/integrators.h>
 #include <darcy/estimator.h>
+#include <darcy/checkerboard/solution.h>
 
 using namespace dealii;
 using namespace Darcy;
@@ -101,4 +103,70 @@ BOOST_AUTO_TEST_CASE(postprocessor_test)
                         
   // refine, reproject, repostprocess
   // assert
+}
+
+
+class InterpolationTestFunction : public Function<2>
+{
+  public:
+    virtual double value(const Point<2>& p,
+                         const unsigned int component) const;
+};
+
+double InterpolationTestFunction::value(const Point<2>& p,
+                                        const unsigned int /*component*/) const
+{
+  if(p(0) > 0.0 && p(1) < 0.0)
+  {
+    return 0.0;
+  }
+  return 1.0;
+}
+
+
+BOOST_AUTO_TEST_CASE(interpolator_test)
+{
+  const unsigned int dim = 2;
+
+  Triangulation<dim> tr;
+  GridGenerator::hyper_cube(tr, -1, 1);
+  tr.refine_global();
+
+  std::vector<double> weight_params;
+  weight_params.push_back(1.0/12.0);
+  weight_params.push_back(1.0/12.0);
+  weight_params.push_back(1.0/12.0);
+  weight_params.push_back(3.0/4.0);
+  Checkerboard::CheckerboardTensorFunction weight(weight_params);
+
+  InterpolationTestFunction test_function;
+  FE_DGQ<dim> input_fe(0);
+  DoFHandler<dim> input_dofh;
+  input_dofh.initialize(tr, input_fe);
+  Vector<double> input(input_dofh.n_dofs());
+
+  ConstraintMatrix input_constraints;
+  DoFTools::make_hanging_node_constraints(input_dofh,
+                                          input_constraints);
+  input_constraints.close();
+
+  QGauss<dim> input_quadrature(input_fe.tensor_degree() + 2);
+
+  VectorTools::project(input_dofh,
+                       input_constraints,
+                       input_quadrature,
+                       test_function,
+                       input);
+
+
+  Interpolator<dim> interpolator(input_dofh,
+                                 input_fe.tensor_degree() + 2,
+                                 weight);
+  Vector<double> interpolation;
+  interpolator.init_vector(interpolation);
+  interpolator.interpolate(interpolation, input);
+
+  Functions::FEFieldFunction<dim> interpolation_function(interpolator.get_dofh(),
+                                                         interpolation);
+  BOOST_CHECK_CLOSE(interpolation_function.value(Point<dim>(0.0, 0.0)), 0.5, TOL);
 }

@@ -56,4 +56,31 @@ namespace debug
       std::ofstream output(filename.str().c_str());
       data_out.write(output);
     }
+
+  template <int dim>
+    void output_fe_data(const dealii::DoFHandler<dim>& dofh,
+                        const dealii::Vector<double> dof_vector,
+                        const std::string& name,
+                        dealii::ParameterHandler& param)
+    {
+      std::vector<std::string> names;
+      for(unsigned int c = 0; c < dealii::DoFTools::n_components(dofh); ++c)
+      {
+        std::ostringstream c_name;
+        c_name << name << "component" << c;
+        names.push_back(c_name.str());
+      }
+
+      dealii::DataOut<dim> data_out;
+      data_out.parse_parameters(param);
+
+      data_out.attach_dof_handler(dofh);
+      data_out.add_data_vector(dof_vector, names);
+      data_out.build_patches(dofh.get_fe().tensor_degree());
+
+      std::ostringstream filename;
+      filename << name << data_out.default_suffix();
+      std::ofstream output(filename.str().c_str());
+      data_out.write(output);
+    }
 }
