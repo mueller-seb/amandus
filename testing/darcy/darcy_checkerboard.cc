@@ -18,6 +18,7 @@
 
 #include <debug/visualize_solution.h>
 
+#include <darcy/estimator.h>
 
 int main(int argc, const char** argv)
 {
@@ -73,7 +74,7 @@ int main(int argc, const char** argv)
   // and zero divergence
   Darcy::RHSIntegrator<2> rhs_integrator(mixed_solution.scalar_solution);
   // Error integrator, use d_tensor weighted L2 inner product for velocity
-  Darcy::ErrorIntegrator<2> error(mixed_solution, d_tensor);
+  Darcy::ErrorIntegrator<2> error(mixed_solution, d_tensor.inverse());
 
   param.enter_subsection("AmandusApplication");
   AmandusApplicationSparse<d>* app;
@@ -96,7 +97,54 @@ int main(int argc, const char** argv)
 
   app->parse_parameters(param);
 
-  global_refinement_linear_loop(steps, *app, solver, residual, &error);
+  // basically the same as global_refinement_loop but with reinitialization
+  // of estimator.
+  dealii::Vector<double> res;
+  dealii::Vector<double> sol;
+
+  dealii::FE_DGQ<d> pp_fe((fe->base_element(0)).tensor_degree() + 2);
+  dealii::DoFHandler<d> pp_dofh;
+  pp_dofh.initialize(tr, pp_fe);
+
+  Darcy::Estimator<d>::Parameters estimator_parameters(
+      pp_dofh,
+      app->dofs(),
+      d_tensor,
+      d_tensor.inverse(),
+      pp_fe.tensor_degree(),
+      &(mixed_solution.scalar_solution));
+  Darcy::Estimator<d> estimator(estimator_parameters);
+
+  for(unsigned int i = 0; i < steps; ++i)
+  {
+    dealii::deallog << "Step " << i << std::endl;
+    app->refine_mesh(true);
+
+    solver.notify(dealii::Algorithms::Events::remesh);
+    app->setup_system();
+    app->setup_vector(res);
+    app->setup_vector(sol);
+
+    dealii::AnyData solution_data;
+    dealii::Vector<double>* p = &sol;
+    solution_data.add(p, "solution");
+
+    dealii::AnyData data;
+    dealii::Vector<double>* rhs = &res;
+    data.add(rhs, "RHS");
+    dealii::AnyData residual_data;
+    residual(data, residual_data);
+    solver(solution_data, data);
+
+    app->output_results(i, &solution_data);
+
+    estimator.reinit(*(
+            solution_data.read_ptr<dealii::Vector<double> >("solution")));
+    deallog << "Estimate: "
+			  << app->estimate(solution_data, estimator)
+			  << std::endl;
+    app->error(solution_data, error, 2);
+  }
 
   // output of exact mixed solution for comparison
   param.enter_subsection("Output");
@@ -106,11 +154,6 @@ int main(int argc, const char** argv)
                          quadrature,
                          param);
   param.leave_subsection();
-
-  //solver.~AmandusSolve<d>();
-  //residual.~AmandusResidual<d>();
-  //delete app;
-  //delete fe;
 
   return 0;
 }

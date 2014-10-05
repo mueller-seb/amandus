@@ -3,6 +3,7 @@
 
 #include <deal.II/base/tensor_function.h>
 #include <deal.II/base/smartpointer.h>
+#include <deal.II/base/subscriptor.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -19,6 +20,7 @@
 #include <deal.II/fe/fe_values_extractors.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/numerics/fe_field_function.h>
+#include <deal.II/numerics/vector_tools.h>
 
 #include <integrator.h>
 
@@ -31,6 +33,7 @@ namespace Darcy
       Postprocessor(const dealii::DoFHandler<dim>& pp_dofh,
                     const dealii::DoFHandler<dim>& solution_dofh,
                     const dealii::TensorFunction<2, dim>& weight);
+      void init_vector(dealii::Vector<double>& vector);
       void postprocess(dealii::Vector<double>& pp,
                        const dealii::Vector<double>& solution);
 
@@ -85,6 +88,12 @@ namespace Darcy
       this->use_cell = true;
       this->use_boundary = false;
       this->use_face = false;
+    }
+
+  template <int dim>
+    void Postprocessor<dim>::init_vector(dealii::Vector<double>& vector)
+    {
+      vector.reinit(pp_dofh->n_dofs());
     }
 
   template <int dim>
@@ -267,10 +276,11 @@ namespace Darcy
     public:
       Interpolator(const dealii::DoFHandler<dim>& input_dofh,
                    unsigned int interpolation_degree,
-                   const dealii::TensorFunction<2, dim>& weight);
+                   const dealii::TensorFunction<2, dim>& weight,
+                   const dealii::Function<dim>* bdry = 0);
 
-      const dealii::FE_Q<dim>& get_fe();
-      const dealii::DoFHandler<dim>& get_dofh();
+      const dealii::FE_Q<dim>& get_fe() const;
+      const dealii::DoFHandler<dim>& get_dofh() const;
       void init_vector(dealii::Vector<double>& result);
       void interpolate(dealii::Vector<double>& result,
                        const dealii::Vector<double>& input);
@@ -282,6 +292,7 @@ namespace Darcy
       dealii::FE_Q<dim> fe;
       dealii::DoFHandler<dim> dofh;
       dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
+      dealii::SmartPointer<const dealii::Function<dim> > bdry;
       dealii::SmartPointer<const dealii::DoFHandler<dim> > input_dofh;
 
       std::vector<double> normalization_map;
@@ -297,9 +308,11 @@ namespace Darcy
     Interpolator<dim>::Interpolator(
         const dealii::DoFHandler<dim>& input_dofh,
         unsigned int interpolation_degree,
-        const dealii::TensorFunction<2, dim>& weight) :
+        const dealii::TensorFunction<2, dim>& weight,
+        const dealii::Function<dim>* bdry) :
       fe(interpolation_degree),
       weight(&weight),
+      bdry(bdry),
       input_dofh(&input_dofh)
     {
       dofh.initialize(input_dofh.get_tria(), fe);
@@ -310,13 +323,13 @@ namespace Darcy
     }
 
   template <int dim>
-    const dealii::FE_Q<dim>& Interpolator<dim>::get_fe()
+    const dealii::FE_Q<dim>& Interpolator<dim>::get_fe() const
     {
       return fe;
     }
 
   template <int dim>
-    const dealii::DoFHandler<dim>& Interpolator<dim>::get_dofh()
+    const dealii::DoFHandler<dim>& Interpolator<dim>::get_dofh() const
     {
       return dofh;
     }
@@ -332,6 +345,8 @@ namespace Darcy
         dealii::Vector<double>& result,
         const dealii::Vector<double>& input)
     {
+      dofh.initialize(dofh.get_tria(), dofh.get_fe());
+      result.reinit(dofh.n_dofs());
       init_normalization();
 
       dealii::AnyData out;
@@ -364,7 +379,24 @@ namespace Darcy
 
       input_fe_vector = 0;
 
-      //TODO: apply boundary values
+      if(bdry != 0)
+      {
+        std::map<dealii::types::global_dof_index, double> bdry_values;
+        dealii::VectorTools::interpolate_boundary_values(
+            dofh,
+            0,
+            *bdry,
+            bdry_values);
+
+        typedef typename std::map<dealii::types::global_dof_index,
+                double>::const_iterator map_iterator;
+        map_iterator bdry_pair = bdry_values.begin(),
+                     bdry_end = bdry_values.end();
+        for(; bdry_pair != bdry_end; ++bdry_pair) {
+          result(bdry_pair->first) = bdry_pair->second;
+        }
+      }
+
     }
 
   template <int dim>
@@ -456,78 +488,99 @@ namespace Darcy
    * a posteriori error estimate for Darcy's equation. The estimator uses a
    * postprocessing of the approximate solution.
    */
-  /*
   template <int dim>
     class Estimator : public AmandusIntegrator<dim>
   {
     public:
-      Estimator(const dealii::Function<dim>& exact_solution);
-      Estimator(const dealii::Function<dim>& exact_solution,
-                const dealii::TensorFunction<2, dim>& weight);
-      ~Estimator();
+      class Parameters;
+
+      Estimator(Parameters& parameters);
+
+      void reinit(const dealii::Vector<double>& input);
 
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                         dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+
     private:
       void init();
 
-      const dealii::SmartPointer<const dealii::Function<dim> > exact_solution;
-
-      const dealii::TensorFunction<2, dim>* const owned_weight;
-      dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
+      dealii::SmartPointer<const Parameters> parameters;
+      Postprocessor<dim> postprocessor;
+      Interpolator<dim> interpolator;
+      dealii::Vector<double> pp_vector;
+      dealii::Vector<double> dc_pp_vector;
   };
 
   template <int dim>
-    Estimator<dim>::Estimator(
-        const dealii::Function<dim>& exact_solution) :
-      exact_solution(&exact_solution),
-      owned_weight(new IdentityTensorFunction<dim>),
-      weight(owned_weight)
-  {
-    init();
-  }
-
-  template <int dim>
-    Estimator<dim>::Estimator(
-        const dealii::Function<dim>& exact_solution,
-        const dealii::TensorFunction<2, dim>& weight) :
-      exact_solution(&exact_solution),
-      owned_weight(0),
-      weight(&weight)
-  {
-    init();
-  }
-
-
-  template <int dim>
-    Estimator<dim>::~Estimator()
+    class Estimator<dim>::Parameters : public dealii::Subscriptor
     {
-      if(owned_weight != 0)
-      {
-        weight = 0;
-        delete owned_weight;
-      }
-    }
+      public:
+        Parameters(
+            dealii::DoFHandler<dim>& pp_dofh,
+            const dealii::DoFHandler<dim>& input_dofh,
+            const dealii::TensorFunction<2, dim>& weight,
+            const dealii::TensorFunction<2, dim>& i_weight,
+            unsigned int interpolation_degree,
+            const dealii::Function<dim>* bdry = 0);
+        dealii::DoFHandler<dim>& pp_dofh;
+        const dealii::DoFHandler<dim>& input_dofh;
+        const dealii::TensorFunction<2, dim>& weight;
+        const dealii::TensorFunction<2, dim>& i_weight;
+        unsigned int interpolation_degree;
+        const dealii::Function<dim>* bdry;
+    };
+
+  template <int dim>
+    Estimator<dim>::Parameters::Parameters(
+        dealii::DoFHandler<dim>& pp_dofh,
+        const dealii::DoFHandler<dim>& input_dofh,
+        const dealii::TensorFunction<2, dim>& weight,
+        const dealii::TensorFunction<2, dim>& i_weight,
+        unsigned int interpolation_degree,
+        const dealii::Function<dim>* bdry) :
+      pp_dofh(pp_dofh), input_dofh(input_dofh), weight(weight),
+      i_weight(i_weight), interpolation_degree(interpolation_degree),
+      bdry(bdry)
+  {}
+
+
+  template <int dim>
+    Estimator<dim>::Estimator(
+        Parameters& parameters) :
+      parameters(&parameters),
+      postprocessor(parameters.pp_dofh,
+                    parameters.input_dofh,
+                    parameters.weight),
+      interpolator(parameters.pp_dofh,
+                   parameters.interpolation_degree,
+                   parameters.weight,
+                   parameters.bdry)
+  {
+    init();
+  }
 
   template <int dim>
     void Estimator<dim>::init()
     {
-      AssertDimension(exact_solution->n_components, dim + 1);
       this->use_cell = true;
       this->use_boundary = false;
       this->use_face = false;
 
       this->add_flags(dealii::update_JxW_values |
                       dealii::update_values |
-                      dealii::update_gradients |
                       dealii::update_quadrature_points);
+    }
 
+  template <int dim>
+    void Estimator<dim>::reinit(const dealii::Vector<double>& input)
+    {
+      parameters->pp_dofh.initialize(
+          parameters->pp_dofh.get_tria(), 
+          parameters->pp_dofh.get_fe());
+      postprocessor.init_vector(dc_pp_vector);
+      postprocessor.postprocess(dc_pp_vector, input);
+      interpolator.init_vector(pp_vector);
+      interpolator.interpolate(pp_vector, dc_pp_vector);
     }
 
   template <int dim>
@@ -535,252 +588,49 @@ namespace Darcy
         dealii::MeshWorker::DoFInfo<dim>& dinfo,
         dealii::MeshWorker::IntegrationInfo<dim>& info) const 
     {
-      const dealii::FEValuesBase<dim>& velocity_fe_values = info.fe_values(0);
-      const dealii::FEValuesBase<dim>& pressure_fe_values = info.fe_values(1);
+      const dealii::FEValuesBase<dim>& velocity_fev = info.fe_values(0);
+      const unsigned int n_quadrature_points = velocity_fev.n_quadrature_points;
 
-      const std::vector<std::vector<double> >& 
-        velocity_approximation = info.values[0];
-      const std::vector<double>&
-        pressure_approximation = info.values[0][dim];
+      std::vector<dealii::Tensor<2, dim> > weight_values(n_quadrature_points);
+      std::vector<dealii::Tensor<2, dim> > i_weight_values(n_quadrature_points);
+      std::vector<dealii::Tensor<1, dim> > pp_gradients(n_quadrature_points);
+      std::vector<std::vector<double> >& approximation_values = info.values[0];
 
-      std::vector<std::vector<double> > velocity_exact(
-          dim, std::vector<double>(velocity_fe_values.n_quadrature_points));
-      std::vector<double> pressure_exact(pressure_fe_values.n_quadrature_points);
-      for(unsigned int i = 0; i < dim; ++i)
+      parameters->weight.value_list(velocity_fev.get_quadrature_points(),
+                                     weight_values);
+      parameters->i_weight.value_list(velocity_fev.get_quadrature_points(),
+                                       i_weight_values);
+
+      dealii::Functions::FEFieldFunction<dim> pp(interpolator.get_dofh(),
+                                                 pp_vector);
+      typename dealii::DoFHandler<dim>::active_cell_iterator cell(
+          &(info.fe_values(0).get_cell()->get_triangulation()),
+          info.fe_values(0).get_cell()->level(),
+          info.fe_values(0).get_cell()->index(),
+          &(interpolator.get_dofh()));
+      pp.set_active_cell(cell);
+      pp.gradient_list(velocity_fev.get_quadrature_points(), pp_gradients);
+
+      double dx;
+      for(unsigned int q = 0; q < n_quadrature_points; ++q)
       {
-        exact_solution->value_list(velocity_fe_values.get_quadrature_points(),
-                                   velocity_exact[i],
-                                   i);
-      }
-      exact_solution->value_list(pressure_fe_values.get_quadrature_points(),
-                                 pressure_exact,
-                                 dim);
-
-      std::vector<dealii::Tensor<2, dim> > weight_values(
-          velocity_fe_values.n_quadrature_points);
-      weight->value_list(velocity_fe_values.get_quadrature_points(),
-                         weight_values);
-
-      // L2 error of velocity
-      double velocity_l2_error = 0;
-      for(unsigned int i = 0; i < dim; ++i)
-      {
-        for(unsigned int j = 0; j < dim; ++j)
+        dx = velocity_fev.JxW(q);
+        for(unsigned int i = 0; i < dim; ++i)
         {
-          for(unsigned int q = 0; q < velocity_fe_values.n_quadrature_points; ++q)
+          dinfo.value(0) += (
+              2 * approximation_values[i][q] * pp_gradients[q][i]) * dx;
+          for(unsigned int k = 0; k < dim; ++k)
           {
-            velocity_l2_error += (
-                weight_values[q][i][j] *
-                (velocity_exact[j][q] - velocity_approximation[j][q]) *
-                (velocity_exact[i][q] - velocity_approximation[i][q]) *
-                velocity_fe_values.JxW(q));
+            dinfo.value(0) += (
+                pp_gradients[q][i] * weight_values[q][i][k] * pp_gradients[q][k] +
+                i_weight_values[q][i][k] * approximation_values[k][q] *
+                approximation_values[i][q]) * dx;
           }
         }
       }
-      dinfo.value(0) = std::sqrt(velocity_l2_error);
-
-      // L2 error of pressure
-      double pressure_l2_error = 0;
-      for(unsigned int q = 0; q < pressure_fe_values.n_quadrature_points; ++q)
-      {
-        pressure_l2_error += (
-            std::pow(pressure_exact[q] - pressure_approximation[q], 2) *
-            pressure_fe_values.JxW(q));
-      }
-      dinfo.value(1) = std::sqrt(pressure_l2_error);
+      dinfo.value(0) = std::sqrt(dinfo.value(0));
     }
-
-  template <int dim>
-    void Estimator<dim>::boundary(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
-    {
-    }
-
-  template <int dim>
-    void Estimator<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1, 
-        dealii::MeshWorker::IntegrationInfo<dim>& info2) const 
-    {
-    }
-  */
-
-
-
-    /*
-  template <int dim>
-    class PostprocessorIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
-  {
-    public:
-      PostprocessorIntegrator(const dealii::TensorFunction<2, dim>& weight);
-      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
-    private:
-      dealii::UpdateFlags u_flags;
-      dealii::SmartPointer<const dealii::TensorFunction<2, dim> > weight;
-      dealii::SmartPointer<const dealii::Triangulation<dim> > triangulation;
-      dealii::SmartPointer<const dealii::DoFHandler<dim> > 
-        approximation_dof_handler;
-
-      dealii::FullMatrix<double> local_stiffness;
-      dealii::FullMatrix<double> local_mixed_mass;
-      dealii::FullMatrix<double> local_system;
-  };
-
-  template <int dim>
-    PostprocessorIntegrator<dim>::PostprocessorIntegrator(
-        const dealii::TensorFunction<2, dim>& weight) :
-      u_flags(
-          dealii::update_values |
-          dealii::update_gradients |
-          dealii::update_JxW_values),
-      weight(&weight)
-
-    {
-      this->use_cell = true;
-      this->use_boundary = false;
-      this->use_face = false;
-    }
-
-  template <int dim>
-    PostprocessorIntegrator<dim>::cell(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
-    {
-      Assert(dinfo.vector(0).n_blocks() == 2, ExcInvalidState());
-      Assert(dinfo.vector(0)(0).size() == info.fe_values(0).dofs_per_cell,
-             ExcInvalidState());
-      Assert(dinfo.vector(0)(1).size() == info.fe_values(1).dofs_per_cell,
-             ExcInvalidState());
-
-      const dealii::FEValuesBase<dim> pp_fe_values = &info.fe_values(0);
-      const dealii::FeValuesBase<dim> multiplier_fe_values = &info.fe_values(1);
-      dealii::BlockVector<double>& local_solution = dinfo.vector(0);
-
-      const unsigned int total_dofs_per_cell = (
-          pp_fe_values.dofs_per_cell + multiplier_fe_values.dofs_per_cell);
-
-      // init data structures
-      local_stiffness.reinit(pp_fe_values.dofs_per_cell);
-      local_mixed_mass.reinit(multiplier_fe_values.dofs_per_cell,
-                              pp_fe_values.dofs_per_cell);
-      local_system.reinit(total_dofs_per_cell);
-      local_rhs.reinit(total_dofs_per_cell);
-
-      // assemble blocks
-      weighted_stiffness_matrix(
-          local_stiffness, pp_fe_values, *weight);
-      mixed_mass_matrix(
-          local_mixed_mass, multiplier_fe_values, pp_fe_values);
-
-      // assemble system
-      assemble_local_block_system(local_system, local_stiffness, local_mixed_mass);
-
-      // assemble rhs
-      Assert(dinfo.cell->get_triangulation == *triangulation, 
-             dealii::ExcInvalidState());
-      Assert(approximation_fe_values.n_quadrature_points == 
-             pp_fe_values.n_quadrature_points, 
-             ExcInvalidState());
-      // get values of approximate solution in quadrature points on current
-      // cell
-      dealii::DoFHandler<dim>::active_cell_iterator cell(
-          triangulation, 
-          dinfo.cell->level(), 
-          dinfo.cell->index(), 
-          approximation_dof_handler);
-      approximation_fe_values.reinit(cell);
-      approximation_fe_values.get_function_values(
-          approximate_solution,
-          approximation_values);
-
-      // assemble rhs
-      for(unsigned int i = 0; i < pp_fe_values.dofs_per_cell; ++i)
-      {
-        rhs(i) = 0;
-        for(unsigned int q = 0; q < pp_fe_values.n_quadrature_points; ++q)
-        {
-          for(unsigned int j = 0; j < dim; ++j)
-          {
-            rhs(i) += (-1 * 
-                       approximation_values[q](j) * 
-                       pp_fe_values.shape_grad(i, q)[j]);
-          }
-        }
-      }
-      for(unsigned int i = 0; i < multiplier_fe_values.dofs_per_cell; ++i)
-      {
-        rhs(i) = 0;
-        for(unsigned int q = 0; q < pp_fe_values.n_quadrature_points; ++q)
-        {
-          rhs(i) += (approximation_values[q](dim) *
-                     multiplier_fe_values.shape_value(i, q));
-        }
-      }
-
-      // solve local system
       
-    }
-  
-  template <int dim>
-    void PostprocessorIntegrator<dim>::boundary(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
-    {}
-
-  template <int dim>
-    void PostprocessorIntegrator<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-        dealii::MeshWorker::IntegrationInfo<dim>& info2) const
-    {}
-
-  */
-
-  /**
-   * assemble (a, b^t; b, 0) into system
-   */
-    /*
-  template <int dim>
-    void PostprocessorIntegrator<dim>::assemble_local_block_system(
-        dealii::FullMatrix<double>& system,
-        const dealii::FullMatrix<double>& a,
-        const dealii::FullMatrix<double>& b)
-    {
-      Assert(a.m() == b.n(), ExcInvalidState());
-      Assert(a.n() == b.m(), ExcInvalidState());
-      // assemble the local system
-      for(unsigned int i = 0; i < a.m(); ++i)
-      {
-        for(unsigned int j = 0; j < a.n(); ++j)
-        {
-          local_system.set(i, j, a(i, j));
-        }
-      }
-
-      for(unsigned int i = 0; i < b.m(); ++i)
-      {
-        for(unsigned int j = 0; j < b.n(); ++j)
-        {
-          local_system.set(a.m() + i, j,
-                           b(i, j));
-          local_system.set(j, a.n() + i,
-                           b(i, j));
-        }
-      }
-    }
-    */
-
-
 }
 
 #endif
