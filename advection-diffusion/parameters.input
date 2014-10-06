@@ -1,2 +1,2 @@
 include_guard __advectiondiffusion_parameters_h
-namespace Advection
+namespace AdvectionDiffusion

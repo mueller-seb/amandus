@@ -36,7 +36,7 @@ int main(int argc, const char** argv)
   deallog.attach(logfile);
   
   AmandusParameters param;
-  ::Advection::Parameters::declare_parameters(param);
+  ::AdvectionDiffusion::Parameters::declare_parameters(param);
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -50,22 +50,33 @@ int main(int argc, const char** argv)
   
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(2, -1.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);            
+  solution1d += Polynomials::Monomial<double>(0, 1.);        
   solution1d.print(std::cout);
   
   std::vector<Polynomials::Polynomial<double> > potentials(1);
   potentials[0] = solution1d;
 
-  double faktor=2;
+  // factors belonging to the diffusion term
+  double factor1= 0.00000001;
+  double factor2=3;
+  
+  // obstacle (where factor2 holds)
+  double x1 = -0.5;
+  double x2 = 0.0;
+  double y1 = -0.5;
+  double y2 = 0.0;
+  
+  // Direction of the velocity (advection term)
   std::vector<std::vector<double> > direction(d,std::vector<double>(1));
-  direction[0][0] = 1.;
-  direction[1][0] = 2.;
+  direction[0][0] = 0.1;
+  direction[1][0] = 0.2;
  
-  ::Advection::Parameters parameters;
+ 
+  ::AdvectionDiffusion::Parameters parameters;
   parameters.parse_parameters(param);
-  ::Advection::Matrix<d> matrix_integrator(parameters, faktor, direction);
-  ::Advection::PolynomialBoundaryRHS<d> rhs_integrator(parameters, potentials, faktor, direction);
-  ::Advection::PolynomialBoundaryError<d> error_integrator(parameters, potentials);
+  ::AdvectionDiffusion::Matrix<d> matrix_integrator(parameters, factor1, factor2, direction, x1, x2, y1, y2);
+  ::AdvectionDiffusion::PolynomialBoundaryRHS<d> rhs_integrator(parameters, potentials, factor1, factor2, direction, x1, x2, y1, y2);
+  ::AdvectionDiffusion::PolynomialBoundaryError<d> error_integrator(parameters, potentials);
   
   
   AmandusUMFPACK<d>  app(tr, *fe);

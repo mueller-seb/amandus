@@ -20,7 +20,7 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
-namespace Advection
+namespace AdvectionDiffusion
 {
 /**
  * Provide the right hand side for a Advection-Diffusion problem with
@@ -43,8 +43,9 @@ class PolynomialBoundaryRHS : public AmandusIntegrator<dim>
   public:
     PolynomialBoundaryRHS(const Parameters& par,
 			    const std::vector<Polynomials::Polynomial<double> > potentials_1d,
-				double faktor,
-				std::vector<std::vector<double> > direction);
+				double factor1, double factor2,
+				std::vector<std::vector<double> > direction, 
+				double x1, double x2, double y1, double y2);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -54,7 +55,8 @@ class PolynomialBoundaryRHS : public AmandusIntegrator<dim>
     dealii::SmartPointer<const Parameters, class PolynomialBoundaryRHS<dim> > parameters;
     std::vector<Polynomials::Polynomial<double> > potentials_1d;
     std::vector<std::vector<double> > direction;
-    double faktor;
+    double factor1; double factor2;
+    double x1; double x2; double y1; double y2;
 };
 
 /**
@@ -108,13 +110,19 @@ template <int dim>
 PolynomialBoundaryRHS<dim>::PolynomialBoundaryRHS(
   const Parameters& par,
   const std::vector<Polynomials::Polynomial<double> > potentials_1d,
-  double faktor,
-  std::vector<std::vector<double> > direction)
+  double factor1, double factor2,
+  std::vector<std::vector<double> > direction, 
+  double x1, double x2, double y1, double y2)
 		:
 		parameters(&par),
 		potentials_1d(potentials_1d),
 		direction(direction),
-		faktor(faktor)
+		factor1(factor1),
+		factor2(factor2),
+		x1(x1), 
+    		x2(x2), 
+   		y1(y1), 
+   		y2(y2) 
 {
   this->use_face = false;
   this->use_boundary = true;
@@ -182,18 +190,34 @@ void PolynomialBoundaryRHS<dim>::boundary(
 	
 	if (dir_n<0)
 	    for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
-		local_vector(i) += ( (faktor*(( fe.shape_value(i,k) * penalty * g[k])
+	    {	
+		if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
+		    y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
+			local_vector(i) += ( (factor2*(( fe.shape_value(i,k) * penalty * g[k])
                         	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * g[k])))
 				  	  - (dir_n * g[k] * fe.shape_value(i,k)) )
                         	 	  * fe.JxW(k);
-		
-/*	
-		local_vector(i) += ( (faktor*(( fe.shape_value(i,k) * penalty * boundary_values[k])
-                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * boundary_values[k])))
-				  	  - (dir_n * boundary_values[k] * fe.shape_value(i,k)) )
+		else 
+			local_vector(i) += ( (factor1*(( fe.shape_value(i,k) * penalty * g[k])
+                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * g[k])))
+				  	  - (dir_n * g[k] * fe.shape_value(i,k)) )
                         	 	  * fe.JxW(k);
-*/
+	     }	
 
+	/*else 
+	    for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
+	    {	
+		if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
+		    y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
+			local_vector(i) += ( (factor2*(( fe.shape_value(i,k) * penalty * g[k])
+                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * g[k]))) )
+                        	 	  * fe.JxW(k);
+		else 
+			local_vector(i) += ( (factor1*(( fe.shape_value(i,k) * penalty * 2)
+                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * 2))) )
+                        	 	  * fe.JxW(k);
+	     }	
+*/
 
 	}	
 

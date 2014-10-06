@@ -12,10 +12,10 @@ using namespace LocalIntegrators;
 using namespace MeshWorker;
 
 /**
- * Computes the boundary values,  
- * with two different boundary parts.
+ * Computes the boundary values.
  * 
  * 
+ * The boundary values are only evaluated at the inflow boundary!
  */
 
 template <int dim>
@@ -36,9 +36,6 @@ void BoundaryValues<dim>::value_list(const std::vector<Point<dim> > &points,
 	ExcDimensionMismatch(values.size(),points.size()));
 	for (unsigned int i=0; i<values.size(); ++i)
 	{	
-		if (points[i](0)<0.5)
-		values[i]=0.;
-		else
 		values[i]=1.;
 	}
 }

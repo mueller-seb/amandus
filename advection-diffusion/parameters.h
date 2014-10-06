@@ -3,7 +3,7 @@
 
 #include <deal.II/base/parameter_handler.h>
 
-namespace Advection
+namespace AdvectionDiffusion
 {
 struct Parameters : public dealii::Subscriptor
 {

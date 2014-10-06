@@ -15,7 +15,7 @@
 using namespace dealii::MeshWorker;
 
 
-namespace Advection
+namespace AdvectionDiffusion
 {
 /**
  * Integrator for Advection-Diffusion problems.
@@ -32,7 +32,7 @@ namespace Advection
   class Matrix : public AmandusIntegrator<dim>
   {
     public:
-      Matrix(const Parameters& par, double faktor, std::vector<std::vector<double> > direction);
+      Matrix(const Parameters& par, double factor1, double factor2, std::vector<std::vector<double> > direction, double x1, double x2, double y1, double y2);
       
       virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
       virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
@@ -40,17 +40,23 @@ namespace Advection
 			IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const;
     private:
       dealii::SmartPointer<const Parameters, class Matrix<dim> > parameters;
-      double faktor;
+      double factor1; double factor2;
       std::vector<std::vector<double> > direction;
+      double x1; double x2; double y1; double y2;
   };
 
 
   template <int dim>
-  Matrix<dim>::Matrix(const Parameters& par, double faktor, std::vector<std::vector<double> > direction)
+  Matrix<dim>::Matrix(const Parameters& par, double factor1, double factor2, std::vector<std::vector<double> > direction, double x1, double x2, double y1, double y2)
     :
     parameters(&par),
-    faktor(faktor),
-    direction(direction) 
+    factor1(factor1),
+    factor2(factor2),
+    direction(direction),
+    x1(x1), 
+    x2(x2), 
+    y1(y1), 
+    y2(y2) 
   {
     //this->input_vector_names.push_back("Newton iterate");
   }
@@ -65,11 +71,14 @@ namespace Advection
     dealii::LocalIntegrators::Advection::
       cell_matrix(M1,
 		  info.fe_values(0), info.fe_values(0), direction);
-    
-    Laplace::cell_matrix(M2, info.fe_values(0), faktor);
+   
 
-    FullMatrix<double> &M = dinfo.matrix(0,false).matrix;
-    M.equ(1,M1,1,M2);  
+    if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
+	y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
+	Laplace::cell_matrix(M2, info.fe_values(0), factor2);
+    else
+	Laplace::cell_matrix(M2, info.fe_values(0), factor1);
+	
   }
   
   
@@ -88,15 +97,15 @@ namespace Advection
 			  direction);
    
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-    Laplace::nitsche_matrix(M2, info.fe_values(0),
-  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), faktor);
 
-
-
-     FullMatrix<double> &M = dinfo.matrix(0,false).matrix;
-    M.equ(1,M1,1,M2);
-   
-
+    if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
+	y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
+   	 Laplace::nitsche_matrix(M2, info.fe_values(0),
+  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor2);
+    else
+   	 Laplace::nitsche_matrix(M2, info.fe_values(0),
+  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
+  
   }
   
   
@@ -115,6 +124,7 @@ namespace Advection
     FullMatrix<double> &M23 = dinfo2.matrix(0,true).matrix;
     FullMatrix<double> &M24 = dinfo2.matrix(0,false).matrix;
 
+
     dealii::LocalIntegrators::Advection::upwind_value_matrix(
       M11,
       M12, 
@@ -124,26 +134,30 @@ namespace Advection
       info1.fe_values(0), info2.fe_values(0),
       direction);
 
-    const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-    Laplace::ip_matrix(	M21, 
+
+
+     const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
+
+     if (x1 < dinfo1.cell->center()[0] && dinfo1.cell->center()[0] < x2 && 
+	y1 < dinfo1.cell->center()[1] && dinfo1 .cell->center()[1] < y2 && 
+	x1 < dinfo2.cell->center()[0] && dinfo2.cell->center()[0] < x2 && 
+	y1 < dinfo2.cell->center()[1] && dinfo2 .cell->center()[1] < y2)
+            Laplace::ip_matrix(	M21, 
 		      	M22, 
   		     	M23, 
 		     	M24,
   		     	info1.fe_values(0), 
 			info2.fe_values(0),
-  		     	Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), faktor);
-
-
-    FullMatrix<double> &M1 = dinfo1.matrix(0,false).matrix;
-    FullMatrix<double> &M2 = dinfo1.matrix(0,true).matrix;
-    FullMatrix<double> &M3 = dinfo2.matrix(0,true).matrix;
-    FullMatrix<double> &M4 = dinfo2.matrix(0,false).matrix;
-    M1.equ(1,M11,1,M21);
-    M2.equ(1,M12,1,M22);
-    M3.equ(1,M13,1,M23);
-    M4.equ(1,M14,1,M24);
-
-
+  		     	Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), factor2);
+     else
+	  Laplace::ip_matrix(	M21, 
+		      	M22, 
+  		     	M23, 
+		     	M24,
+  		     	info1.fe_values(0), 
+			info2.fe_values(0),
+  		     	Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), factor1);
+   
   }
 }
 
