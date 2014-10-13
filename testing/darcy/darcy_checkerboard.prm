@@ -1,16 +1,16 @@
 subsection AmandusApplication
-  set Multigrid = true
-  set Steps     = 1
+  set Multigrid = false
+  set Steps     = 4
 end
 subsection CheckerboardPattern
-  set Quadrant1 = 2.0
+  set Quadrant1 = 10.0
   set Quadrant2 = 1.0
-  set Quadrant3 = 1.0
+  set Quadrant3 = 10.0
   set Quadrant4 = 1.0
 end
 subsection Discretization
   set FE         = FESystem<2>[FE_RaviartThomas<2>(0)-FE_DGQ<2>(0)]
-  set Refinement = 4
+  set Refinement = 0
 end
 subsection Linear Solver
   set Log frequency = 1
