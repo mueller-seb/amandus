@@ -7,9 +7,13 @@
 /**
  * @file
  *
- * Exact polynomial solution to the Darcy problem
- * Homogeneous no-slip boundary condition
- * Linear solver
+ * @brief Polynomial solution of Darcy equations
+ * <ul>
+ * <li>Exact polynomial solution to the Darcy problem</li>
+ * <li>Raviart-Thomas elements</li>
+ * <li>Homogeneous no-slip boundary condition</li>
+ * <li>Linear solver</li>
+ * </ul>
  *
  * @ingroup Examples
  */
@@ -56,6 +60,7 @@ int main()
   
   DarcyMatrix<d> matrix_integrator;
   DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  rhs_integrator.input_vector_names.push_back("Newton iterate");
   DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
