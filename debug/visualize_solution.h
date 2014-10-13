@@ -1,3 +1,9 @@
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
 #include <deal.II/base/function.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/base/quadrature.h>

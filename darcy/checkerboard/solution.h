@@ -1,3 +1,9 @@
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
 #ifndef __darcy_checkerboard_solution
 #define __darcy_checkerboard_solution
 

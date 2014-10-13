@@ -1,3 +1,9 @@
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
 #define BOOST_TEST_MODULE test_darcy_estimator.h
 #include <boost/test/included/unit_test.hpp>
 
