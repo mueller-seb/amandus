@@ -98,14 +98,24 @@ namespace AdvectionDiffusion
    
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
 
-    if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
-	y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
-   	 Laplace::nitsche_matrix(M2, info.fe_values(0),
-  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor2);
-    else
-   	 Laplace::nitsche_matrix(M2, info.fe_values(0),
-  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
-  
+	
+    const std::vector<Point<dim> > &normals = info.fe_values(0).get_normal_vectors();
+    Point<dim> dir;
+    dir(0) = direction[0][0];
+    dir(1) = direction[1][0];
+    std::vector<double> dir_n(info.fe_values(0).n_quadrature_points);
+
+    for (unsigned k=0; k<info.fe_values(0).n_quadrature_points; ++k)
+     { dir_n[k]=dir * normals[k];
+      }
+
+    //for (unsigned k=0; k<info.fe_values(0).n_quadrature_points; ++k) 
+  	  if (dir_n[k] < 0)
+   	    {}
+  	  else
+	     { Laplace::nitsche_matrix(M2, info.fe_values(0),
+  				  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
+  	     }
   }
   
   
