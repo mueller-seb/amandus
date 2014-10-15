@@ -63,7 +63,7 @@ int main(int argc, const char** argv)
   // factors belonging to the diffusion term
   //double factor1= 0.001;
   //double factor2=3;
-  double factor1= 0.0000002;
+  double factor1= 0.02;
   double factor2=2;
   
   // obstacle (where factor2 holds)
