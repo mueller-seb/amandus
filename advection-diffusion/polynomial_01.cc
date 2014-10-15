@@ -50,15 +50,21 @@ int main(int argc, const char** argv)
   
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(2, -1.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);        
+  solution1d += Polynomials::Monomial<double>(0, 1.);  
+  //solution1d += Polynomials::Monomial<double>(1, -1.);
+  //solution1d += Polynomials::Monomial<double>(0, 1.);  
+  //solution1d += Polynomials::Monomial<double>(0, 0);
+  //solution1d += Polynomials::Monomial<double>(0, 0);  
   solution1d.print(std::cout);
   
   std::vector<Polynomials::Polynomial<double> > potentials(1);
   potentials[0] = solution1d;
 
   // factors belonging to the diffusion term
-  double factor1= 0.00000001;
-  double factor2=3;
+  //double factor1= 0.001;
+  //double factor2=3;
+  double factor1= 0.0000002;
+  double factor2=2;
   
   // obstacle (where factor2 holds)
   double x1 = -0.5;
@@ -68,7 +74,7 @@ int main(int argc, const char** argv)
   
   // Direction of the velocity (advection term)
   std::vector<std::vector<double> > direction(d,std::vector<double>(1));
-  direction[0][0] = 0.1;
+  direction[0][0] = -0.1;
   direction[1][0] = 0.2;
  
  
@@ -85,4 +91,5 @@ int main(int argc, const char** argv)
   app.control.set_reduction(1.e-10);
   
   global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  
 }
