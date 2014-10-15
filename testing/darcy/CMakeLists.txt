@@ -22,3 +22,5 @@ TARGET_LINK_LIBRARIES(test_darcy_estimator
 ADD_EXECUTABLE(test_darcy_checkerboard darcy_checkerboard.cc)
 DEAL_II_SETUP_TARGET(test_darcy_checkerboard)
 TARGET_LINK_LIBRARIES(test_darcy_checkerboard amandus)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/darcy_checkerboard.prm
+  ${CMAKE_CURRENT_BINARY_DIR}/darcy_checkerboard.prm COPYONLY)

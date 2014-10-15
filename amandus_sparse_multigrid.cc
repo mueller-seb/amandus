@@ -168,9 +168,22 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
   MGLevelObject<RELAXATION::AdditionalData> smoother_data(minlevel, mg_matrix.max_level());  
   mg::SmootherRelaxation<RELAXATION, Vector<double> > mg_smoother;
 
+  bool interior_dofs_only = true;
+  unsigned int smoothing_steps = 1;
+  bool variable_smoothing_steps = false;
+  if(this->param != 0)
+  {
+    this->param->enter_subsection("Multigrid");
+    interior_dofs_only = this->param->get_bool("Interior smoothing");
+    smoothing_steps = this->param->get_integer("Smoothing steps on leaves");
+    variable_smoothing_steps = this->param->get_bool("Variable smoothing steps");
+    this->param->leave_subsection();
+  }
+
   for (unsigned int l=minlevel+1;l<=smoother_data.max_level();++l)
     {
-      DoFTools::make_vertex_patches(smoother_data[l].block_list, this->dof_handler, l, true);
+      DoFTools::make_vertex_patches(
+          smoother_data[l].block_list, this->dof_handler, l, interior_dofs_only);
       smoother_data[l].block_list.compress();
       smoother_data[l].relaxation = 1.;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
@@ -184,8 +197,8 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 	mg_smoother[l].log_statistics();
       }
   
-  mg_smoother.set_steps(1);
-  mg_smoother.set_variable(false);
+  mg_smoother.set_steps(smoothing_steps);
+  mg_smoother.set_variable(variable_smoothing_steps);
   
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);

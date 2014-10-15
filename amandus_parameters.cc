@@ -23,6 +23,12 @@ AmandusParameters::AmandusParameters ()
   enter_subsection("Linear Solver");
   ReductionControl::declare_parameters(*this);
   leave_subsection();
+
+  enter_subsection("Multigrid");
+  declare_entry("Interior smoothing", "true", Patterns::Bool());
+  declare_entry("Smoothing steps on leaves", "1", Patterns::Integer(0));
+  declare_entry("Variable smoothing steps", "false", Patterns::Bool());
+  leave_subsection();
   
   Algorithms::Newton<Vector<double> >::declare_parameters(*this);  
   Algorithms::ThetaTimestepping<Vector<double> >::declare_parameters(*this);

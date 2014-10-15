@@ -1,11 +1,11 @@
 subsection AmandusApplication
-  set Multigrid = false
-  set Steps     = 4
+  set Multigrid = true
+  set Steps     = 6
 end
 subsection CheckerboardPattern
-  set Quadrant1 = 10.0
+  set Quadrant1 = 100.0
   set Quadrant2 = 1.0
-  set Quadrant3 = 10.0
+  set Quadrant3 = 1.0
   set Quadrant4 = 1.0
 end
 subsection Discretization
@@ -16,9 +16,14 @@ subsection Linear Solver
   set Log frequency = 1
   set Log history   = false
   set Log result    = true
-  set Max steps     = 1000
-  set Reduction     = 1.e-4
+  set Max steps     = 100
+  set Reduction     = 1.e-10
   set Tolerance     = 1.e-10
+end
+subsection Multigrid
+  set Interior smoothing        = false
+  set Smoothing steps on leaves = 1
+  set Variable smoothing steps  = false
 end
 subsection Newton
   set Assemble threshold  = 0.

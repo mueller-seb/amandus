@@ -192,7 +192,6 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     const dealii::ConstraintMatrix& hanging_nodes() const;
     
-  public:
     /**
      * Set up hanging node constraints for leaf mesh and for level
      * meshes. Use redefinition in derived classes to add boundary
@@ -345,7 +344,6 @@ class AmandusApplication
 
     void setup_constraints ();
     
-  public:
     /**
      * Use the integrator to build the matrix for the level meshes. This
      * also automatically generates the transfer matrices needed for
