@@ -237,21 +237,7 @@ void PolynomialBoundaryRHS<dim>::boundary(
                         	 	  * fe.JxW(k);
 	     }	
 	/*else 
-	    for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
-	    {	
-		if (x1 < dinfo.cell->center()[0] && dinfo.cell->center()[0] < x2 && 
-		    y1 < dinfo.cell->center()[1] && dinfo.cell->center()[1] < y2 )
-			local_vector(i) += ( (factor2*(( fe.shape_value(i,k) * penalty * rhs2[k])
-                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * rhs2[k])))
-				  	  - (dir_n * rhs2[k] * fe.shape_value(i,k)) )
-                        	 	  * fe.JxW(k);
-		else 
-			local_vector(i) += ( (factor1*(( fe.shape_value(i,k) * penalty * rhs2[k])
-                        	  	  - (fe.normal_vector(k) * fe.shape_grad(i,k) * rhs2[k])))
-				  	  - (dir_n * rhs2[k] * fe.shape_value(i,k)) )
-                        	 	  * fe.JxW(k);
-	      }
-	
+	// Neumann boundary condition 
 	  { for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
 	    {	
 		local_vector(i) += - (1 * fe.shape_value(i,k) )

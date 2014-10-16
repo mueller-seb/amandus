@@ -98,24 +98,19 @@ namespace AdvectionDiffusion
    
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
 
-	
-    const std::vector<Point<dim> > &normals = info.fe_values(0).get_normal_vectors();
     Point<dim> dir;
     dir(0) = direction[0][0];
     dir(1) = direction[1][0];
-    std::vector<double> dir_n(info.fe_values(0).n_quadrature_points);
 
-    for (unsigned k=0; k<info.fe_values(0).n_quadrature_points; ++k)
-     { dir_n[k]=dir * normals[k];
-      }
+    // todo: 0,1 oder 2 nach normal_vector()? Speicherplatzbelegung/Größe von normalvector
+     const Point<dim> &normal = info.fe_values(0).normal_vector(1);
 
-    //for (unsigned k=0; k<info.fe_values(0).n_quadrature_points; ++k) 
-  	  if (dir_n[k] < 0)
-   	    {}
-  	  else
-	     { Laplace::nitsche_matrix(M2, info.fe_values(0),
-  				  Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
-  	     }
+    // dirichlet boundary condition just at the inflow boundary
+    if ( normal*dir < 0 )
+   	{ Laplace::nitsche_matrix(M2, info.fe_values(0),
+  			Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
+        }
+
   }
   
   

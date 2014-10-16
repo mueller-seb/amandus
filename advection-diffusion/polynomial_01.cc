@@ -63,7 +63,7 @@ int main(int argc, const char** argv)
   // factors belonging to the diffusion term
   //double factor1= 0.001;
   //double factor2=3;
-  double factor1= 0.02;
+  double factor1= 0.00002;
   double factor2=2;
   
   // obstacle (where factor2 holds)
@@ -74,7 +74,7 @@ int main(int argc, const char** argv)
   
   // Direction of the velocity (advection term)
   std::vector<std::vector<double> > direction(d,std::vector<double>(1));
-  direction[0][0] = -0.1;
+  direction[0][0] = 0.1;
   direction[1][0] = 0.2;
  
  
