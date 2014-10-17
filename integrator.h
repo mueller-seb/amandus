@@ -107,7 +107,9 @@ namespace Integrators
   };  
 }
 
-
+// TODO: Update flags should be set by derived classes with add_flags. Right
+// now some update flags are always set by this constructor. For
+// compatibility keep it this way until the applications are adjusted.
 template <int dim>
 inline
 AmandusIntegrator<dim>::AmandusIntegrator ()
