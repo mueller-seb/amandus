@@ -395,7 +395,7 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     data_out.parse_parameters(*param);
     param->leave_subsection();
   } else {
-    data_out.set_default_format(DataOutBase::none);
+    data_out.set_default_format(DataOutBase::vtk);
   }
 
   data_out.attach_dof_handler(dof_handler);
