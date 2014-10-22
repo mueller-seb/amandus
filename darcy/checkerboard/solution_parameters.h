@@ -281,8 +281,6 @@ namespace Darcy
         AnyData out;
         AnyData in;
 
-        // make sure to have the pointer to u as an lvalue so out does not
-        // get marked as being const
         VECTOR* p = &u;
         out.add(p, "Start and end value");
         newton(out, in);

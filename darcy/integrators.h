@@ -33,8 +33,8 @@ namespace Darcy
    * \f[
    * M_{ij} = \int K \phi_j \phi_i
    * \f]
-   * where \f$K\f$ is the weight and \f$(\phi_i)\f$ are the local shape
-   * functions.
+   * where \f$K\f$ is a tensor valued weight and \f$(\phi_i)\f$ are the
+   * local shape functions.
    */
   template <int dim>
     void weighted_mass_matrix(
@@ -74,7 +74,7 @@ namespace Darcy
             
   /**
    * Simple function returning the identity tensor. Used as default value
-   * for the weight.
+   * for the weight in the system matrix.
    */
   template <int dim>
     class IdentityTensorFunction : public dealii::TensorFunction<2, dim>
@@ -126,14 +126,9 @@ namespace Darcy
       SystemIntegrator();
       SystemIntegrator(const dealii::TensorFunction<2, dim>& weight);
       ~SystemIntegrator();
+
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                         dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
     private:
       void init();
       const dealii::TensorFunction<2, dim>* const weight_ptr;
@@ -197,19 +192,6 @@ namespace Darcy
       dinfo.matrix(1).matrix *= -1.0;
     }
 
-  template <int dim>
-    void SystemIntegrator<dim>::boundary(
-        dealii::MeshWorker::DoFInfo<dim>&,
-        dealii::MeshWorker::IntegrationInfo<dim>&) const
-    {}
-
-  template <int dim>
-    void SystemIntegrator<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>&,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1, 
-        dealii::MeshWorker::IntegrationInfo<dim>&)
-    const
-    {}
 
   /**
    * Local integrator for a right hand side of a mixed discretization of
@@ -231,14 +213,9 @@ namespace Darcy
   {
     public:
       RHSIntegrator(const dealii::Function<dim>& boundary_function);
-      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+
       virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                             dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
     private:
       dealii::SmartPointer<const dealii::Function<dim> > boundary_function;
   };
@@ -257,12 +234,6 @@ namespace Darcy
                     dealii::update_values |
                     dealii::update_quadrature_points);
   }
-
-  template <int dim>
-    void RHSIntegrator<dim>::cell(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const
-    {}
 
   template <int dim>
     void RHSIntegrator<dim>::boundary(
@@ -285,18 +256,11 @@ namespace Darcy
           -1.0);
     }
 
-  template <int dim>
-    void RHSIntegrator<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>&,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1, 
-        dealii::MeshWorker::IntegrationInfo<dim>&)
-    const
-    {}
-
 
   /**
-   * Error integrator computing the error w.r.t. the exact solution given as
-   * the constructor's argument.
+   * Error integrator computing the \f$L^2\f$ error w.r.t. the exact
+   * solution given as the constructor's argument. Uses a weighted norm for
+   * the velocity component if a weight is passed to the constructor. 
    */
   template <int dim>
     class ErrorIntegrator : public AmandusIntegrator<dim>
@@ -309,12 +273,6 @@ namespace Darcy
 
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                         dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                            dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-      virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-                        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
     private:
       void init();
 
@@ -429,22 +387,6 @@ namespace Darcy
             pressure_fe_values.JxW(q));
       }
       dinfo.value(1) = std::sqrt(pressure_l2_error);
-    }
-
-  template <int dim>
-    void ErrorIntegrator<dim>::boundary(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo,
-        dealii::MeshWorker::IntegrationInfo<dim>& info) const 
-    {
-    }
-
-  template <int dim>
-    void ErrorIntegrator<dim>::face(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo1,
-        dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-        dealii::MeshWorker::IntegrationInfo<dim>& info1, 
-        dealii::MeshWorker::IntegrationInfo<dim>& info2) const 
-    {
     }
 
 }

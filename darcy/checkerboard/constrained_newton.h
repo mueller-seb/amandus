@@ -19,7 +19,13 @@ namespace Darcy
     using namespace dealii;
     using namespace Algorithms;
 
-
+    /**
+     * This class is just a helper class to calculate the parameters for the
+     * exact solution of Darcy's problem with a checkerboard diffusion
+     * pattern. It is not intended for use in applications and might be
+     * replaced by a more specialized implementation for this task in the
+     * future.
+     **/
     template <class VECTOR>
       class ConstrainedNewton : public Newton<VECTOR>
     {

@@ -32,6 +32,10 @@
 
 namespace Darcy
 {
+  /**
+   * Calculates a discontinuous function by solving a mean value constrained
+   * least squares problem on each cell.
+   */
   template <int dim>
     class Postprocessor : public AmandusIntegrator<dim>
   {
@@ -276,6 +280,10 @@ namespace Darcy
     }
 
 
+  /**
+   * A weighted Oswald interpolation operator used to obtain a \f$H^1\f$
+   * conforming function after postprocessing.
+   **/
   template <int dim>
     class Interpolator : public dealii::MeshWorker::LocalIntegrator<dim>
   {
@@ -408,6 +416,8 @@ namespace Darcy
   template <int dim>
     void Interpolator<dim>::init_normalization()
     {
+      // TODO: this should really be done in the meshworker interface, too,
+      // in order to parallelize this step.
       normalization_map.assign(dofh.n_dofs(), 0.0);
 
       std::vector<unsigned int> global_dof_indices(fe.dofs_per_cell);
@@ -429,7 +439,9 @@ namespace Darcy
     double Interpolator<dim>::squared_max_ev(
         typename dealii::Triangulation<dim>::cell_iterator cell) const
     {
-      // TODO: only works for piecewise constant weight tensor
+      // TODO: in theory we should be looking for the maximum eigenvalue on
+      // the whole cell, but we just assume that the weight is constant on
+      // the cell and use the maximum eigenvalue at the center of the cell.
       dealii::Tensor<2, dim> cell_value = weight->value(cell->center());
       dealii::LAPACKFullMatrix<double> lapack_cell_value(dim, dim);
       for(unsigned int i = 0; i < dim; ++i)
@@ -491,8 +503,10 @@ namespace Darcy
 
   /**
    * Provides the local integrator interface for Amandus to calculate the
-   * a posteriori error estimate for Darcy's equation. The estimator uses a
-   * postprocessing of the approximate solution.
+   * a posteriori error estimate for Darcy's equation. Combines the
+   * postprocessor and interpolator. Notice that it has to be reinitialized
+   * with the current approximate solution before its integrator interface
+   * is used.
    */
   template <int dim>
     class Estimator : public AmandusIntegrator<dim>
