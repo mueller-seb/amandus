@@ -9,6 +9,7 @@
 #ifndef __amandus_integrator_h
 #define __amandus_integrator_h
 
+#include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/local_integrator.h>
 #include <deal.II/fe/block_mask.h>
 #include <deal.II/algorithms/any_data.h>
@@ -106,7 +107,9 @@ namespace Integrators
   };  
 }
 
-
+// TODO: Update flags should be set by derived classes with add_flags. Right
+// now some update flags are always set by this constructor. For
+// compatibility keep it this way until the applications are adjusted.
 template <int dim>
 inline
 AmandusIntegrator<dim>::AmandusIntegrator ()

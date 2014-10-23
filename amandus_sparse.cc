@@ -66,6 +66,8 @@ AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler &param)
   param.enter_subsection("Linear Solver");
   control.parse_parameters(param);
   param.leave_subsection();
+  
+  this->param = &param;
 }
 
 
@@ -283,10 +285,14 @@ double AmandusApplicationSparse<dim>::estimate(
     cell->set_user_index(i);
   MeshWorker::IntegrationInfoBox<dim> info_box;
   
-  const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+1;
+  //TODO: choice of quadrature rule needs to be adjusted. E.g. the estimator for
+  //Darcy's equation integrates a postprocessed solution of higher degree
+  //than the original solution, thus we need a higher order quadrature
+  //formula to obtain correct results
+  const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+4;
   info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
   
-  info_box.cell_selector.add("solution", false, true,true);
+  info_box.cell_selector.add("solution", true, true,true);
   info_box.face_selector.add("solution",true,true,true);
   info_box.boundary_selector.add("solution", true, true, false);
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
@@ -383,40 +389,34 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
 						    const AnyData* in) const
 {
   DataOut<dim> data_out;
+  if(param != 0)
+  {
+    param->enter_subsection("Output");
+    data_out.parse_parameters(*param);
+    param->leave_subsection();
+  } else {
+    data_out.set_default_format(DataOutBase::vtk);
+  }
 
-  data_out.attach_dof_handler (dof_handler);
+  data_out.attach_dof_handler(dof_handler);
   if (in != 0)
-    {
-      for (unsigned int i=0;i<in->size();++i)
-	data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
-    }
+  {
+    for (unsigned int i=0;i<in->size();++i)
+      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+  }
   else
-    {    
-      AssertThrow(false, ExcNotImplemented());
-    }
+  {    
+    AssertThrow(false, ExcNotImplemented());
+  }
   data_out.build_patches (this->fe->tensor_degree());
 
   std::ostringstream filename;
   filename << "solution-"
     << cycle
-    << ".gpl";
+    << data_out.default_suffix();
 
-  std::ofstream output (filename.str().c_str());
-  data_out.write_gnuplot (output);
-
-  // std::ostringstream filename;
-  // filename << "solution-"
-  //   << cycle
-  //   << ".svg";
-
-  // DataOutBase::SvgFlags svg_flags;;
-  // svg_flags.height = 400;
-  // svg_flags.polar_angle=30;
-  
-  // data_out.set_flags(svg_flags);
-  
-  // std::ofstream output (filename.str().c_str());
-  // data_out.write_svg (output);
+  std::ofstream output(filename.str().c_str());
+  data_out.write(output);
 }
 
 template class AmandusApplicationSparse<2>;
