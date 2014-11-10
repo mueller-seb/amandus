@@ -43,7 +43,7 @@ int main(int argc, const char** argv)
   const unsigned int degree = 2;
   FE_DGQ<d> fe(degree);
   
-  //für polynomial
+  // polynomial
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(3, -1.);
   solution1d += Polynomials::Monomial<double>(1, 3.);

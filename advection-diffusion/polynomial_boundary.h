@@ -125,7 +125,7 @@ PolynomialBoundaryRHS<dim>::PolynomialBoundaryRHS(
    		y2(y2) 
 {
   this->use_face = false;
-  this->use_boundary = true;
+  this->use_boundary = false;
 
 }
 
@@ -142,20 +142,16 @@ void PolynomialBoundaryRHS<dim>::cell(
   std::vector<double> py(2);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
     {
-   /*   const double x = info.fe_values(0).quadrature_point(k)(0);
-      const double y = info.fe_values(0).quadrature_point(k)(1);
-      potentials_1d[0].value(x, px);
-      potentials_1d[0].value(y, py);
-      
-      rhs[k] = direction[0][0] * px[1]*py[0] + direction[1][0] * px[0]*py[1];
-*/
       const double x = info.fe_values(0).quadrature_point(k)(0);
       const double y = info.fe_values(0).quadrature_point(k)(1);
       potentials_1d[0].value(x, px);
       potentials_1d[0].value(y, py);
       
+      // different right-hand-sides:
+      rhs[k] = 1;
+      //rhs[k]= x;      
       //rhs[k] = 0.2*x + 0.2*x*y*y + 0.4*y + 0.4*x*x*y - 8 - 4*y*y - 4*x*x;
-      rhs[k] = direction[0][0]*(2*x+2*x*y*y) + direction[1][0]*(2*y+2*x*x*y) - factor1* (4+2*y*y+2*x*x);
+      //rhs[k] = direction[0][0]*(2*x+2*x*y*y) + direction[1][0]*(2*y+2*x*x*y) - factor1* (4+2*y*y+2*x*x);
       //rhs[k] = direction[0][0]*(2*px[1]+2*px[1]*py[0]*py[0]) + direction[1][0]*(2*py[1]+2*px[0]*px[0]*py[1]) - factor1* (4+2*py[1]*py[1]+2*px[0]*px[0]);
     }
   
@@ -173,12 +169,6 @@ void PolynomialBoundaryRHS<dim>::boundary(
 
     const FEValuesBase<dim> &fe = info.fe_values();
     Vector<double> &local_vector = dinfo.vector(0).block(0);
-
-    // Boundary values step12
-/*    Functions::SlitSingularityFunction<2> exact_solution;
-    std::vector<double> boundary_values(fe.n_quadrature_points);
-    exact_solution.value_list(fe.get_quadrature_points(), boundary_values);
-*/
 
     // Boundary Values with function 'g' defined in boundary_values.h
     std::vector<double> g(fe.n_quadrature_points);
@@ -198,29 +188,12 @@ void PolynomialBoundaryRHS<dim>::boundary(
 
     std::vector<double> px(2);
     std::vector<double> py(2);
-  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
-    {
-   /*   const double x = info.fe_values(0).quadrature_point(k)(0);
-      const double y = info.fe_values(0).quadrature_point(k)(1);
-      potentials_1d[0].value(x, px);
-      potentials_1d[0].value(y, py);
-      
-      rhs[k] = direction[0][0] * px[1]*py[0] + direction[1][0] * px[0]*py[1];
-*/
-      const double x = info.fe_values(0).quadrature_point(k)(0);
-      const double y = info.fe_values(0).quadrature_point(k)(1);
-    //  potentials_1d[0].value(x, px);
-    //  potentials_1d[0].value(y, py);
-      
-      //rhs[k] = 0.2*x + 0.2*x*y*y + 0.4*y + 0.4*x*x*y - 8 - 4*y*y - 4*x*x;
-      //rhs2[k] = direction[0][0]*(2*x+2*x*y*y) + direction[1][0]*(2*y+2*x*x*y);
-      rhs2[k] = direction[0][0]*(2*x+2*x*y*y) + direction[1][0]*(2*y+2*x*x*y) - factor1* (4+2*y*y+2*x*x);
-    }
 
 
      for (unsigned k=0; k<fe.n_quadrature_points; ++k)
       {	const double dir_n=dir * normals[k];
 	
+	// Boundary condition holds at the inflow-boundary:
 	if (dir_n<0)
 	    for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
 	    {	
@@ -236,16 +209,7 @@ void PolynomialBoundaryRHS<dim>::boundary(
 				  	  - (dir_n * g[k] * fe.shape_value(i,k)) )
                         	 	  * fe.JxW(k);
 	     }	
-	/*else 
-	// Neumann boundary condition 
-	  { for (unsigned int i=0; i<fe.dofs_per_cell; ++i)
-	    {	
-		local_vector(i) += - (1 * fe.shape_value(i,k) )
-                        	 	  * fe.JxW(k);
 	
-	      }
-	  }
-	*/	
 	}	
 
 }

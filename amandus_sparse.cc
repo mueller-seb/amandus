@@ -396,13 +396,21 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     }
   data_out.build_patches (this->fe->tensor_degree());
 
-  std::ostringstream filename;
+/*  std::ostringstream filename;
   filename << "solution-"
     << cycle
     << ".gpl";
 
   std::ofstream output (filename.str().c_str());
   data_out.write_gnuplot (output);
+*/
+  std::ostringstream filename;
+  filename << "solution-"
+    << cycle
+    << ".vtk";
+
+  std::ofstream output (filename.str().c_str());
+  data_out.write_vtk (output);
 
   // std::ostringstream filename;
   // filename << "solution-"
