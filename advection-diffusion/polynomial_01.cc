@@ -55,6 +55,7 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
+  // Polynomials for the right-hand-side (not used in every setting, see polynomial_boundary.h)
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(2, -1.);
   solution1d += Polynomials::Monomial<double>(0, 1.);  
