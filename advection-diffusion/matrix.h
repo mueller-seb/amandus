@@ -102,12 +102,11 @@ namespace AdvectionDiffusion
     dir(0) = direction[0][0];
     dir(1) = direction[1][0];
 
-    // todo: 0,1 oder 2 nach normal_vector()? Speicherplatzbelegung/Größe von normalvector
-     const Point<dim> &normal = info.fe_values(0).normal_vector(1);
+    const Point<dim> &normal = info.fe_values(0).normal_vector(1);
 
-    // dirichlet boundary condition just at the inflow boundary
-    if ( normal*dir < 0 )
-   	{ Laplace::nitsche_matrix(M2, info.fe_values(0),
+    // Dirichlet boundary condition only at the inflow boundary
+    if (normal*dir < 0 )
+   	{Laplace::nitsche_matrix(M2, info.fe_values(0),
   			Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor1);
         }
 
