@@ -1,5 +1,26 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
-ADD_EXECUTABLE(darcy_test darcy.cc)
-DEAL_II_SETUP_TARGET(darcy_test)
-TARGET_LINK_LIBRARIES(darcy_test amandus)
+ADD_EXECUTABLE(test_darcy_polynomial darcy_polynomial.cc)
+DEAL_II_SETUP_TARGET(test_darcy_polynomial)
+TARGET_LINK_LIBRARIES(test_darcy_polynomial amandus)
+
+ADD_EXECUTABLE(test_darcy_solution_parameters test_darcy_solution_parameters.cc)
+DEAL_II_SETUP_TARGET(test_darcy_solution_parameters)
+TARGET_LINK_LIBRARIES(test_darcy_solution_parameters
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+ADD_EXECUTABLE(test_darcy_integrators test_darcy_integrators.cc)
+DEAL_II_SETUP_TARGET(test_darcy_integrators)
+TARGET_LINK_LIBRARIES(test_darcy_integrators
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+ADD_EXECUTABLE(test_darcy_estimator test_darcy_estimator.cc)
+DEAL_II_SETUP_TARGET(test_darcy_estimator)
+TARGET_LINK_LIBRARIES(test_darcy_estimator
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+ADD_EXECUTABLE(test_darcy_checkerboard darcy_checkerboard.cc)
+DEAL_II_SETUP_TARGET(test_darcy_checkerboard)
+TARGET_LINK_LIBRARIES(test_darcy_checkerboard amandus)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/darcy_checkerboard.prm
+  ${CMAKE_CURRENT_BINARY_DIR}/darcy_checkerboard.prm COPYONLY)
