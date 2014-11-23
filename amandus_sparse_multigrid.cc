@@ -62,7 +62,6 @@ template <int dim>
 void
 AmandusApplication<dim>::setup_system()
 {
-  this->dof_handler.distribute_mg_dofs(*this->fe);
   mg_transfer.clear();
   AmandusApplicationSparse<dim>::setup_system();
 

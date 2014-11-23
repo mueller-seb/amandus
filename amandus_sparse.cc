@@ -84,7 +84,8 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::setup_system()
 {
-  dof_handler.distribute_dofs(*fe);
+  dof_handler.distribute_dofs(*this->fe);
+  this->dof_handler.distribute_mg_dofs(*this->fe);
   dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
   
