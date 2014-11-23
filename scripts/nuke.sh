@@ -9,7 +9,7 @@ fi
 
 build="build"
 if [ "$#" -gt 1 ]; then
-    $build = $2;
+    build=$2;
 fi
 
 echo "Deleting and reconfiguring $build for deal.II path $1"
@@ -17,3 +17,4 @@ rm -rf $build
 mkdir $build
 cd $build
 cmake -DDEAL_II_DIR=$1 ..
+
