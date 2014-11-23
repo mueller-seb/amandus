@@ -340,12 +340,11 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 template <int dim>
 void
 AmandusApplicationSparse<dim>::error(
+  BlockVector<double>& errors,
   const dealii::AnyData &solution_data,
-  const AmandusIntegrator<dim>& integrator,
-  unsigned int num_errs)
+  const AmandusIntegrator<dim>& integrator)
 {
-  BlockVector<double> errors(num_errs);
-  for (unsigned int i=0;i<num_errs;++i)
+  for (unsigned int i=0;i<errors.n_blocks();++i)
     errors.block(i).reinit(triangulation->n_active_cells());
   unsigned int i=0;
   for (typename Triangulation<dim>::active_cell_iterator cell = triangulation->begin_active();
@@ -378,11 +377,22 @@ AmandusApplicationSparse<dim>::error(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
     integrator, assembler, control);
+}
 
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::error(
+  const dealii::AnyData &solution_data,
+  const AmandusIntegrator<dim>& integrator,
+  unsigned int num_errs)
+{
+  BlockVector<double> errors(num_errs);
+  error(errors, solution_data, integrator);
+  
   for (unsigned int i=0;i<num_errs;++i)
     deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
 }
-
 
 
 template <int dim>

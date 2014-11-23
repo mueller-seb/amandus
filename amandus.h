@@ -217,10 +217,23 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     double estimate(const dealii::AnyData &in,
 		    const AmandusIntegrator<dim>& integrator);
     /**
-     * Compute several error values using the integrator. The number
-     * of errors computed is given as the last argument.
+     * Compute several error values using the integrator and return
+     * them in a BlockVector.
      *
-     * @todo Improve the interface to determine the number of errors from the integrator.
+     * The number of errors computed is the number of blocks in the
+     * vector. The size of each block is adjusted inside this function
+     * to match the number of cells. Then, the error contribution of
+     * each cell is stored in this vector.
+     *
+     * @todo Improve the interface to determine the number of errors
+     * from the integrator an resize the vector.
+     */
+    void error (dealii::BlockVector<double>& out,
+		const dealii::AnyData &in,
+		const AmandusIntegrator<dim>& integrator);
+
+    /**
+     * Compute errors and print them to #deallog
      */
     void error (const dealii::AnyData &in,
 		const AmandusIntegrator<dim>& integrator,
