@@ -346,6 +346,8 @@ AmandusApplicationSparse<dim>::error(
 {
   for (unsigned int i=0;i<errors.n_blocks();++i)
     errors.block(i).reinit(triangulation->n_active_cells());
+  errors.collect_sizes();
+
   unsigned int i=0;
   for (typename Triangulation<dim>::active_cell_iterator cell = triangulation->begin_active();
        cell != triangulation->end(); ++cell,++i)

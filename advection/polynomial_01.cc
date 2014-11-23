@@ -20,7 +20,7 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
+#include <tests.h>
 #include <advection/polynomial.h>
 #include <advection/matrix.h>
 
@@ -65,5 +65,14 @@ int main(int argc, const char** argv)
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  BlockVector<double> errors(2);
+  Vector<double> acc_errors(2);
+  solve_and_error(errors, app, solver, residual, error_integrator);
+  for (unsigned int i=0;i<errors.n_blocks();++i)
+    {
+      acc_errors(i) = errors.block(i).l2_norm();
+      deallog << "Error(" << i << "): " << acc_errors(i) << std::endl;
+    }
+  Assert(acc_errors(0) < 1.e-14, ExcErrorTooLarge(errors(0)));
+  Assert(acc_errors(1) < 1.e-13, ExcErrorTooLarge(errors(1)));
 }

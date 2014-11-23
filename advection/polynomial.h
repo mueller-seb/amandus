@@ -185,7 +185,7 @@ void PolynomialError<dim>::cell(
       dinfo.value(1) += (Du*Du) * dx;
     }
   
-  for (unsigned int i=0;i<=2;++i)
+  for (unsigned int i=0;i<2;++i)
     dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
 

@@ -1,7 +1,7 @@
 
 subsection Discretization
   set FE         = FE_Q(2)
-  set Refinement = 0
+  set Refinement = 3
 end
 subsection Newton
   set Assemble threshold  = 0.2
@@ -16,6 +16,6 @@ subsection Newton
   set Tolerance           = 1.e-10
 end
 subsection Output
-  set Output format = gnuplot
-  set Subdivisions  = 4
+  set Output format = none
+  set Subdivisions  = 2
 end
