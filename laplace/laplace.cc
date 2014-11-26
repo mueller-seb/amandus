@@ -25,7 +25,7 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
 #include <laplace/matrix.h>
-#include <laplace/matrix-faktor.h>
+#include <laplace/matrix_factor.h>
 #include <laplace/noforce.h>
 #include <laplace/polynomial.h>
 
