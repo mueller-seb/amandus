@@ -19,7 +19,6 @@
 #include <deal.II/lac/relaxation_block.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/block_vector.h>
-#include <deal.II/lac/block_list.h>
 #include <deal.II/lac/solver_control.h>
 
 #include <deal.II/grid/grid_generator.h>
@@ -27,7 +26,6 @@
 #include <deal.II/grid/grid_refinement.h>
 
 #include <deal.II/dofs/dof_tools.h>
-#include <deal.II/multigrid/mg_dof_handler.h>
 
 #include <deal.II/meshworker/dof_info.h>
 #include <deal.II/meshworker/integration_info.h>
