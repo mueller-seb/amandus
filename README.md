@@ -6,6 +6,15 @@ implementation of a new equation by just providing local integrators
 for residuals and matrices. In addition, it has a lot of example
 applications.
 
+## Building and installing
+
+Amandus uses `cmake` for configuration. It supports in and out of source build, but not installing. In-source buidld is not recommended if you plan updating or developing. Thus, a typical setup runs like this 
+```
+cd build
+cmake -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source
+make
+```
+
 ## Note: soon future change
 
 Currently, Amandus uses the builtin dealii::Vector and

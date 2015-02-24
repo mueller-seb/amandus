@@ -20,6 +20,29 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+
+/**
+ * Integrate the right hand side for a Laplace problem with zero right hand side.
+ *
+ * @ingroup integrators
+ */
+template <int dim>
+class LaplaceNoForceRHS : public AmandusIntegrator<dim>
+{
+  public:
+    LaplaceNoForceRHS();
+    
+    virtual void cell(DoFInfo<dim>& dinfo,
+		      IntegrationInfo<dim>& info) const;
+    virtual void boundary(DoFInfo<dim>& dinfo,
+			  IntegrationInfo<dim>& info) const;
+    virtual void face(DoFInfo<dim>& dinfo1,
+		      DoFInfo<dim>& dinfo2,
+		      IntegrationInfo<dim>& info1,
+		      IntegrationInfo<dim>& info2) const;
+};
+
+
 /**
  * Integrate the residual for a Laplace problem with zero right hand side.
  *
@@ -40,6 +63,42 @@ class LaplaceNoForceResidual : public AmandusIntegrator<dim>
 		      IntegrationInfo<dim>& info1,
 		      IntegrationInfo<dim>& info2) const;
 };
+
+
+
+//----------------------------------------------------------------------//
+
+template <int dim>
+LaplaceNoForceRHS<dim>::LaplaceNoForceRHS()
+{
+  this->use_boundary = false;
+  this->use_face = false;
+}
+
+
+template <int dim>
+void LaplaceNoForceRHS<dim>::cell(
+  DoFInfo<dim>& dinfo, 
+  IntegrationInfo<dim>& info) const
+{
+
+}
+
+
+template <int dim>
+void LaplaceNoForceRHS<dim>::boundary(
+  DoFInfo<dim>&, 
+  IntegrationInfo<dim>&) const
+{}
+
+
+template <int dim>
+void LaplaceNoForceRHS<dim>::face(
+  DoFInfo<dim>&, 
+  DoFInfo<dim>&, 
+  IntegrationInfo<dim>&, 
+  IntegrationInfo<dim>&) const
+{}
 
 
 //----------------------------------------------------------------------//

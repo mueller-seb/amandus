@@ -17,6 +17,54 @@
 #include <amandus.h>
 
 /**
+ * Error is not close to machine accuracy
+ */
+DeclException1(ExcErrorTooLarge, double,
+	       << "error " << arg1 << " is too large");
+
+/**
+ * This function solves an equation on a given mesh and computes the
+ * errors.
+ *
+ * The errors per cell are returned in the BlockVector used as first
+ * argument. The number of blocks has to be at least the number of
+ * errors computed by the error integrator, but the blocks may be
+ * empty. They will be resized.
+ *
+ * @ingroup Verification
+ */
+template <int dim>
+void
+solve_and_error(dealii::BlockVector<double>& errors,
+		AmandusApplicationSparse<dim> &app,
+		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
+		dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
+		const AmandusIntegrator<dim>& error)
+{
+  dealii::Vector<double> res;
+  dealii::Vector<double> sol;
+  
+  solver.notify(dealii::Algorithms::Events::remesh);
+  app.setup_system();
+  app.setup_vector(res);
+  app.setup_vector(sol);
+  
+  dealii::AnyData solution_data;
+  dealii::Vector<double>* p = &sol;
+  solution_data.add(p, "solution");
+  
+  dealii::AnyData data;
+  dealii::Vector<double>* rhs = &res;
+  data.add(rhs, "RHS");
+  dealii::AnyData residual_data;
+  residual(data, residual_data);
+  dealii::deallog << "Residual " << res.l2_norm() << std::endl;
+  solver(solution_data, data);
+  app.error(errors, solution_data, error);
+}
+
+
+/**
  * @ingroup Verification
  */
 template <int dim>

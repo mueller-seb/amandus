@@ -15,7 +15,6 @@
 #include <deal.II/lac/relaxation_block.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/block_vector.h>
-#include <deal.II/lac/block_list.h>
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
@@ -62,7 +61,6 @@ template <int dim>
 void
 AmandusApplication<dim>::setup_system()
 {
-  this->dof_handler.distribute_mg_dofs(*this->fe);
   mg_transfer.clear();
   AmandusApplicationSparse<dim>::setup_system();
 

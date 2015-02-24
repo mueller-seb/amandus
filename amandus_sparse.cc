@@ -15,14 +15,12 @@
 #include <deal.II/lac/relaxation_block.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/block_vector.h>
-#include <deal.II/lac/block_list.h>
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_refinement.h>
 
 #include <deal.II/dofs/dof_tools.h>
-#include <deal.II/multigrid/mg_dof_handler.h>
 
 #include <deal.II/meshworker/dof_info.h>
 #include <deal.II/meshworker/integration_info.h>
@@ -84,7 +82,8 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::setup_system()
 {
-  dof_handler.distribute_dofs(*fe);
+  dof_handler.distribute_dofs(*this->fe);
+  this->dof_handler.distribute_mg_dofs(*this->fe);
   dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
   
@@ -339,13 +338,14 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 template <int dim>
 void
 AmandusApplicationSparse<dim>::error(
+  BlockVector<double>& errors,
   const dealii::AnyData &solution_data,
-  const AmandusIntegrator<dim>& integrator,
-  unsigned int num_errs)
+  const AmandusIntegrator<dim>& integrator)
 {
-  BlockVector<double> errors(num_errs);
-  for (unsigned int i=0;i<num_errs;++i)
+  for (unsigned int i=0;i<errors.n_blocks();++i)
     errors.block(i).reinit(triangulation->n_active_cells());
+  errors.collect_sizes();
+
   unsigned int i=0;
   for (typename Triangulation<dim>::active_cell_iterator cell = triangulation->begin_active();
        cell != triangulation->end(); ++cell,++i)
@@ -377,11 +377,22 @@ AmandusApplicationSparse<dim>::error(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
     integrator, assembler, control);
+}
 
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::error(
+  const dealii::AnyData &solution_data,
+  const AmandusIntegrator<dim>& integrator,
+  unsigned int num_errs)
+{
+  BlockVector<double> errors(num_errs);
+  error(errors, solution_data, integrator);
+  
   for (unsigned int i=0;i<num_errs;++i)
     deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
 }
-
 
 
 template <int dim>

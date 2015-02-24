@@ -18,7 +18,10 @@ IF(TEST_DARCY)
   LIST(APPEND coveredTests test_darcy_checkerboard)
 ENDIF()
 
-
+OPTION(TEST_ADVECTION "Test advection." ON)
+IF (TEST_ADVECTION)
+  LIST(APPEND coveredTests advection_polynomial_01)
+ENDIF()
 
 # No need to modify behind this; should be sufficient for most cases.
 # make tests available to ctest

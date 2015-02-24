@@ -7,8 +7,8 @@
 /**
  * @file
  * <ul>
- * <li> Stationary advection equations</li>
- * <li> Homogeneous Dirichlet boundary condition</li>
+ * <li> Stationary advection-diffusion equations</li>
+ * <li> Inhomogeneous Dirichlet boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
@@ -20,11 +20,12 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <tests.h>
-#include <advection/polynomial.h>
-#include <advection/matrix.h>
+#include <apps.h>
+#include <advection-diffusion/polynomial_boundary.h>
+#include <advection-diffusion/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
+
 
 int main(int argc, const char** argv)
 {
@@ -34,7 +35,7 @@ int main(int argc, const char** argv)
   deallog.attach(logfile);
   
   AmandusParameters param;
-  ::Advection::Parameters::declare_parameters(param);
+  ::AdvectionDiffusion::Parameters::declare_parameters(param);
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -46,33 +47,41 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
+  // Polynomials for the right-hand-side (not used in every setting, see polynomial_boundary.h)
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(2, -1.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
+  solution1d += Polynomials::Monomial<double>(0, 1.);   
   solution1d.print(std::cout);
-  
   std::vector<Polynomials::Polynomial<double> > potentials(1);
   potentials[0] = solution1d;
 
-  ::Advection::Parameters parameters;
+  // factors belonging to the diffusion term
+  double factor1= 0.001;
+  double factor2= 1;
+  
+  // obstacle (where factor2 holds)
+  double x1 = -0.5;
+  double x2 = 0.0;
+  double y1 = -0.5;
+  double y2 = 0.0;
+  
+  // Direction of the velocity (advection term)
+  std::vector<std::vector<double> > direction(d,std::vector<double>(1));
+  direction[0][0] = 0.1;
+  direction[1][0] = 0.2;
+ 
+ 
+  ::AdvectionDiffusion::Parameters parameters;
   parameters.parse_parameters(param);
-  ::Advection::Matrix<d> matrix_integrator(parameters);
-  ::Advection::PolynomialRHS<d> rhs_integrator(parameters, potentials);
-  ::Advection::PolynomialError<d> error_integrator(parameters, potentials);
+  ::AdvectionDiffusion::Matrix<d> matrix_integrator(parameters, factor1, factor2, direction, x1, x2, y1, y2);
+  ::AdvectionDiffusion::PolynomialBoundaryRHS<d> rhs_integrator(parameters, potentials, factor1, factor2, direction, x1, x2, y1, y2);
+  
   
   AmandusUMFPACK<d>  app(tr, *fe);
   AmandusSolve<d>    solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  BlockVector<double> errors(2);
-  Vector<double> acc_errors(2);
-  solve_and_error(errors, app, solver, residual, error_integrator);
-  for (unsigned int i=0;i<errors.n_blocks();++i)
-    {
-      acc_errors(i) = errors.block(i).l2_norm();
-      deallog << "Error(" << i << "): " << acc_errors(i) << std::endl;
-    }
-  Assert(acc_errors(0) < 1.e-14, ExcErrorTooLarge(errors(0)));
-  Assert(acc_errors(1) < 1.e-13, ExcErrorTooLarge(errors(1)));
+  global_refinement_linear_loop(5, app, solver, residual);
+  
 }
