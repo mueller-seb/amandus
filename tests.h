@@ -63,6 +63,27 @@ solve_and_error(dealii::BlockVector<double>& errors,
   app.error(errors, solution_data, error);
 }
 
+template <int dim>
+void
+iterative_solve_and_error(dealii::BlockVector<double>& errors,
+		AmandusApplicationSparse<dim> &app,
+		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
+		const AmandusIntegrator<dim>& error)
+{
+  dealii::Vector<double> sol;
+  
+  app.setup_system();
+  app.setup_vector(sol);
+  solver.notify(dealii::Algorithms::Events::remesh);
+  
+  dealii::AnyData solution_data;
+  dealii::Vector<double>* p = &sol;
+  solution_data.add(p, "solution");
+  
+  dealii::AnyData data;
+  solver(solution_data, data);
+  app.error(errors, solution_data, error);
+}
 
 /**
  * @ingroup Verification
