@@ -65,25 +65,134 @@ solve_and_error(dealii::BlockVector<double>& errors,
 
 template <int dim>
 void
-iterative_solve_and_error(dealii::BlockVector<double>& errors,
+iterative_solve_and_error(
+    dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
 		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-		const AmandusIntegrator<dim>& error)
+		const AmandusIntegrator<dim>& error,
+    const dealii::Function<dim>* initial_function = 0,
+    const dealii::Function<dim>* exact_solution = 0,
+    unsigned int n_qpoints = 0)
 {
-  dealii::Vector<double> sol;
+  dealii::Vector<double> solution;
+  dealii::Vector<double> exact_projection;
   
   app.setup_system();
-  app.setup_vector(sol);
+  app.setup_vector(solution);
+  app.setup_vector(exact_projection);
+  if(n_qpoints == 0)
+  {
+    n_qpoints = app.dofs().get_fe().tensor_degree() + 1;
+  }
+  dealii::QGauss<dim> quadrature(n_qpoints);
+  if(initial_function != 0)
+  {
+	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(),
+                                 quadrature, *initial_function, solution);
+  }
+  if(exact_solution != 0)
+  {
+	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(),
+                                 quadrature, *exact_solution, exact_projection);
+  }
+
   solver.notify(dealii::Algorithms::Events::remesh);
   
   dealii::AnyData solution_data;
-  dealii::Vector<double>* p = &sol;
+  dealii::Vector<double>* p = &solution;
   solution_data.add(p, "solution");
   
   dealii::AnyData data;
+  if(exact_solution != 0)
+  {
+    data.add<const dealii::Vector<double>* >(&exact_projection, "Exact solution");
+  }
+  dealii::deallog << "Solving..." << std::endl;
   solver(solution_data, data);
+  dealii::deallog << "Done solving." << std::endl;
   app.error(errors, solution_data, error);
 }
+
+template <int dim>
+class ExactResidual : public AmandusResidual<dim>
+{
+  public:
+    ExactResidual(
+        const AmandusApplicationSparse<dim>& application,
+		    AmandusIntegrator<dim>& integrator)
+      : AmandusResidual<dim>(application, integrator)
+    {}
+		    
+    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
+    {
+      AmandusResidual<dim>::operator()(out, in);
+      dealii::deallog << "ExactResidual" << std::endl;
+
+      dealii::AnyData exact_residual_out;
+      dealii::AnyData exact_residual_in;
+
+      const dealii::Vector<double>* exact_solution =
+        in.entry<const dealii::Vector<double>* >("Exact solution");
+
+      dealii::Vector<double> exact_residual;
+      this->application->setup_vector(exact_residual);
+
+      // calculate again a residual, but this time with the exact solution
+      // as input. Notice that this works only because AnyData uses the
+      // _first_ entry it finds for a given name.
+      exact_residual_in.add<const dealii::Vector<double>* >(exact_solution,
+                                                            "Newton iterate");
+      exact_residual_in.merge(in);
+      exact_residual_out.add<dealii::Vector<double>* >(&exact_residual, "Residual");
+      AmandusResidual<dim>::operator()(exact_residual_out, exact_residual_in);
+
+      // subtract the residual of the exact solution
+      out.entry<dealii::Vector<double>* >("Residual")->add(-1.0, exact_residual);
+    }
+};
+
+template <int dim>
+class TensorProductPolynomial : public dealii::Function<dim>
+{
+  public:
+    TensorProductPolynomial(const dealii::Polynomials::Polynomial<double>& pol,
+                            unsigned int n_components = 1)
+      : dealii::Function<dim>(n_components),
+      polynomial(&pol), derivative(pol.derivative())
+    {}
+
+    virtual double value(const dealii::Point<dim>& p,
+                         const unsigned int component = 0) const
+    {
+      double value = 1;
+      for(std::size_t d = 0; d < dim; ++d)
+      {
+        value *= polynomial->value(p(d));
+      }
+      return value;
+    }
+
+    virtual dealii::Tensor<1, dim> gradient(const dealii::Point<dim>& p,
+                                            const unsigned int component = 0) const
+    {
+      dealii::Tensor<1, dim> grad;
+      for(std::size_t d = 0; d < dim; ++d)
+      {
+        grad[d] = 1.0;
+        for(std::size_t i = 0; i < dim; ++i)
+        {
+          grad[d] *= (i != d) ? polynomial->value(p(i)) : derivative.value(p(d));
+        }
+      }
+      
+      return grad;
+    }
+
+  private:
+    const dealii::Polynomials::Polynomial<double>* polynomial;
+    const dealii::Polynomials::Polynomial<double> derivative;
+};
+
 
 /**
  * @ingroup Verification

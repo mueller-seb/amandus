@@ -414,7 +414,7 @@ class AmandusResidual
 		    AmandusIntegrator<dim>& integrator);
 		    
     virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
-  private:
+  protected:
     dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
     dealii::SmartPointer<AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
 };

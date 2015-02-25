@@ -25,6 +25,7 @@
 #include <apps.h>
 #include <tests.h>
 #include <allen_cahn/polynomial.h>
+#include <allen_cahn/residual.h>
 #include <allen_cahn/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
@@ -61,25 +62,23 @@ int main(int argc, const char** argv)
   solution1d += Polynomials::Monomial<double>(3, -1.);
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
+  TensorProductPolynomial<d> exact_solution(solution1d);
   
   AllenCahn::Matrix<d> matrix_integrator(1.);
   matrix_integrator.input_vector_names.push_back("Newton iterate");
-  AllenCahn::PolynomialResidual<d> rhs_integrator(1., solution1d);
+  AllenCahn::Residual<d> residual_integrator(1.);
+  residual_integrator.input_vector_names.push_back("Newton iterate");
+  //AllenCahn::PolynomialResidual<d> residual_integrator(1., solution1d);
   AllenCahn::PolynomialError<d> error_integrator(solution1d);
+  //ExactProjectionError<d> error_integrator;
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  //AmandusApplicationSparse<d> app(tr, *fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs_integrator);
-  
-  param.enter_subsection("Output");
-  Algorithms::DoFOutputOperator<Vector<double>, d> newout;
-  newout.parse_parameters(param);
-  newout.initialize(app.dofs());
-  param.leave_subsection();
+  ExactResidual<d> residual(app, residual_integrator);
   
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
-  newton.initialize(newout);
   
   param.enter_subsection("Testing");
   int steps = param.get_integer("Number of global refinement loops");
@@ -89,13 +88,20 @@ int main(int argc, const char** argv)
   double acc_error;
   for(int s = 0; s < steps; ++s)
   {
-    tr.refine_global(1);
-    iterative_solve_and_error(errors, app, newton, error_integrator);
+    iterative_solve_and_error<d>(
+        errors,
+        app,
+        newton,
+        error_integrator,
+        0,
+        &exact_solution);
     for(unsigned int i=0;i<errors.n_blocks();++i)
     {
       acc_error = errors.block(i).l2_norm();
       deallog << "Error(" << i << "): " << acc_error << std::endl;
       Assert(acc_error < TOL, ExcErrorTooLarge(acc_error));
     }
+    tr.refine_global(1);
   }
+  //global_refinement_nonlinear_loop(steps, app, newton, &error_integrator);
 }
