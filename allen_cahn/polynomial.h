@@ -69,6 +69,7 @@ using namespace MeshWorker;
       Polynomials::Polynomial<double> solution_1d;
   };
 
+
 //----------------------------------------------------------------------//
 
   template <int dim>

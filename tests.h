@@ -69,17 +69,14 @@ iterative_solve_and_error(
     dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
 		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-		const AmandusIntegrator<dim>& error,
+		const ErrorIntegrator<dim>& error,
     const dealii::Function<dim>* initial_function = 0,
-    const dealii::Function<dim>* exact_solution = 0,
     unsigned int n_qpoints = 0)
 {
   dealii::Vector<double> solution;
-  dealii::Vector<double> exact_projection;
   
   app.setup_system();
   app.setup_vector(solution);
-  app.setup_vector(exact_projection);
   if(n_qpoints == 0)
   {
     n_qpoints = app.dofs().get_fe().tensor_degree() + 1;
@@ -90,11 +87,6 @@ iterative_solve_and_error(
 	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(),
                                  quadrature, *initial_function, solution);
   }
-  if(exact_solution != 0)
-  {
-	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(),
-                                 quadrature, *exact_solution, exact_projection);
-  }
 
   solver.notify(dealii::Algorithms::Events::remesh);
   
@@ -103,13 +95,7 @@ iterative_solve_and_error(
   solution_data.add(p, "solution");
   
   dealii::AnyData data;
-  if(exact_solution != 0)
-  {
-    data.add<const dealii::Vector<double>* >(&exact_projection, "Exact solution");
-  }
-  dealii::deallog << "Solving..." << std::endl;
   solver(solution_data, data);
-  dealii::deallog << "Done solving." << std::endl;
   app.error(errors, solution_data, error);
 }
 
@@ -119,20 +105,39 @@ class ExactResidual : public AmandusResidual<dim>
   public:
     ExactResidual(
         const AmandusApplicationSparse<dim>& application,
-		    AmandusIntegrator<dim>& integrator)
-      : AmandusResidual<dim>(application, integrator)
+		    AmandusIntegrator<dim>& integrator,
+        const dealii::Function<dim>& exact_solution,
+        unsigned int n_qpoints)
+      : AmandusResidual<dim>(application, integrator),
+      exact_solution(&exact_solution),
+      quadrature(n_qpoints)
     {}
+
+    virtual void notify(const dealii::Algorithms::Event& e)
+    {
+      if(e.test(dealii::Algorithms::Events::initial) |
+         e.test(dealii::Algorithms::Events::remesh))
+      {
+        dealii::LogStream::Prefix p("ExactResidual");
+        dealii::deallog << "Projecting exact solution." << std::endl;
+        this->application->setup_vector(projection);
+        dealii::VectorTools::project(this->application->dofs(),
+                                     this->application->hanging_nodes(),
+                                     quadrature,
+                                     *exact_solution,
+                                     projection);
+      }
+      AmandusResidual<dim>::notify(e);
+    }
 		    
     virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
     {
+      dealii::LogStream::Prefix p("ExactResidual");
+
       AmandusResidual<dim>::operator()(out, in);
-      dealii::deallog << "ExactResidual" << std::endl;
 
       dealii::AnyData exact_residual_out;
       dealii::AnyData exact_residual_in;
-
-      const dealii::Vector<double>* exact_solution =
-        in.entry<const dealii::Vector<double>* >("Exact solution");
 
       dealii::Vector<double> exact_residual;
       this->application->setup_vector(exact_residual);
@@ -140,7 +145,7 @@ class ExactResidual : public AmandusResidual<dim>
       // calculate again a residual, but this time with the exact solution
       // as input. Notice that this works only because AnyData uses the
       // _first_ entry it finds for a given name.
-      exact_residual_in.add<const dealii::Vector<double>* >(exact_solution,
+      exact_residual_in.add<const dealii::Vector<double>* >(&projection,
                                                             "Newton iterate");
       exact_residual_in.merge(in);
       exact_residual_out.add<dealii::Vector<double>* >(&exact_residual, "Residual");
@@ -149,6 +154,11 @@ class ExactResidual : public AmandusResidual<dim>
       // subtract the residual of the exact solution
       out.entry<dealii::Vector<double>* >("Residual")->add(-1.0, exact_residual);
     }
+
+  private:
+    const dealii::Function<dim>* exact_solution;
+    const dealii::QGauss<dim> quadrature;
+    dealii::Vector<double> projection;
 };
 
 template <int dim>

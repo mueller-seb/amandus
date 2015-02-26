@@ -231,6 +231,17 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 		const AmandusIntegrator<dim>& integrator);
 
     /**
+     * Compute several error values using the error integrator and return
+     * them in a BlockVector.
+     *
+     * The BlockVector will be resized to match the number of errors
+     * calulcated by the integrator.
+     */
+    void error(dealii::BlockVector<double>& out,
+               const dealii::AnyData &in,
+               const ErrorIntegrator<dim>& integrator);
+
+    /**
      * Compute errors and print them to #deallog
      */
     void error (const dealii::AnyData &in,

@@ -32,28 +32,15 @@
 
 using namespace dealii;
 
-int main(int argc, const char** argv)
+
+template <int d>
+void run(AmandusParameters& param)
 {
-  const unsigned int d=2;
-  
-  std::ofstream logfile("deallog");
-  deallog.attach(logfile);
-
-  AmandusParameters param;
-
-  param.enter_subsection("Testing");
-  param.declare_entry("Number of global refinement loops", "3");
-  param.declare_entry("Tolerance", "1.e-13");
-  param.leave_subsection();
-
-  param.read(argc, argv);
-  param.log_parameters(deallog);
-  
   param.enter_subsection("Discretization");
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
-  
+
   boost::scoped_ptr<const FiniteElement<d> >
     fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
   param.leave_subsection();
@@ -68,14 +55,17 @@ int main(int argc, const char** argv)
   matrix_integrator.input_vector_names.push_back("Newton iterate");
   AllenCahn::Residual<d> residual_integrator(1.);
   residual_integrator.input_vector_names.push_back("Newton iterate");
-  //AllenCahn::PolynomialResidual<d> residual_integrator(1., solution1d);
-  AllenCahn::PolynomialError<d> error_integrator(solution1d);
-  //ExactProjectionError<d> error_integrator;
+
+  L2ErrorIntegrator<d> l2_error_integrator;
+  H1ErrorIntegrator<d> h1_error_integrator;
+  ErrorIntegrator<d> error_integrator(exact_solution);
+  error_integrator.add(&l2_error_integrator);
+  error_integrator.add(&h1_error_integrator);
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   //AmandusApplicationSparse<d> app(tr, *fe);
   AmandusSolve<d>       solver(app, matrix_integrator);
-  ExactResidual<d> residual(app, residual_integrator);
+  ExactResidual<d> residual(app, residual_integrator, exact_solution, 4);
   
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
@@ -92,9 +82,7 @@ int main(int argc, const char** argv)
         errors,
         app,
         newton,
-        error_integrator,
-        0,
-        &exact_solution);
+        error_integrator);
     for(unsigned int i=0;i<errors.n_blocks();++i)
     {
       acc_error = errors.block(i).l2_norm();
@@ -103,5 +91,33 @@ int main(int argc, const char** argv)
     }
     tr.refine_global(1);
   }
-  //global_refinement_nonlinear_loop(steps, app, newton, &error_integrator);
+}
+
+int main(int argc, const char** argv)
+{
+  std::ofstream logfile("deallog");
+  deallog.attach(logfile);
+
+  AmandusParameters param;
+
+  param.enter_subsection("Testing");
+  param.declare_entry("Number of global refinement loops", "3");
+  param.declare_entry("Tolerance", "1.e-13");
+  param.declare_entry("Dimensionality", "2");
+  param.leave_subsection();
+
+  param.read(argc, argv);
+  param.log_parameters(deallog);
+
+  param.enter_subsection("Testing");
+  const unsigned int d = param.get_integer("Dimensionality");
+  param.leave_subsection();
+
+  if(d == 3)
+  {
+    run<3>(param);
+  } else
+  {
+    run<2>(param);
+  }
 }
