@@ -23,10 +23,13 @@ ADD_CUSTOM_COMMAND(
   ${CMAKE_CURRENT_SOURCE_DIR}/parameters.input > parameters.h
   DEPENDS parameters.input ${CMAKE_SOURCE_DIR}/scripts/make_parameters.pl)
 
-SET(DIM 2)
-FOREACH(DIM 2 3)
-  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/polynomial.prm.cmake_template
-    ${CMAKE_CURRENT_BINARY_DIR}/polynomial_${DIM}d.prm)
-  AMANDUS_ADD_TEST(${prefix}_polynomial_${DIM}d_test ${prefix}_polynomial
-    polynomial_${DIM}d.prm) 
-ENDFOREACH(DIM)
+OPTION(TEST_ALLEN_CAHN "Test allen cahn." ON)
+IF(TEST_ALLEN_CAHN)
+  SET(DIM 2)
+  FOREACH(DIM 2 3)
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/polynomial.prm.cmake_template
+      ${CMAKE_CURRENT_BINARY_DIR}/polynomial_${DIM}d.prm)
+    AMANDUS_ADD_TEST(${prefix}_polynomial_${DIM}d_test ${prefix}_polynomial
+      polynomial_${DIM}d.prm) 
+  ENDFOREACH(DIM)
+ENDIF()
