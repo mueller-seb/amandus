@@ -1,0 +1,92 @@
+subsection Discretization
+  set FE         = FE_DGQ(2)
+  set Refinement = 0
+end
+subsection Linear Solver
+  set Log frequency = 1
+  set Log history   = true
+  set Log result    = true
+  set Max steps     = 100
+  set Reduction     = 1.e-3
+  set Tolerance     = 1.e-10
+end
+subsection Model
+  set Diffusion      = 1.0
+  set Dimensionality = ${DIM}
+end
+subsection Multigrid
+  set Interior smoothing        = true
+  set Smoothing steps on leaves = 1
+  set Variable smoothing steps  = false
+end
+subsection Newton
+  set Assemble threshold  = 0.
+  set Debug level         = 0
+  set Debug vectors       = false
+  set Log frequency       = 1
+  set Log history         = true
+  set Log result          = true
+  set Max steps           = 100
+  set Reduction           = 1.e-40
+  set Stepsize iterations = 21
+  set Tolerance           = 1.e-9
+end
+subsection Output
+  set Output format = gnuplot
+  set Subdivisions  = 1
+  subsection DX output parameters
+    set Coordinates format = ascii
+    set Data format        = ascii
+    set Integer format     = ascii
+    set Write neighbors    = true
+  end
+  subsection Eps output parameters
+    set Azimut angle                        = 60
+    set Color function                      = default
+    set Color shading of interior of cells  = true
+    set Draw mesh lines                     = true
+    set Fill interior of cells              = true
+    set Index of vector for color           = 0
+    set Index of vector for height          = 0
+    set Line widths in eps units            = 0.5
+    set Scale to width or height            = width
+    set Scaling for z-axis                  = 1
+    set Size (width or height) in eps units = 300
+    set Turn angle                          = 30
+  end
+  subsection Gmv output parameters
+  end
+  subsection Gnuplot output parameters
+  end
+  subsection Povray output parameters
+    set Include external file = true
+    set Use bicubic patches   = false
+    set Use smooth triangles  = false
+  end
+  subsection Tecplot output parameters
+  end
+  subsection UCD output parameters
+    set Write preamble = true
+  end
+  subsection Vtk output parameters
+  end
+  subsection deal.II intermediate output parameters
+  end
+end
+subsection Testing
+  set Number of global refinement loops = 2
+  set Tolerance                         = 1.e-12
+  set Multigrid                         = false
+  set UMFPack                           = true
+end
+subsection ThetaTimestepping
+  set Adaptive   = false
+  set Final      = 1.
+  set First step = 1.e-2
+  set Max step   = 1.
+  set Print step = -1.
+  set Start      = 0.
+  set Strategy   = uniform
+  set Theta      = .5
+  set Tolerance  = 1.e-2
+end

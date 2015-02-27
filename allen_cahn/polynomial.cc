@@ -46,15 +46,18 @@ void run(AmandusParameters& param)
   param.leave_subsection();
 
   Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(3, -1.);
+  //solution1d += Polynomials::Monomial<double>(3, -1.);
+  solution1d += Polynomials::Monomial<double>(2, -1.);
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
   TensorProductPolynomial<d> exact_solution(solution1d);
   
-  AllenCahn::Matrix<d> matrix_integrator(1.);
+  param.enter_subsection("Model");
+  AllenCahn::Matrix<d> matrix_integrator(param.get_double("Diffusion"));
   matrix_integrator.input_vector_names.push_back("Newton iterate");
-  AllenCahn::Residual<d> residual_integrator(1.);
+  AllenCahn::Residual<d> residual_integrator(param.get_double("Diffusion"));
   residual_integrator.input_vector_names.push_back("Newton iterate");
+  param.leave_subsection();
 
   L2ErrorIntegrator<d> l2_error_integrator;
   H1ErrorIntegrator<d> h1_error_integrator;
@@ -62,10 +65,19 @@ void run(AmandusParameters& param)
   error_integrator.add(&l2_error_integrator);
   error_integrator.add(&h1_error_integrator);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  //AmandusApplicationSparse<d> app(tr, *fe);
-  AmandusSolve<d>       solver(app, matrix_integrator);
-  ExactResidual<d> residual(app, residual_integrator, exact_solution, 4);
+  AmandusApplicationSparse<d>* app_init;
+  param.enter_subsection("Testing");
+  if(param.get_bool("Multigrid"))
+  {
+    app_init = new AmandusApplicationSparseMultigrid<d>(tr, *fe);
+  } else {
+    app_init = new AmandusApplicationSparse<d>(tr, *fe, param.get_bool("UMFPack"));
+  }
+  param.leave_subsection();
+  boost::scoped_ptr<AmandusApplicationSparse<d> > app(app_init);
+  app->parse_parameters(param);
+  AmandusSolve<d>       solver(*app, matrix_integrator);
+  ExactResidual<d> residual(*app, residual_integrator, exact_solution, 4);
   
   Algorithms::Newton<Vector<double> > newton(residual, solver);
   newton.parse_parameters(param);
@@ -80,7 +92,7 @@ void run(AmandusParameters& param)
   {
     iterative_solve_and_error<d>(
         errors,
-        app,
+        *app,
         newton,
         error_integrator);
     for(unsigned int i=0;i<errors.n_blocks();++i)
@@ -103,13 +115,19 @@ int main(int argc, const char** argv)
   param.enter_subsection("Testing");
   param.declare_entry("Number of global refinement loops", "3");
   param.declare_entry("Tolerance", "1.e-13");
+  param.declare_entry("Multigrid", "true");
+  param.declare_entry("UMFPack", "true");
+  param.leave_subsection();
+
+  param.enter_subsection("Model");
+  param.declare_entry("Diffusion", "1.0");
   param.declare_entry("Dimensionality", "2");
   param.leave_subsection();
 
   param.read(argc, argv);
   param.log_parameters(deallog);
 
-  param.enter_subsection("Testing");
+  param.enter_subsection("Model");
   const unsigned int d = param.get_integer("Dimensionality");
   param.leave_subsection();
 

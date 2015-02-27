@@ -16,6 +16,7 @@
 #include <deal.II/base/smartpointer.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/base/vector_slice.h>
+#include <deal.II/base/function.h>
 
 template <int dim>
 class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
