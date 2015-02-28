@@ -401,7 +401,9 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
 
 
 /**
- * A residual operator using AmandusApplicationSparse::assemble_right_hand_side().
+ * A residual operator using
+ * AmandusApplicationSparse::assemble_right_hand_side() with support
+ * for simple one-step methods.
  *
  * @ingroup apps
  */
@@ -409,14 +411,30 @@ template <int dim>
 class AmandusResidual
   : public dealii::Algorithms::Operator<dealii::Vector<double> >
 {
-  public:
-    AmandusResidual(const AmandusApplicationSparse<dim>& application,
-		    AmandusIntegrator<dim>& integrator);
-		    
-    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
-  private:
-    dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
-    dealii::SmartPointer<AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
+public:
+  /**
+   * Constructor storing smart pointers to both objects to be used by
+   * operator()().
+   */
+  AmandusResidual(const AmandusApplicationSparse<dim>& application,
+		  AmandusIntegrator<dim>& integrator);
+  
+  /**
+   * Apply the residual operator to the objects in <code>in</code>. Do this,
+   * by first calling AmandusIntegrator::extract_data() and then
+   * AmandusApplication::assemble_right_hand_side().
+   *
+   * After assembling, the function checks for the element "Previous
+   * time" in <code>in</code>, which indicates a simple one-step method. If
+   * found, the vector of this element is subtracted from the result
+   * of the assembling.
+   */
+  virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
+ private:
+  /// Pointer to the application computing the residual
+  dealii::SmartPointer<const AmandusApplicationSparse<dim>, AmandusResidual<dim> > application;
+  /// Pointer to the local integrator defining the model
+  dealii::SmartPointer<AmandusIntegrator<dim>, AmandusResidual<dim> > integrator;
 };
 
 /**
