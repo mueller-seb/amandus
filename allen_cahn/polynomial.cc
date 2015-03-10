@@ -79,7 +79,13 @@ void run(AmandusParameters& param)
   AmandusSolve<d>       solver(*app, matrix_integrator);
   ExactResidual<d> residual(*app, residual_integrator, exact_solution, 4);
   
+  param.enter_subsection("Output");
+  Algorithms::DoFOutputOperator<Vector<double>, d> newton_output;
+  newton_output.initialize(app->dofs());
+  newton_output.parse_parameters(param);
+  param.leave_subsection();
   Algorithms::Newton<Vector<double> > newton(residual, solver);
+  newton.initialize(newton_output);
   newton.parse_parameters(param);
   
   param.enter_subsection("Testing");
