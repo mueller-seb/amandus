@@ -25,11 +25,27 @@ ADD_CUSTOM_COMMAND(
 
 OPTION(TEST_ALLEN_CAHN "Test allen cahn." ON)
 IF(TEST_ALLEN_CAHN)
+  SET(FE_ORDER 2)
+  SET(INITIAL_REFINEMENT 0)
+
   SET(DIM 2)
-  FOREACH(DIM 2 3)
+  SET(LOOPS 2)
+  SET(MG "false")
+  FOREACH(MG "false" "true")
+    SET(TESTNAME "polynomial_mg-${MG}_dim-${DIM}")
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/polynomial.prm.cmake_template
-      ${CMAKE_CURRENT_BINARY_DIR}/polynomial_${DIM}d.prm)
-    AMANDUS_ADD_TEST(${prefix}_polynomial_${DIM}d_test ${prefix}_polynomial
-      polynomial_${DIM}d.prm) 
-  ENDFOREACH(DIM)
+      ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME}.prm)
+    AMANDUS_ADD_TEST(${prefix}_${TESTNAME}
+      ${prefix}_polynomial ${TESTNAME}.prm) 
+  ENDFOREACH(MG)
+
+  SET(DIM 3)
+  SET(LOOPS 1)
+  FOREACH(MG "false" "true")
+    SET(TESTNAME "polynomial_mg-${MG}_dim-${DIM}")
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/polynomial.prm.cmake_template
+      ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME}.prm)
+    AMANDUS_ADD_TEST(${prefix}_${TESTNAME}
+      ${prefix}_polynomial ${TESTNAME}.prm) 
+  ENDFOREACH(MG)
 ENDIF()

@@ -1,6 +1,6 @@
 subsection Discretization
-  set FE         = FE_DGQ(2)
-  set Refinement = 0
+  set FE         = FE_DGQ(${FE_ORDER})
+  set Refinement = ${INITIAL_REFINEMENT}
 end
 subsection Linear Solver
   set Log frequency = 1
@@ -74,9 +74,9 @@ subsection Output
   end
 end
 subsection Testing
-  set Number of global refinement loops = 2
+  set Number of global refinement loops = ${LOOPS}
   set Tolerance                         = 1.e-12
-  set Multigrid                         = false
+  set Multigrid                         = ${MG}
   set UMFPack                           = true
 end
 subsection ThetaTimestepping
