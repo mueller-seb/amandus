@@ -63,6 +63,17 @@ solve_and_error(dealii::BlockVector<double>& errors,
   app.error(errors, solution_data, error);
 }
 
+/**
+ * This function solves an equation with an iterative solver on a given
+ * mesh and computes the errors.
+ *
+ * The BlockVector will be resized according to the number of errors
+ * computed by the ErrorIntegrator. If a initial_function is provided, it
+ * will be projected to the Finite Element space and used as a starting
+ * value for the iterative solver.
+ *
+ * @ingroup Verification
+ */
 template <int dim>
 void
 iterative_solve_and_error(
@@ -99,6 +110,28 @@ iterative_solve_and_error(
   app.error(errors, solution_data, error);
 }
 
+
+/**
+ * A residual operator which represents a given residual operator minus this
+ * residual operator applied to the exact solution. I.e. if an
+ * AmandusResidual represents the action
+ * \f[
+ * u \mapsto F(u) 
+ * \f]
+ * for the given integrator, then ExactResidual represents the action
+ * \f[
+ * u \mapsto F(u) - F(u_0)
+ * \f]
+ * where \f$u_0\f$ is the exact_solution.
+ *
+ * This is useful for verifying that we can recover a given function from a
+ * combination of system integrator, residual integrator and linear solver
+ * with Newton's method (notice that the derivative of the new objective
+ * does not change, thus it is sufficient to adjust the residual operator
+ * used in Newton's method without changing the inverse_derivative operator).
+ *
+ * @ingroup Verification
+ */
 template <int dim>
 class ExactResidual : public AmandusResidual<dim>
 {
@@ -161,6 +194,15 @@ class ExactResidual : public AmandusResidual<dim>
     dealii::Vector<double> projection;
 };
 
+
+/**
+ * Simple class representing the dim-dimensional product of the given
+ * one-dimensional polynomial pol. Useful in conjunction with ExactResidual
+ * to verify the exact recovery for different orders of the Finite Element
+ * in different dimensions.
+ *
+ * @ingroup Verification
+ */
 template <int dim>
 class TensorProductPolynomial : public dealii::Function<dim>
 {

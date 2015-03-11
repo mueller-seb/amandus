@@ -59,8 +59,8 @@ void run(AmandusParameters& param)
   residual_integrator.input_vector_names.push_back("Newton iterate");
   param.leave_subsection();
 
-  L2ErrorIntegrator<d> l2_error_integrator;
-  H1ErrorIntegrator<d> h1_error_integrator;
+  Integrators::L2ErrorIntegrator<d> l2_error_integrator;
+  Integrators::H1ErrorIntegrator<d> h1_error_integrator;
   ErrorIntegrator<d> error_integrator(exact_solution);
   error_integrator.add(&l2_error_integrator);
   error_integrator.add(&h1_error_integrator);

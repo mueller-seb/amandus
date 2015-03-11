@@ -39,6 +39,15 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
     dealii::UpdateFlags u_flags;
 };
 
+/**
+ * A container for different error integrators. The elements of this
+ * container must be instances of specializations of this class.
+ *
+ * Derived error integrators should calculate an error value between the
+ * exact solution provided by the solution member for the components
+ * indicated by the component_mask and store this value in the block_idx'th
+ * dinfo.value.
+ **/
 template <int dim>
 class ErrorIntegrator : public AmandusIntegrator<dim>
 {
@@ -120,113 +129,11 @@ class ErrorIntegrator : public AmandusIntegrator<dim>
     dealii::ComponentMask component_mask;
     unsigned int block_idx;
     const dealii::Function<dim>* solution;
+
+  private:
     std::vector<ErrorIntegrator<dim>* > error_integrators;
 };
 
-template <int dim>
-class L2ErrorIntegrator : public ErrorIntegrator<dim>
-{
-  public:
-    L2ErrorIntegrator()
-    {
-      this->use_cell = true;
-      this->use_face = false;
-      this->use_boundary = false;
-      this->add_flags(dealii::update_JxW_values |
-                      dealii::update_values |
-                      dealii::update_quadrature_points);
-    }
-    virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                      dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-};
-
-template <int dim>
-void L2ErrorIntegrator<dim>::cell(
-    dealii::MeshWorker::DoFInfo<dim>& dinfo, 
-    dealii::MeshWorker::IntegrationInfo<dim>& info) const
-{
-  Assert(info.values.size() >= 1,
-         dealii::ExcDimensionMismatch(info.values.size(), 1));
-
-  const unsigned int fev_idx = 0;
-  const unsigned int approximation_idx = 0;
-
-  const std::vector<dealii::Point<dim> >& q_points =
-    info.fe_values(fev_idx).get_quadrature_points();
-  const std::vector<double>& q_weights =
-    info.fe_values(fev_idx).get_JxW_values();
-
-  std::vector<double> solution_values(q_points.size());
-  for(unsigned int component = 0;
-      component < this->component_mask.size();
-      ++component)
-  {
-    if(this->component_mask[component])
-    {
-      this->solution->value_list(q_points, solution_values, component);
-      const std::vector<double>& approximation_values =
-        info.values[approximation_idx][component];
-      for(std::size_t q = 0; q < q_points.size(); ++q)
-      {
-        double error = solution_values[q] - approximation_values[q];
-        dinfo.value(this->block_idx) += error*error * q_weights[q];
-      }
-    }
-  }
-}
-
-template <int dim>
-class H1ErrorIntegrator : public ErrorIntegrator<dim>
-{
-  public:
-    H1ErrorIntegrator()
-    {
-      this->use_cell = true;
-      this->use_face = false;
-      this->use_boundary = false;
-      this->add_flags(dealii::update_JxW_values |
-                      dealii::update_gradients |
-                      dealii::update_quadrature_points);
-    }
-
-    virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                      dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-};
-
-template <int dim>
-void H1ErrorIntegrator<dim>::cell(
-    dealii::MeshWorker::DoFInfo<dim>& dinfo, 
-    dealii::MeshWorker::IntegrationInfo<dim>& info) const
-{
-  Assert(info.values.size() >= 1,
-         dealii::ExcDimensionMismatch(info.values.size(), 1));
-
-  const unsigned int fev_idx = 0;
-  const unsigned int approximation_idx = 0;
-
-  const std::vector<dealii::Point<dim> >& q_points =
-    info.fe_values(fev_idx).get_quadrature_points();
-  const std::vector<double>& q_weights =
-    info.fe_values(fev_idx).get_JxW_values();
-
-  std::vector<dealii::Tensor<1, dim, double> > solution_grads(q_points.size());
-  for(unsigned int component = 0;
-      component < this->component_mask.size();
-      ++component)
-  {
-    if(this->component_mask[component])
-    {
-      this->solution->gradient_list(q_points, solution_grads, component);
-      const std::vector<dealii::Tensor<1, dim, double> >& approximation_grads =
-        info.gradients[approximation_idx][component];
-      for(std::size_t q = 0; q < q_points.size(); ++q)
-      {
-        double error = (solution_grads[q] - approximation_grads[q]).norm();
-        dinfo.value(this->block_idx) += error*error * q_weights[q];
-      }
-    }
-  }
-}
 
 namespace Integrators
 {
@@ -295,6 +202,112 @@ namespace Integrators
       bool is_implicit;
       dealii::BlockMask block_mask;
   };  
+
+
+  template <int dim>
+    class L2ErrorIntegrator : public ErrorIntegrator<dim>
+  {
+    public:
+      L2ErrorIntegrator()
+      {
+        this->use_cell = true;
+        this->use_face = false;
+        this->use_boundary = false;
+        this->add_flags(dealii::update_JxW_values |
+                        dealii::update_values |
+                        dealii::update_quadrature_points);
+      }
+      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  };
+
+  template <int dim>
+    void L2ErrorIntegrator<dim>::cell(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo, 
+        dealii::MeshWorker::IntegrationInfo<dim>& info) const
+    {
+      Assert(info.values.size() >= 1,
+             dealii::ExcDimensionMismatch(info.values.size(), 1));
+
+      const unsigned int fev_idx = 0;
+      const unsigned int approximation_idx = 0;
+
+      const std::vector<dealii::Point<dim> >& q_points =
+        info.fe_values(fev_idx).get_quadrature_points();
+      const std::vector<double>& q_weights =
+        info.fe_values(fev_idx).get_JxW_values();
+
+      std::vector<double> solution_values(q_points.size());
+      for(unsigned int component = 0;
+          component < this->component_mask.size();
+          ++component)
+      {
+        if(this->component_mask[component])
+        {
+          this->solution->value_list(q_points, solution_values, component);
+          const std::vector<double>& approximation_values =
+            info.values[approximation_idx][component];
+          for(std::size_t q = 0; q < q_points.size(); ++q)
+          {
+            double error = solution_values[q] - approximation_values[q];
+            dinfo.value(this->block_idx) += error*error * q_weights[q];
+          }
+        }
+      }
+    }
+
+  template <int dim>
+    class H1ErrorIntegrator : public ErrorIntegrator<dim>
+  {
+    public:
+      H1ErrorIntegrator()
+      {
+        this->use_cell = true;
+        this->use_face = false;
+        this->use_boundary = false;
+        this->add_flags(dealii::update_JxW_values |
+                        dealii::update_gradients |
+                        dealii::update_quadrature_points);
+      }
+
+      virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  };
+
+  template <int dim>
+    void H1ErrorIntegrator<dim>::cell(
+        dealii::MeshWorker::DoFInfo<dim>& dinfo, 
+        dealii::MeshWorker::IntegrationInfo<dim>& info) const
+    {
+      Assert(info.values.size() >= 1,
+             dealii::ExcDimensionMismatch(info.values.size(), 1));
+
+      const unsigned int fev_idx = 0;
+      const unsigned int approximation_idx = 0;
+
+      const std::vector<dealii::Point<dim> >& q_points =
+        info.fe_values(fev_idx).get_quadrature_points();
+      const std::vector<double>& q_weights =
+        info.fe_values(fev_idx).get_JxW_values();
+
+      std::vector<dealii::Tensor<1, dim, double> > solution_grads(q_points.size());
+      for(unsigned int component = 0;
+          component < this->component_mask.size();
+          ++component)
+      {
+        if(this->component_mask[component])
+        {
+          this->solution->gradient_list(q_points, solution_grads, component);
+          const std::vector<dealii::Tensor<1, dim, double> >& approximation_grads =
+            info.gradients[approximation_idx][component];
+          for(std::size_t q = 0; q < q_points.size(); ++q)
+          {
+            double error = (solution_grads[q] - approximation_grads[q]).norm();
+            dinfo.value(this->block_idx) += error*error * q_weights[q];
+          }
+        }
+      }
+    }
 }
 
 // TODO: Update flags should be set by derived classes with add_flags. Right
