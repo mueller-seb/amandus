@@ -254,6 +254,7 @@ namespace Integrators
           }
         }
       }
+      dinfo.value(this->block_idx) = std::sqrt(dinfo.value(this->block_idx));
     }
 
   template <int dim>
@@ -307,6 +308,7 @@ namespace Integrators
           }
         }
       }
+      dinfo.value(this->block_idx) = std::sqrt(dinfo.value(this->block_idx));
     }
 }
 

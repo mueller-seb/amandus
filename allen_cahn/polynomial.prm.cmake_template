@@ -75,7 +75,7 @@ subsection Output
 end
 subsection Testing
   set Number of global refinement loops = ${LOOPS}
-  set Tolerance                         = 1.e-12
+  set Tolerance                         = 1.e-10
   set Multigrid                         = ${MG}
   set UMFPack                           = true
 end
