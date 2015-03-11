@@ -18,7 +18,7 @@ DEAL_II_SETUP_TARGET(amandus)
 # function AMANDUS_ADD_TEST() and runs them.
 ADD_CUSTOM_TARGET(test_suite)
 ADD_CUSTOM_TARGET(run_tests 
-  COMMAND ${CMAKE_CTEST_COMMAND} -V
+  COMMAND ${CMAKE_CTEST_COMMAND}
   DEPENDS test_suite)
 
 FUNCTION(AMANDUS_ADD_TEST test_name test_exec)

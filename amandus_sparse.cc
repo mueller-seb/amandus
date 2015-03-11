@@ -386,44 +386,8 @@ AmandusApplicationSparse<dim>::error(
   const dealii::AnyData &solution_data,
   const ErrorIntegrator<dim>& integrator)
 {
-  //TODO: avoid duplication
-  errors.reinit(integrator.size(), triangulation->n_active_cells());
-  errors.collect_sizes();
-
-  unsigned int i=0;
-  typedef typename Triangulation<dim>::active_cell_iterator cell_it;
-  for (cell_it cell = triangulation->begin_active();
-       cell != triangulation->end(); ++cell,++i)
-  {
-    cell->set_user_index(i);
-  }
-
-  MeshWorker::IntegrationInfoBox<dim> info_box;
-  info_box.cell_selector.add("solution", true, true, false);
-  info_box.boundary_selector.add("solution", true, false, false);
-  info_box.face_selector.add("solution", true, false, false);
-  const unsigned int degree = this->fe->tensor_degree();
-  info_box.initialize_gauss_quadrature(degree+2, degree+2, degree+2);
-  
-  UpdateFlags update_flags = integrator.update_flags();
-  info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*this->fe, this->mapping, solution_data, Vector<double>(),
-		      &this->dof_handler.block_info());
-  
-  MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
-  
-  MeshWorker::Assembler::CellsAndFaces<double> assembler;
-  AnyData out_data;
-  BlockVector<double> *est = &errors;
-  out_data.add(est, "cells");
-  assembler.initialize(out_data, false);
-  
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
-  MeshWorker::integration_loop<dim, dim> (
-    dof_handler.begin_active(), dof_handler.end(),
-    dof_info, info_box,
-    integrator, assembler, control);
+  errors.reinit(integrator.size());
+  this->error(errors, solution_data, (const AmandusIntegrator<dim>&) integrator);
 }
 
 
