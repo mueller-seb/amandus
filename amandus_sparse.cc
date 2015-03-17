@@ -379,6 +379,17 @@ AmandusApplicationSparse<dim>::error(
     integrator, assembler, control);
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::error(
+  BlockVector<double>& errors,
+  const dealii::AnyData &solution_data,
+  const ErrorIntegrator<dim>& integrator)
+{
+  errors.reinit(integrator.size());
+  this->error(errors, solution_data, (const AmandusIntegrator<dim>&) integrator);
+}
+
 
 template <int dim>
 void

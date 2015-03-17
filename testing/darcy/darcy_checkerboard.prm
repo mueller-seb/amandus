@@ -1,6 +1,6 @@
 subsection AmandusApplication
   set Multigrid = true
-  set Steps     = 6
+  set Steps     = 2
 end
 subsection CheckerboardPattern
   set Quadrant1 = 100.0

@@ -26,9 +26,6 @@ ENDIF()
 # No need to modify behind this; should be sufficient for most cases.
 # make tests available to ctest
 FOREACH(test ${coveredTests})
+  ADD_DEPENDENCIES(test_suite ${test})
   ADD_TEST(NAME ${test} COMMAND ${test})
 ENDFOREACH(test)
-
-# add target to build and run all tests
-ADD_CUSTOM_TARGET(build_tests DEPENDS ${coveredTests})
-ADD_CUSTOM_TARGET(run_tests COMMAND ${CMAKE_CTEST_COMMAND} -V DEPENDS build_tests)

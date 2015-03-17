@@ -1,14 +1,18 @@
 subsection Discretization
   set FE         = FE_DGQ(2)
-  set Refinement = 3
+  set Refinement = 0
 end
 subsection Linear Solver
   set Log frequency = 1
-  set Log history   = false
+  set Log history   = true
   set Log result    = true
   set Max steps     = 100
-  set Reduction     = 1.e-2
+  set Reduction     = 1.e-3
   set Tolerance     = 1.e-10
+end
+subsection Model
+  set Diffusion      = 1.0
+  set Dimensionality = 2
 end
 subsection Multigrid
   set Interior smoothing        = true
@@ -20,16 +24,16 @@ subsection Newton
   set Debug level         = 0
   set Debug vectors       = false
   set Log frequency       = 1
-  set Log history         = false
+  set Log history         = true
   set Log result          = true
   set Max steps           = 100
-  set Reduction           = 1.e-2
+  set Reduction           = 1.e-40
   set Stepsize iterations = 21
-  set Tolerance           = 1.e-10
+  set Tolerance           = 1.e-9
 end
 subsection Output
-  set Output format = vtk
-  set Subdivisions  = 2
+  set Output format = gnuplot
+  set Subdivisions  = 1
   subsection DX output parameters
     set Coordinates format = ascii
     set Data format        = ascii
@@ -69,10 +73,16 @@ subsection Output
   subsection deal.II intermediate output parameters
   end
 end
+subsection Testing
+  set Number of global refinement loops = 2
+  set Tolerance                         = 1.e-12
+  set Multigrid                         = false
+  set UMFPack                           = true
+end
 subsection ThetaTimestepping
   set Adaptive   = false
-  set Final      = 2.5
-  set First step = .1
+  set Final      = 1.
+  set First step = 1.e-2
   set Max step   = 1.
   set Print step = -1.
   set Start      = 0.
