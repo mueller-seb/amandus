@@ -6,33 +6,6 @@
  *
  **********************************************************************/
 
-#include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/solver_cg.h>
-#include <deal.II/lac/solver_gmres.h>
-#include <deal.II/lac/solver_richardson.h>
-#include <deal.II/lac/precondition.h>
-#include <deal.II/lac/relaxation_block.h>
-#include <deal.II/lac/precondition_block.h>
-#include <deal.II/lac/block_vector.h>
-
-#include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/grid_out.h>
-#include <deal.II/grid/grid_refinement.h>
-
-#include <deal.II/dofs/dof_tools.h>
-
-#include <deal.II/meshworker/dof_info.h>
-#include <deal.II/meshworker/integration_info.h>
-#include <deal.II/meshworker/simple.h>
-#include <deal.II/meshworker/output.h>
-#include <deal.II/meshworker/loop.h>
-
-#include <deal.II/multigrid/mg_tools.h>
-#include <deal.II/multigrid/multigrid.h>
-#include <deal.II/multigrid/mg_matrix.h>
-#include <deal.II/multigrid/mg_coarse.h>
-#include <deal.II/multigrid/mg_smoother.h>
-
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -43,6 +16,7 @@
 #include <fstream>
 
 #include <amandus.h>
+#include <amandus_arpack.h>
 
 using namespace dealii;
 
@@ -115,6 +89,39 @@ AmandusSolve<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 //  deallog << "Norms " << rhs->l2_norm() << ' ' << solution->l2_norm() << std::endl;
 }
 
+//----------------------------------------------------------------------//
+
+template <int dim>
+AmandusArpack<dim>::AmandusArpack(AmandusApplicationSparse<dim>& application,
+				AmandusIntegrator<dim>& integrator)
+		:
+		application(&application),
+		integrator(&integrator)
+{}
+
+
+template <int dim>
+void
+AmandusArpack<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
+{
+  integrator->extract_data(in);  
+  if (this->notifications.test(Algorithms::Events::initial)
+      || this->notifications.test(Algorithms::Events::remesh))
+    {
+      dealii::deallog << "Assemble matrices" << std::endl;
+      application->assemble_matrix(in, *integrator);
+      application->assemble_mg_matrix(in, *integrator);
+      this->notifications.clear();
+    }
+
+  std::vector<std::complex<double> >* eigenvalues
+    = out.entry<std::vector<std::complex<double> >* > ("eigenvalues");
+  
+  std::vector<Vector<double> >* eigenvectors = out.entry<std::vector<Vector<double> >*>("eigenvectors");
+  
+  application->arpack_solve(*eigenvalues, *eigenvectors);
+}
+
 
 template class AmandusUMFPACK<2>;
 template class AmandusUMFPACK<3>;
@@ -124,3 +131,6 @@ template class AmandusResidual<3>;
 
 template class AmandusSolve<2>;
 template class AmandusSolve<3>;
+
+template class AmandusArpack<2>;
+template class AmandusArpack<3>;

@@ -7,6 +7,7 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/arpack_solver.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -50,6 +51,7 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
 		triangulation(&triangulation),
 		fe(&fe),
 		dof_handler(triangulation),
+		matrix(1),
 		use_umfpack(use_umfpack),
 	        estimates(1)		
 {
@@ -94,7 +96,8 @@ AmandusApplicationSparse<dim>::setup_system()
   DynamicSparsityPattern c_sparsity(n_dofs);
   DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints());
   sparsity.copy_from(c_sparsity);
-  matrix.reinit(sparsity);  
+  for (unsigned int m=0;m<matrix.size();++m)
+    matrix[m].reinit(sparsity);
 }
 
 
@@ -131,7 +134,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
-  matrix = 0.;
+  for (unsigned int m=0;m<matrix.size();++m)
+    matrix[m] = 0.;
 
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -156,14 +160,15 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   MeshWorker::integration_loop<dim, dim>(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box, integrator, assembler, control);
-  
-  for (unsigned int i=0;i<matrix.m();++i)
-    if (constraints().is_constrained(i))
-      matrix.diag_element(i) = 1.;
+
+  for (unsigned int m=0;m<matrix.size();++m)
+    for (unsigned int i=0;i<matrix[m].m();++i)
+      if (constraints().is_constrained(i))
+	matrix[m].diag_element(i) = 1.;
 
   if (use_umfpack)
     {
-      inverse.initialize(matrix);
+      inverse.initialize(matrix[0]);
     }
 }
 
@@ -249,7 +254,8 @@ AmandusApplicationSparse<dim>::verify_residual(
   (*out.entry<Vector<double>*>(0)) *= -1.;
 
   const Vector<double>* p = in.try_read_ptr<Vector<double> >("Newton iterate");
-  matrix.vmult_add(*out.entry<Vector<double>*>(0), *p);
+  AssertDimension(matrix.size(), 1);
+  matrix[0].vmult_add(*out.entry<Vector<double>*>(0), *p);
 }
 
 
@@ -257,15 +263,30 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
+  AssertDimension(matrix.size(), 1);
   SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
   SolverGMRES<Vector<double> > solver(control, solver_data);
 
   PreconditionIdentity identity;
   if (use_umfpack)
-    solver.solve(matrix, sol, rhs, this->inverse);
+    solver.solve(matrix[0], sol, rhs, this->inverse);
   else
-    solver.solve(matrix, sol, rhs, identity);
+    solver.solve(matrix[0], sol, rhs, identity);
   constraints().distribute(sol);
+}
+
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
+					    std::vector<Vector<double> >& eigenvectors)
+{
+  AssertDimension(2*eigenvalues.size(), eigenvectors.size());
+  ArpackSolver::AdditionalData solver_data(eigenvectors.size()+2,
+					   ArpackSolver::largest_magnitude);
+  ArpackSolver solver(control, solver_data);
+
+  solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
 }
 
 

@@ -127,5 +127,61 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 }
 
 
+/**
+ *
+ *
+ * @ingroup apps
+ */
+template <int dim>
+void
+global_refinement_eigenvalue_loop(unsigned int n_steps,
+				  unsigned int n_values,
+				  AmandusApplicationSparse<dim> &app,
+				  dealii::Algorithms::Operator<dealii::Vector<double> >& solve)
+{
+  std::vector<std::complex<double> > eigenvalues(n_values);
+  std::vector<dealii::Vector<double> > eigenvectors(2*n_values);
+  
+  for (unsigned int s=0;s<n_steps;++s)
+    {
+      dealii::deallog << "Step " << s << std::endl;
+      app.refine_mesh(true);
+      solve.notify(dealii::Algorithms::Events::remesh);
+      app.setup_system();
+      for (unsigned int i=0;i<eigenvectors.size();++i)
+	app.setup_vector(eigenvectors[i]);
+      
+      dealii::AnyData solution_data;
+      solution_data.add(&eigenvalues, "eigenvalues");
+      solution_data.add(&eigenvectors, "eigenvectors");
+      
+      dealii::AnyData data;
+      solve(solution_data, data);
+
+      dealii::AnyData out_data;
+      for (unsigned int i=0;i<n_values;++i)
+	{
+	  out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i)
+			    + std::string("re"));
+	  out_data.add(&eigenvectors[n_values+i], std::string("ev") + std::to_string(i)
+			    + std::string("im"));
+	  dealii::deallog << "Eigenvalue " << i << '\t' << eigenvalues[i] << std::endl;
+	}
+      
+      app.output_results(s, &out_data);
+    }
+}
+
+
 
 #endif
+
+
+
+
+
+
+
+
+
+
