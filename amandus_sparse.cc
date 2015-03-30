@@ -7,7 +7,6 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/compressed_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -92,7 +91,7 @@ AmandusApplicationSparse<dim>::setup_system()
 
   setup_constraints ();
 
-  CompressedSparsityPattern c_sparsity(n_dofs);
+  DynamicSparsityPattern c_sparsity(n_dofs);
   DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints());
   sparsity.copy_from(c_sparsity);
   matrix.reinit(sparsity);  
@@ -149,7 +148,6 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   MeshWorker::DoFInfo<dim> dof_info(dof_handler.block_info());
 
   MeshWorker::Assembler::MatrixSimple<SparseMatrix<double> > assembler;
-  assembler.initialize_local_blocks(dof_handler.block_info().local());
   assembler.initialize(matrix);
   assembler.initialize(constraints());
 
@@ -377,6 +375,17 @@ AmandusApplicationSparse<dim>::error(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
     integrator, assembler, control);
+}
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::error(
+  BlockVector<double>& errors,
+  const dealii::AnyData &solution_data,
+  const ErrorIntegrator<dim>& integrator)
+{
+  errors.reinit(integrator.size());
+  this->error(errors, solution_data, (const AmandusIntegrator<dim>&) integrator);
 }
 
 

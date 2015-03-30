@@ -13,15 +13,14 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 
-using namespace dealii;
-using namespace LocalIntegrators;
-
-
 /**
  * Integrators for Allen-Cahn problems
  */
 namespace AllenCahn
 {
+  using namespace dealii;
+  using namespace LocalIntegrators;
+
   template <int dim>
   class Matrix : public AmandusIntegrator<dim>
   {

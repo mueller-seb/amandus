@@ -7,7 +7,6 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/compressed_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -84,7 +83,7 @@ AmandusApplication<dim>::setup_system()
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
     {
-      CompressedSparsityPattern c_sparsity(this->dof_handler.n_dofs(level));      
+      DynamicSparsityPattern c_sparsity(this->dof_handler.n_dofs(level));
       MGTools::make_flux_sparsity_pattern(this->dof_handler, c_sparsity, level);
       mg_sparsity[level].copy_from(c_sparsity);
       mg_matrix[level].reinit(mg_sparsity[level]);
@@ -111,26 +110,37 @@ AmandusApplication<dim>::assemble_mg_matrix(
   const AmandusIntegrator<dim>& integrator)
 {
   mg_matrix = 0.;
+
   std::vector<MGLevelObject<Vector<double> > > aux(in.size());
-  const AnyData mg_in;
-  // unsigned int k=0;
-  // for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
-  //      i != integrator.input_vector_names.end();++i)
-  //   {
-  //     info_box.cell_selector.add(*i, true, true, false);
-  //   }
-  
+  AnyData mg_in;
     
   MeshWorker::IntegrationInfoBox<dim> info_box;
+
+  std::size_t in_idx = 0;
+  typedef typename std::vector<std::string>::const_iterator it;
+  for(it i=integrator.input_vector_names.begin();
+      i != integrator.input_vector_names.end();
+      ++i, ++in_idx)
+  {
+    const unsigned int min_level = mg_sparsity.min_level();
+    const unsigned int max_level = mg_sparsity.max_level();
+    aux[in_idx].resize(min_level, max_level);
+    mg_transfer.copy_to_mg(this->dof_handler,
+                           aux[in_idx],
+                           *(in.read_ptr<Vector<double> >(in_idx)));
+    mg_in.add(&(aux[in_idx]), *i);
+    info_box.cell_selector.add(*i, true, true, false);
+  }
+
   UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
-  info_box.initialize(*this->fe, this->mapping, &this->dof_handler.block_info());
+  info_box.initialize(*this->fe, this->mapping, mg_in, Vector<double>(),
+                      &this->dof_handler.block_info());
 
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
   
   MeshWorker::Assembler::MGMatrixSimple<SparseMatrix<double> > assembler;
   assembler.initialize(mg_constraints);
-  assembler.initialize_local_blocks(this->dof_handler.block_info().local());
   assembler.initialize(mg_matrix);
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
 

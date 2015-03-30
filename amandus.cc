@@ -7,7 +7,6 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/compressed_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -76,6 +75,8 @@ AmandusResidual<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &i
   *out.entry<Vector<double>*>(0) = 0.;
   application->assemble_right_hand_side(out, in, *integrator);
   
+  // if we are assembling the residual for a Newton step within a
+  // timestepping scheme, we have to subtract the previous time.
   const Vector<double>* p = in.try_read_ptr<Vector<double> >("Previous time");
   if (p != 0)
     out.entry<Vector<double>*>(0)->add(-1., *p);

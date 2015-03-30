@@ -16,12 +16,12 @@
 #include <deal.II/integrators/divergence.h>
 #include <integrator.h>
 
-using namespace dealii;
-using namespace LocalIntegrators;
-using namespace MeshWorker;
-
 namespace AllenCahn
 {
+  using namespace dealii;
+  using namespace LocalIntegrators;
+  using namespace MeshWorker;
+
 /**
  * Integrate the residual for a AllenCahn problem, where the
  * solution is the curl of the symmetric tensor product of a given

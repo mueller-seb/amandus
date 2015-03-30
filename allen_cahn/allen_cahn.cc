@@ -30,6 +30,8 @@
 
 #include <boost/scoped_ptr.hpp>
 
+using namespace dealii;
+
 template <int dim>
 class Startup : public dealii::Function<dim>
 {
@@ -106,7 +108,7 @@ int main(int argc, const char** argv)
   param.log_parameters(deallog);
   
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
   
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
