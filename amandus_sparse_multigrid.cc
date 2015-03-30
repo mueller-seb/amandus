@@ -7,7 +7,6 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
-#include <deal.II/lac/compressed_sparsity_pattern.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -84,7 +83,7 @@ AmandusApplication<dim>::setup_system()
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
     {
-      CompressedSparsityPattern c_sparsity(this->dof_handler.n_dofs(level));      
+      DynamicSparsityPattern c_sparsity(this->dof_handler.n_dofs(level));
       MGTools::make_flux_sparsity_pattern(this->dof_handler, c_sparsity, level);
       mg_sparsity[level].copy_from(c_sparsity);
       mg_matrix[level].reinit(mg_sparsity[level]);
@@ -142,7 +141,6 @@ AmandusApplication<dim>::assemble_mg_matrix(
   
   MeshWorker::Assembler::MGMatrixSimple<SparseMatrix<double> > assembler;
   assembler.initialize(mg_constraints);
-  assembler.initialize_local_blocks(this->dof_handler.block_info().local());
   assembler.initialize(mg_matrix);
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
 
