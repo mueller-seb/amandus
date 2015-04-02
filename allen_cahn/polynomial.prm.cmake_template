@@ -8,7 +8,7 @@ subsection Linear Solver
   set Log result    = true
   set Max steps     = 100
   set Reduction     = 1.e-3
-  set Tolerance     = 1.e-10
+  set Tolerance     = 1.e-11
 end
 subsection Model
   set Diffusion      = 1.0
@@ -29,7 +29,7 @@ subsection Newton
   set Max steps           = 100
   set Reduction           = 1.e-40
   set Stepsize iterations = 21
-  set Tolerance           = 1.e-9
+  set Tolerance           = 1.e-10
 end
 subsection Output
   set Output format = none
