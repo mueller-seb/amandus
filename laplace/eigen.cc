@@ -34,6 +34,7 @@ int main(int argc, const char** argv)
   deallog.attach(logfile);
   
   AmandusParameters param;
+  param.declare_entry("Eigenvalues", "12", Patterns::Integer());
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -46,12 +47,14 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   LaplaceIntegrators::Eigen<d> matrix_integrator;
-  
+  matrix_integrator.use_boundary = false;
   AmandusUMFPACK<d> app(tr, *fe);
   app.set_boundary(0);
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_eigenvalue_loop(5, 13, app, solver);
+  global_refinement_eigenvalue_loop(param.get_integer("Steps"),
+				    param.get_integer("Eigenvalues"),
+				    app, solver);
 }

@@ -1,8 +1,12 @@
+set Steps = 3
+set Eigenvalues = 13
+
 subsection Discretization
-  set FE         = FE_DGQ(1)
-  set Refinement = 1
+  set FE         = FE_Q(1)
+  set Refinement = 2
 end
 
 subsection Linear Solver
   set Tolerance = 1.e-10
+  set Reduction = 1.e-20
 end
