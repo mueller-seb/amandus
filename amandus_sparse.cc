@@ -462,7 +462,7 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     << cycle
     << data_out.default_suffix();
 
-  deallog << "Writing " << filename << std::endl;  
+  deallog << "Writing " << filename.str() << std::endl;  
   
   std::ofstream output(filename.str().c_str());
   data_out.write(output);
