@@ -1,0 +1,2 @@
+include_guard __laplace_parameters_h
+namespace LaplaceIntegrators

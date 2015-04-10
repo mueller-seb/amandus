@@ -20,6 +20,8 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+namespace StokesIntegrators
+{
 /**
  * Integrate the residual for a Stokes problem, where the
  * solution is the curl of the symmetric tensor product of a given
@@ -28,10 +30,10 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class StokesNoForceResidual : public AmandusIntegrator<dim>
+class NoForceResidual : public AmandusIntegrator<dim>
 {
   public:
-    StokesNoForceResidual();
+    NoForceResidual();
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -47,7 +49,7 @@ class StokesNoForceResidual : public AmandusIntegrator<dim>
 
 template <int dim>
 inline
-StokesNoForceResidual<dim>::StokesNoForceResidual()
+NoForceResidual<dim>::NoForceResidual()
 {
   this->input_vector_names.push_back("Newton iterate");
 }
@@ -55,7 +57,7 @@ StokesNoForceResidual<dim>::StokesNoForceResidual()
 
 template <int dim>
 inline
-void StokesNoForceResidual<dim>::cell(
+void NoForceResidual<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -74,7 +76,7 @@ void StokesNoForceResidual<dim>::cell(
 
 template <int dim>
 inline
-void StokesNoForceResidual<dim>::boundary(
+void NoForceResidual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -91,7 +93,7 @@ void StokesNoForceResidual<dim>::boundary(
 
 template <int dim>
 inline
-void StokesNoForceResidual<dim>::face(
+void NoForceResidual<dim>::face(
   DoFInfo<dim>& dinfo1, 
   DoFInfo<dim>& dinfo2,
   IntegrationInfo<dim>& info1, 
@@ -106,6 +108,6 @@ void StokesNoForceResidual<dim>::face(
 		  make_slice(info2.gradients[0], 0, dim),
 		  Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
 }
+}
 
 #endif
-  

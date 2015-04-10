@@ -34,8 +34,10 @@ using namespace LocalIntegrators;
  *
  * @ingroup integrators
  */
+namespace StokesIntegrators
+{
 template <int dim>
-class StokesMatrix : public AmandusIntegrator<dim>
+class Matrix : public AmandusIntegrator<dim>
 {
 public:
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
@@ -46,7 +48,7 @@ public:
 
 
 template <int dim>
-void StokesMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension (dinfo.n_matrices(), 4);
   Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
@@ -56,7 +58,7 @@ void StokesMatrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::Integr
 
 
 template <int dim>
-void StokesMatrix<dim>::boundary(
+void Matrix<dim>::boundary(
   MeshWorker::DoFInfo<dim>& dinfo,
   typename MeshWorker::IntegrationInfo<dim>& info) const
 {
@@ -67,7 +69,7 @@ void StokesMatrix<dim>::boundary(
 
 
 template <int dim>
-void StokesMatrix<dim>::face(
+void Matrix<dim>::face(
   MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
   MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
 {
@@ -76,6 +78,7 @@ void StokesMatrix<dim>::face(
   		     dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
   		     info1.fe_values(0), info2.fe_values(0),
   		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+}
 }
 
 
