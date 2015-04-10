@@ -53,9 +53,28 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
 		dof_handler(triangulation),
 		matrix(1),
 		use_umfpack(use_umfpack),
-	        estimates(1)		
+	        estimates(1),
+		output_data_types(fe.n_components())
 {
   deallog << "Finite element: " << fe.get_name() << std::endl;
+
+  unsigned int comp=0;
+  deallog << "Output types ";
+  for (unsigned int i=0;i<fe.n_base_elements();++i)
+    {
+      const FiniteElement<dim>& base = fe.base_element(i);
+      DataComponentInterpretation::DataComponentInterpretation
+	inter = DataComponentInterpretation::component_is_scalar;
+      if (base.n_components() == dim)
+	inter = DataComponentInterpretation::component_is_part_of_vector;
+      for (unsigned int j=0; j<fe.element_multiplicity(i);++j)
+	for (unsigned int k=0;k<base.n_components();++k)
+	  {
+	    output_data_types[comp++] = inter;
+	    deallog << ((base.n_components() == dim) ? 'v' : 's');
+	  }
+    }
+  deallog << std::endl;
 }
 
 template <int dim>
@@ -449,7 +468,9 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   if (in != 0)
   {
     for (unsigned int i=0;i<in->size();++i)
-      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
+			       DataOut_DoFData<DoFHandler<dim>, dim, dim>::type_dof_data,
+			       output_data_types);
   }
   else
   {    

@@ -322,6 +322,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     dealii::SparseDirectUMFPACK inverse;
     
     dealii::BlockVector<double>  estimates;
+
+    std::vector<dealii::DataComponentInterpretation::DataComponentInterpretation> output_data_types;
 };
 
 
