@@ -439,6 +439,12 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     data_out.set_default_format(DataOutBase::vtk);
   }
 
+  if (data_out.default_suffix() == std::string(""))
+    {
+      deallog << "No output cycle " << cycle << std::endl;
+      return;
+    }
+
   data_out.attach_dof_handler(dof_handler);
   if (in != 0)
   {
@@ -450,12 +456,14 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     AssertThrow(false, ExcNotImplemented());
   }
   data_out.build_patches (this->fe->tensor_degree());
-
+  
   std::ostringstream filename;
   filename << "solution-"
     << cycle
     << data_out.default_suffix();
 
+  deallog << "Writing " << filename << std::endl;  
+  
   std::ofstream output(filename.str().c_str());
   data_out.write(output);
 }
