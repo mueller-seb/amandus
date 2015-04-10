@@ -6,7 +6,7 @@
  **********************************************************************/
 /**
  * @file
- * Verify that LaplaceMatrix and LaplaceNoForceResidual are consistent
+ * Verify that LaplaceIntegrators::Matrix and LaplaceIntegrators::NoForceResidual are consistent
  *
  * @ingroup Verification
  */
@@ -39,9 +39,9 @@ int main(int argc, const char** argv)
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   
-  LaplaceMatrix<d> matrix_integrator;
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
   Theta<d> mi(matrix_integrator, true);
-  LaplaceNoForceResidual<d> rhs_integrator;
+  LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   Theta<d> ri(rhs_integrator, true);
   ri.input_vector_names.push_back("Newton iterate");
   

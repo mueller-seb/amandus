@@ -51,9 +51,9 @@ int main(int argc, const char** argv)
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
   
-  LaplaceMatrix<d> matrix_integrator;
-  LaplacePolynomialRHS<d> rhs_integrator(solution1d);
-  LaplacePolynomialError<d> error_integrator(solution1d);
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::PolynomialRHS<d> rhs_integrator(solution1d);
+  LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   app.set_boundary(0);

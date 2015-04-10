@@ -50,10 +50,10 @@ int main()
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
   
-  LaplaceMatrix<d> matrix_integrator;
-  LaplacePolynomialResidual<d> rhs_integrator(solution1d);
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::PolynomialResidual<d> rhs_integrator(solution1d);
   rhs_integrator.input_vector_names.push_back("Previous iterate");
-  LaplacePolynomialError<d> error_integrator(solution1d);
+  LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
   app.set_boundary(0);

@@ -16,7 +16,8 @@
 using namespace dealii;
 using namespace LocalIntegrators;
 
-
+namespace LaplaceIntegrators
+{
 /**
  * Integrator for Laplace problems and heat equation.
  *
@@ -29,10 +30,10 @@ using namespace LocalIntegrators;
  * @ingroup integrators
  */
 template <int dim>
-class LaplaceMatrixFaktor : public AmandusIntegrator<dim>
+class MatrixFaktor : public AmandusIntegrator<dim>
 {
 public:
-  LaplaceMatrixFaktor(double faktor);
+  MatrixFaktor(double faktor);
 
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
@@ -45,7 +46,7 @@ private:
 
 
 template <int dim>
-LaplaceMatrixFaktor<dim>::LaplaceMatrixFaktor(double faktor)
+MatrixFaktor<dim>::MatrixFaktor(double faktor)
 		:
 		faktor(faktor)
 {
@@ -53,7 +54,7 @@ LaplaceMatrixFaktor<dim>::LaplaceMatrixFaktor(double faktor)
 
 
 template <int dim>
-void LaplaceMatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void MatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension (dinfo.n_matrices(), 1);
   Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),faktor);
@@ -61,7 +62,7 @@ void LaplaceMatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker:
 
 
 template <int dim>
-void LaplaceMatrixFaktor<dim>::boundary(
+void MatrixFaktor<dim>::boundary(
   MeshWorker::DoFInfo<dim>& dinfo,
   typename MeshWorker::IntegrationInfo<dim>& info) const
 {
@@ -72,7 +73,7 @@ void LaplaceMatrixFaktor<dim>::boundary(
 
 
 template <int dim>
-void LaplaceMatrixFaktor<dim>::face(
+void MatrixFaktor<dim>::face(
   MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
   MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
 {
@@ -81,6 +82,7 @@ void LaplaceMatrixFaktor<dim>::face(
   		     dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
   		     info1.fe_values(0), info2.fe_values(0),
   		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), faktor);
+}
 }
 
 

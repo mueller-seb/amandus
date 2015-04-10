@@ -25,7 +25,7 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
-#include <darcy/polynomial.h>
+#include <darcy/polynomial/polynomial.h>
 #include <darcy/matrix.h>
 
 
