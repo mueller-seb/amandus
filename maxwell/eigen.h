@@ -57,14 +57,14 @@ namespace DivCurl
  * @ingroup integrators
  */
 template <int dim>
-class Matrix : public AmandusIntegrator<dim>
+class Eigen : public AmandusIntegrator<dim>
 {
 public:
   /**
    * Very simple constructor, entering a single coefficient with value
    * one into #curl_coefficient and zero into #mass_coefficient, respectively.
    */
-  Matrix();
+  Eigen();
     virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>& dinfo2,
@@ -76,7 +76,7 @@ public:
 
 
 template <int dim>
-Matrix<dim>::Matrix()
+Eigen<dim>::Eigen()
 		:
 		curl_coefficient(1, 1.),
 		mass_coefficient(1, 0.)
@@ -87,31 +87,36 @@ Matrix<dim>::Matrix()
 
 
 template <int dim>
-void Matrix<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const
+void Eigen<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const
 {
-  AssertDimension (dinfo.n_matrices(), 4);
+  AssertDimension (dinfo.n_matrices(), 8);
   const unsigned int id = dinfo.cell->material_id();
   AssertIndexRange (id, curl_coefficient.size());
   AssertIndexRange (id, mass_coefficient.size());
   const double mu = curl_coefficient[id];
   const double sigma = mass_coefficient[id];
   
-  Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), mu);
-  if (sigma != 0.)
-    L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
+  Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0)/*, mu*/);
+  // if (sigma != 0.)
+  //   L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
   Divergence::gradient_matrix(dinfo.matrix(1,false).matrix, info.fe_values(1), info.fe_values(0));
   dinfo.matrix(2,false).matrix.copy_transposed(dinfo.matrix(1,false).matrix);
+
+  L2::mass_matrix(dinfo.matrix(4,false).matrix, info.fe_values(0));
+//  dinfo.matrix(0,false).matrix.add(-8., dinfo.matrix(4,false).matrix);
+  
+//  L2::mass_matrix(dinfo.matrix(7,false).matrix, info.fe_values(1));
 }
 
 
 template <int dim>
-void Matrix<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& /*dinfo*/,
+void Eigen<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& /*dinfo*/,
 			   typename dealii::MeshWorker::IntegrationInfo<dim>& /*info*/) const
 {}
 
 
 template <int dim>
-void Matrix<dim>::face(dealii::MeshWorker::DoFInfo<dim>& /*dinfo1*/,
+void Eigen<dim>::face(dealii::MeshWorker::DoFInfo<dim>& /*dinfo1*/,
 		       dealii::MeshWorker::DoFInfo<dim>& /*dinfo2*/,
 		       dealii::MeshWorker::IntegrationInfo<dim>& /*info1*/,
 		       dealii::MeshWorker::IntegrationInfo<dim>& /*info2*/) const
