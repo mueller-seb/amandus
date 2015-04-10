@@ -10,3 +10,8 @@ subsection Linear Solver
   set Tolerance = 1.e-10
   set Reduction = 1.e-20
 end
+
+subsection Output
+  set Output format = none
+  set Subdivisions = 1
+end

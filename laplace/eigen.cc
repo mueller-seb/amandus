@@ -7,11 +7,10 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Poisson equations</li>
- * <li> Homogeneous Dirichlet boundary condition</li>
- * <li> Exact polynomial solution</li>
- * <li> Linear solver</li>
- * <li> Multigrid preconditioner with Schwarz-smoother</li>
+ * <li> Laplace operator</li>
+ * <li> Dirichlet boundary condition</li>
+ * <li> Eigenvalue problem</li>
+ * <li> UMFPack</li>
  * </ul>
  *
  * @ingroup Examples
@@ -47,9 +46,9 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   LaplaceIntegrators::Eigen<d> matrix_integrator;
-  matrix_integrator.use_boundary = false;
   AmandusUMFPACK<d> app(tr, *fe);
-  app.set_boundary(0);
+  app.parse_parameters(param);
+  
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
   app.control.set_reduction(1.e-10);
@@ -58,3 +57,13 @@ int main(int argc, const char** argv)
 				    param.get_integer("Eigenvalues"),
 				    app, solver);
 }
+
+
+
+
+
+
+
+
+
+
