@@ -13,6 +13,7 @@
 #include <deal.II/lac/vector.h>
 
 #include <amandus.h>
+#include <iomanip>
 
 /**
  *
@@ -165,7 +166,7 @@ global_refinement_eigenvalue_loop(unsigned int n_steps,
 			    + std::string("re"));
 	  out_data.add(&eigenvectors[n_values+i], std::string("ev") + std::to_string(i)
 			    + std::string("im"));
-	  dealii::deallog << "Eigenvalue " << i << '\t' << eigenvalues[i] << std::endl;
+	  dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15) << eigenvalues[i] << std::endl;
 	}
       
       app.output_results(s, &out_data);
