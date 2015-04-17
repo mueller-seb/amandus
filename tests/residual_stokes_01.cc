@@ -6,7 +6,7 @@
  **********************************************************************/
 /**
  * @file
- * Verify that StokesMatrix and StokesNoForceResidual are consistent
+ * Verify that StokesIntegrators::Matrix and StokesIntegrators::NoForceResidual are consistent
  *
  * @ingroup Verification
  */
@@ -36,8 +36,8 @@ int main()
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
-  StokesMatrix<d> matrix_integrator;
-  StokesNoForceResidual<d> rhs_integrator;
+  StokesIntegrators::Matrix<d> matrix_integrator;
+  StokesIntegrators::NoForceResidual<d> rhs_integrator;
   
   AmandusApplicationSparse<d> app(tr, fe);
   

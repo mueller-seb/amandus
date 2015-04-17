@@ -39,7 +39,7 @@ int main()
   FE_Q<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
   
-  ::Maxwell::DivCurl::Matrix<d> matrix_integrator;
+  MaxwellIntegrators::DivCurl::Matrix<d> matrix_integrator;
   RhsOne<d> rhs_integrator;
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);

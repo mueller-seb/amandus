@@ -12,6 +12,7 @@
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparse_direct.h>
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
+#include <deal.II/lac/arpack_solver.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -129,6 +130,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * Parse the paramaters from a handler
      */
     void parse_parameters(dealii::ParameterHandler& param);
+
+    /**
+     * Change the number of matrices assembled. Default is one, but
+     * for instance a second matrix (the mass matrix) is needed for
+     * eigenvelue problems.
+     */
+    void set_number_of_matrices (unsigned int n);
 
     /**
      * Set the boundary components that should be constrained if the
@@ -253,6 +261,14 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     virtual void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
     
+    /**
+     * Solve the eigenvalue system stored in the first element of
+     * #matrix with mass matrix in the second. Use the UMFPack inverse
+     * of the first matrix aslo for shifting.
+     */
+    virtual void arpack_solve (std::vector<std::complex<double> >& eigenvalues,
+			       std::vector<dealii::Vector<double> >& eigenvectors);
+    
     void output_results(unsigned int refinement_cycle,
 			const dealii::AnyData* data = 0) const;
   
@@ -301,11 +317,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     dealii::ConstraintMatrix     hanging_node_constraints;
   
     dealii::SparsityPattern      sparsity;
-    dealii::SparseMatrix<double> matrix;
+    std::vector<dealii::SparseMatrix<double> > matrix;
     const bool use_umfpack;
     dealii::SparseDirectUMFPACK inverse;
     
     dealii::BlockVector<double>  estimates;
+
+    std::vector<dealii::DataComponentInterpretation::DataComponentInterpretation> output_data_types;
 };
 
 
@@ -354,7 +372,7 @@ class AmandusApplication
      */
     AmandusApplication(dealii::Triangulation<dim>& triangulation,
 		       const dealii::FiniteElement<dim>& fe);
-
+    
     /**
      * Initialize the finite element system on the current mesh.  This
      * involves distributing degrees of freedom for the leaf mesh and
@@ -475,6 +493,14 @@ class AmandusSolve
     /// The pointer to the local integrator for assembling matrices
     dealii::SmartPointer<AmandusIntegrator<dim>, AmandusSolve<dim> > integrator;
 };
+
+
+template <int dim>
+inline void
+AmandusApplicationSparse<dim>::set_number_of_matrices (unsigned int n)
+{
+  matrix.resize(n);
+}
 
 
 template <int dim>

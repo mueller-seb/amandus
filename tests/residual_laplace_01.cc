@@ -6,7 +6,7 @@
  **********************************************************************/
 /**
  * @file
- * Verify that LaplaceMatrix and LaplaceNoForceResidual are consistent
+ * Verify that LaplaceIntegrators::Matrix and LaplaceIntegrators::NoForceResidual are consistent
  *
  * @ingroup Verification
  */
@@ -37,8 +37,8 @@ int main(int argc, const char** argv)
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   
-  LaplaceMatrix<d> matrix_integrator;
-  LaplaceNoForceResidual<d> rhs_integrator;
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   

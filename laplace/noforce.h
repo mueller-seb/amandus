@@ -20,17 +20,18 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
-
+namespace LaplaceIntegrators
+{
 /**
  * Integrate the right hand side for a Laplace problem with zero right hand side.
  *
  * @ingroup integrators
  */
 template <int dim>
-class LaplaceNoForceRHS : public AmandusIntegrator<dim>
+class NoForceRHS : public AmandusIntegrator<dim>
 {
   public:
-    LaplaceNoForceRHS();
+    NoForceRHS();
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -49,10 +50,10 @@ class LaplaceNoForceRHS : public AmandusIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class LaplaceNoForceResidual : public AmandusIntegrator<dim>
+class NoForceResidual : public AmandusIntegrator<dim>
 {
   public:
-    LaplaceNoForceResidual();
+    NoForceResidual();
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -69,7 +70,7 @@ class LaplaceNoForceResidual : public AmandusIntegrator<dim>
 //----------------------------------------------------------------------//
 
 template <int dim>
-LaplaceNoForceRHS<dim>::LaplaceNoForceRHS()
+NoForceRHS<dim>::NoForceRHS()
 {
   this->use_boundary = false;
   this->use_face = false;
@@ -77,7 +78,7 @@ LaplaceNoForceRHS<dim>::LaplaceNoForceRHS()
 
 
 template <int dim>
-void LaplaceNoForceRHS<dim>::cell(
+void NoForceRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -86,14 +87,14 @@ void LaplaceNoForceRHS<dim>::cell(
 
 
 template <int dim>
-void LaplaceNoForceRHS<dim>::boundary(
+void NoForceRHS<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void LaplaceNoForceRHS<dim>::face(
+void NoForceRHS<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
@@ -104,14 +105,14 @@ void LaplaceNoForceRHS<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
-LaplaceNoForceResidual<dim>::LaplaceNoForceResidual()
+NoForceResidual<dim>::NoForceResidual()
 {
   this->input_vector_names.push_back("Newton iterate");
 }
 
 
 template <int dim>
-void LaplaceNoForceResidual<dim>::cell(
+void NoForceResidual<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -126,7 +127,7 @@ void LaplaceNoForceResidual<dim>::cell(
 
 
 template <int dim>
-void LaplaceNoForceResidual<dim>::boundary(
+void NoForceResidual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -142,7 +143,7 @@ void LaplaceNoForceResidual<dim>::boundary(
 
 
 template <int dim>
-void LaplaceNoForceResidual<dim>::face(
+void NoForceResidual<dim>::face(
   DoFInfo<dim>& dinfo1, 
   DoFInfo<dim>& dinfo2,
   IntegrationInfo<dim>& info1, 
@@ -157,7 +158,7 @@ void LaplaceNoForceResidual<dim>::face(
 		  info2.gradients[0][0],
 		  Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
 }
+}
 
 
 #endif
-  

@@ -18,23 +18,14 @@ using namespace LocalIntegrators;
 
 
 /**
- * Integrator for Laplace problems and heat equation.
- *
- * The distinction between stationary and instationary problems is
- * made by the variable AmandusIntegrator::timestep, which is
- * inherited from the base class. If this variable is zero, we solve a
- * stationary problem. If it is nonzero, we assemble for an implicit
- * scheme.
+ * Integrators for Laplace problems.
  *
  * @ingroup integrators
  */
 namespace LaplaceIntegrators
 {
-  /**
-   * \brief Integrator for the matrix of the Laplace operator.
-   */
   template <int dim>
-  class Matrix : public AmandusIntegrator<dim>
+  class Eigen : public AmandusIntegrator<dim>
   {
     public:
       virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
@@ -42,18 +33,19 @@ namespace LaplaceIntegrators
       virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
 			MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
   };
-
-
+  
+  
   template <int dim>
-  void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+  void Eigen<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
   {
-    AssertDimension (dinfo.n_matrices(), 1);
+    AssertDimension (dinfo.n_matrices(), 2);
     Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+    L2::mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0));
   }
-
-
+  
+  
   template <int dim>
-  void Matrix<dim>::boundary(
+  void Eigen<dim>::boundary(
     MeshWorker::DoFInfo<dim>& dinfo,
     typename MeshWorker::IntegrationInfo<dim>& info) const
   {
@@ -61,10 +53,10 @@ namespace LaplaceIntegrators
     Laplace::nitsche_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
 			    Laplace::compute_penalty(dinfo, dinfo, deg, deg));
   }
-
-
+  
+  
   template <int dim>
-  void Matrix<dim>::face(
+  void Eigen<dim>::face(
     MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
     MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
   {
@@ -75,6 +67,5 @@ namespace LaplaceIntegrators
 		       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
   }
 }
-
 
 #endif

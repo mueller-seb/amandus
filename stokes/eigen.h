@@ -4,8 +4,8 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-#ifndef __matrixfaktor_laplace_h
-#define __matrixfaktor_laplace_h
+#ifndef __matrix_stokes_h
+#define __matrix_stokes_h
 
 #include <deal.II/meshworker/integration_info.h>
 #include <integrator.h>
@@ -16,64 +16,63 @@
 using namespace dealii;
 using namespace LocalIntegrators;
 
-namespace LaplaceIntegrators
-{
+
 /**
- * Integrator for Laplace problems and heat equation.
+ * Integrator for Stokes problems in Hdiv
  *
- * The distinction between stationary and instationary problems is
- * made by the variable AmandusIntegrator::timestep, which is
- * inherited from the base class. If this variable is zero, we solve a
- * stationary problem. If it is nonzero, we assemble for an implicit
- * scheme.
+ * The finite element system is expected to consist of a vector-valued
+ * divergence conforming element in first position and a discontinuous
+ * scalar element in second.
+ *
+ * We are building a single matrix in the end, but the cell matrices come in a two-by-two block structure in the order
+ * <ol>
+ * <li> The vector-valued Laplacian</li>
+ * <li> The gradient operator</li>
+ * <li> The divergence operator as transpose of the gradient</li>
+ * <li> Empty</li>
+ * </ol>
  *
  * @ingroup integrators
  */
+namespace StokesIntegrators
+{
 template <int dim>
-class MatrixFaktor : public AmandusIntegrator<dim>
+class Eigen : public AmandusIntegrator<dim>
 {
 public:
-  MatrixFaktor(double faktor);
-
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
 		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
-private: 
-  double faktor;
-
 };
 
 
 template <int dim>
-MatrixFaktor<dim>::MatrixFaktor(double faktor)
-		:
-		faktor(faktor)
+void Eigen<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
+  AssertDimension (dinfo.n_matrices(), 8);
+  Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
+  Divergence::cell_matrix(dinfo.matrix(2,false).matrix, info.fe_values(0), info.fe_values(1));
+  dinfo.matrix(1,false).matrix.copy_transposed(dinfo.matrix(2,false).matrix);
+
+  L2::mass_matrix(dinfo.matrix(4,false).matrix, info.fe_values(0));
+//  L2::mass_matrix(dinfo.matrix(7,false).matrix, info.fe_values(1));
 }
 
 
 template <int dim>
-void MatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
-{
-  AssertDimension (dinfo.n_matrices(), 1);
-  Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),faktor);
-}
-
-
-template <int dim>
-void MatrixFaktor<dim>::boundary(
+void Eigen<dim>::boundary(
   MeshWorker::DoFInfo<dim>& dinfo,
   typename MeshWorker::IntegrationInfo<dim>& info) const
 {
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), faktor);
+  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg));
 }
 
 
 template <int dim>
-void MatrixFaktor<dim>::face(
+void Eigen<dim>::face(
   MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
   MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
 {
@@ -81,7 +80,7 @@ void MatrixFaktor<dim>::face(
   Laplace::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
   		     dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
   		     info1.fe_values(0), info2.fe_values(0),
-  		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), faktor);
+  		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
 }
 }
 

@@ -7,6 +7,7 @@
  **********************************************************************/
 
 #include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/arpack_solver.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
 #include <deal.II/lac/solver_richardson.h>
@@ -50,10 +51,30 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
 		triangulation(&triangulation),
 		fe(&fe),
 		dof_handler(triangulation),
+		matrix(1),
 		use_umfpack(use_umfpack),
-	        estimates(1)		
+	        estimates(1),
+		output_data_types(fe.n_components())
 {
   deallog << "Finite element: " << fe.get_name() << std::endl;
+
+  unsigned int comp=0;
+  deallog << "Output types ";
+  for (unsigned int i=0;i<fe.n_base_elements();++i)
+    {
+      const FiniteElement<dim>& base = fe.base_element(i);
+      DataComponentInterpretation::DataComponentInterpretation
+	inter = DataComponentInterpretation::component_is_scalar;
+      if (base.n_components() == dim)
+	inter = DataComponentInterpretation::component_is_part_of_vector;
+      for (unsigned int j=0; j<fe.element_multiplicity(i);++j)
+	for (unsigned int k=0;k<base.n_components();++k)
+	  {
+	    output_data_types[comp++] = inter;
+	    deallog << ((base.n_components() == dim) ? 'v' : 's');
+	  }
+    }
+  deallog << std::endl;
 }
 
 template <int dim>
@@ -94,7 +115,8 @@ AmandusApplicationSparse<dim>::setup_system()
   DynamicSparsityPattern c_sparsity(n_dofs);
   DoFTools::make_flux_sparsity_pattern(dof_handler, c_sparsity, constraints());
   sparsity.copy_from(c_sparsity);
-  matrix.reinit(sparsity);  
+  for (unsigned int m=0;m<matrix.size();++m)
+    matrix[m].reinit(sparsity);
 }
 
 
@@ -131,7 +153,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
-  matrix = 0.;
+  for (unsigned int m=0;m<matrix.size();++m)
+    matrix[m] = 0.;
 
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
@@ -156,14 +179,15 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   MeshWorker::integration_loop<dim, dim>(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box, integrator, assembler, control);
-  
-  for (unsigned int i=0;i<matrix.m();++i)
-    if (constraints().is_constrained(i))
-      matrix.diag_element(i) = 1.;
+
+  for (unsigned int m=0;m<matrix.size();++m)
+    for (unsigned int i=0;i<matrix[m].m();++i)
+      if (constraints().is_constrained(i))
+	matrix[m].diag_element(i) = 1.;
 
   if (use_umfpack)
     {
-      inverse.initialize(matrix);
+      inverse.initialize(matrix[0]);
     }
 }
 
@@ -249,7 +273,8 @@ AmandusApplicationSparse<dim>::verify_residual(
   (*out.entry<Vector<double>*>(0)) *= -1.;
 
   const Vector<double>* p = in.try_read_ptr<Vector<double> >("Newton iterate");
-  matrix.vmult_add(*out.entry<Vector<double>*>(0), *p);
+  AssertDimension(matrix.size(), 1);
+  matrix[0].vmult_add(*out.entry<Vector<double>*>(0), *p);
 }
 
 
@@ -257,15 +282,30 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
+  AssertDimension(matrix.size(), 1);
   SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
   SolverGMRES<Vector<double> > solver(control, solver_data);
 
   PreconditionIdentity identity;
   if (use_umfpack)
-    solver.solve(matrix, sol, rhs, this->inverse);
+    solver.solve(matrix[0], sol, rhs, this->inverse);
   else
-    solver.solve(matrix, sol, rhs, identity);
+    solver.solve(matrix[0], sol, rhs, identity);
   constraints().distribute(sol);
+}
+
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
+					    std::vector<Vector<double> >& eigenvectors)
+{
+  AssertDimension(2*eigenvalues.size(), eigenvectors.size());
+  ArpackSolver::AdditionalData solver_data(eigenvectors.size()+2,
+					   ArpackSolver::largest_magnitude);
+  ArpackSolver solver(control, solver_data);
+
+  solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
 }
 
 
@@ -418,23 +458,33 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
     data_out.set_default_format(DataOutBase::vtk);
   }
 
+  if (data_out.default_suffix() == std::string(""))
+    {
+      deallog << "No output cycle " << cycle << std::endl;
+      return;
+    }
+
   data_out.attach_dof_handler(dof_handler);
   if (in != 0)
   {
     for (unsigned int i=0;i<in->size();++i)
-      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
+			       DataOut_DoFData<DoFHandler<dim>, dim, dim>::type_dof_data,
+			       output_data_types);
   }
   else
   {    
     AssertThrow(false, ExcNotImplemented());
   }
   data_out.build_patches (this->fe->tensor_degree());
-
+  
   std::ostringstream filename;
   filename << "solution-"
     << cycle
     << data_out.default_suffix();
 
+  deallog << "Writing " << filename.str() << std::endl;  
+  
   std::ofstream output(filename.str().c_str());
   data_out.write(output);
 }

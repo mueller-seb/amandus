@@ -7,10 +7,9 @@
 /**
  * @file
  * <ul>
- * <li> Stationary Poisson equations</li>
- * <li> Homogeneous Dirichlet boundary condition</li>
- * <li> Exact polynomial solution</li>
- * <li> Linear solver</li>
+ * <li> Stokes operator</li>
+ * <li> Dirichlet boundary condition</li>
+ * <li> Eigenvalue problem</li>
  * <li> UMFPack</li>
  * </ul>
  *
@@ -21,8 +20,8 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
-#include <laplace/polynomial.h>
-#include <laplace/matrix.h>
+#include <amandus_arpack.h>
+#include <stokes/eigen.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -34,6 +33,7 @@ int main(int argc, const char** argv)
   deallog.attach(logfile);
   
   AmandusParameters param;
+  param.declare_entry("Eigenvalues", "12", Patterns::Integer());
   param.read(argc, argv);
   param.log_parameters(deallog);
   
@@ -45,21 +45,25 @@ int main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
-  Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
-  solution1d.print(std::cout);
+  StokesIntegrators::Eigen<d> matrix_integrator;
+  AmandusUMFPACK<d> app(tr, *fe);
+  app.parse_parameters(param);
   
-  LaplaceIntegrators::Matrix<d> matrix_integrator;
-  LaplaceIntegrators::PolynomialRHS<d> rhs_integrator(solution1d);
-  LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
-  
-  AmandusUMFPACK<d>     app(tr, *fe);
-  app.set_boundary(0);
-  AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d>    residual(app, rhs_integrator);
+  app.set_number_of_matrices(2);
+  AmandusArpack<d> solver(app, matrix_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  global_refinement_eigenvalue_loop(param.get_integer("Steps"),
+				    param.get_integer("Eigenvalues"),
+				    app, solver);
 }
+
+
+
+
+
+
+
+
+
+

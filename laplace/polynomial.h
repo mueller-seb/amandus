@@ -20,6 +20,8 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+namespace LaplaceIntegrators
+{
 /**
  * Integrate the right hand side for a Laplace problem, where the
  * solution is the curl of the symmetric tensor product of a given
@@ -28,10 +30,10 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class LaplacePolynomialRHS : public AmandusIntegrator<dim>
+class PolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
-    LaplacePolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
+    PolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -54,10 +56,10 @@ class LaplacePolynomialRHS : public AmandusIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class LaplacePolynomialResidual : public AmandusIntegrator<dim>
+class PolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
-    LaplacePolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
+    PolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -73,10 +75,10 @@ class LaplacePolynomialResidual : public AmandusIntegrator<dim>
 
 
 template <int dim>
-class LaplacePolynomialError : public AmandusIntegrator<dim>
+class PolynomialError : public AmandusIntegrator<dim>
 {
   public:
-    LaplacePolynomialError(const Polynomials::Polynomial<double> solution_1d);
+    PolynomialError(const Polynomials::Polynomial<double> solution_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -93,7 +95,7 @@ class LaplacePolynomialError : public AmandusIntegrator<dim>
 //----------------------------------------------------------------------//
 
 template <int dim>
-LaplacePolynomialRHS<dim>::LaplacePolynomialRHS(
+PolynomialRHS<dim>::PolynomialRHS(
   const Polynomials::Polynomial<double> solution_1d)
 		:
 		solution_1d(solution_1d)
@@ -104,7 +106,7 @@ LaplacePolynomialRHS<dim>::LaplacePolynomialRHS(
 
 
 template <int dim>
-void LaplacePolynomialRHS<dim>::cell(
+void PolynomialRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -127,14 +129,14 @@ void LaplacePolynomialRHS<dim>::cell(
 
 
 template <int dim>
-void LaplacePolynomialRHS<dim>::boundary(
+void PolynomialRHS<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void LaplacePolynomialRHS<dim>::face(
+void PolynomialRHS<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
@@ -144,7 +146,7 @@ void LaplacePolynomialRHS<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
-LaplacePolynomialResidual<dim>::LaplacePolynomialResidual(
+PolynomialResidual<dim>::PolynomialResidual(
   const Polynomials::Polynomial<double> solution_1d)
 		:
 		solution_1d(solution_1d)
@@ -155,7 +157,7 @@ LaplacePolynomialResidual<dim>::LaplacePolynomialResidual(
 
 
 template <int dim>
-void LaplacePolynomialResidual<dim>::cell(
+void PolynomialResidual<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -189,7 +191,7 @@ void LaplacePolynomialResidual<dim>::cell(
 
 
 template <int dim>
-void LaplacePolynomialResidual<dim>::boundary(
+void PolynomialResidual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -205,7 +207,7 @@ void LaplacePolynomialResidual<dim>::boundary(
 
 
 template <int dim>
-void LaplacePolynomialResidual<dim>::face(
+void PolynomialResidual<dim>::face(
   DoFInfo<dim>& dinfo1, 
   DoFInfo<dim>& dinfo2,
   IntegrationInfo<dim>& info1, 
@@ -225,7 +227,7 @@ void LaplacePolynomialResidual<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
-LaplacePolynomialError<dim>::LaplacePolynomialError(
+PolynomialError<dim>::PolynomialError(
   const Polynomials::Polynomial<double> solution_1d)
 		:
 		solution_1d(solution_1d)
@@ -236,7 +238,7 @@ LaplacePolynomialError<dim>::LaplacePolynomialError(
 
 
 template <int dim>
-void LaplacePolynomialError<dim>::cell(
+void PolynomialError<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -267,19 +269,20 @@ void LaplacePolynomialError<dim>::cell(
 
 
 template <int dim>
-void LaplacePolynomialError<dim>::boundary(
+void PolynomialError<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void LaplacePolynomialError<dim>::face(
+void PolynomialError<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
+}
 
 #endif
   

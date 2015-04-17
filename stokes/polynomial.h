@@ -20,12 +20,14 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+namespace StokesIntegrators
+{
 /**
  * Provide the right hand side for a Stokes problem with polynomial
- * solution. This class is matched by StokesPolynomialError and
- * StokesPolynomialResidual, which all operate on the same polynomial
+ * solution. This class is matched by StokesIntegrators::PolynomialError and
+ * StokesIntegrators::PolynomialResidual, which all operate on the same polynomial
  * solutions. The solution obtained is described in
- * StokesPolynomialError.
+ * StokesIntegrators::PolynomialError.
  * 
  * @note No reasonable iplementation for three dimensions is provided.
  *
@@ -35,10 +37,10 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialRHS : public AmandusIntegrator<dim>
+class PolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
-    StokesPolynomialRHS(const Polynomials::Polynomial<double> curl_potential_1d,
+    PolynomialRHS(const Polynomials::Polynomial<double> curl_potential_1d,
 			const Polynomials::Polynomial<double> grad_potential_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
@@ -59,13 +61,13 @@ class StokesPolynomialRHS : public AmandusIntegrator<dim>
  * Integrate the residual for a Stokes problem, where the solution is
  * the curl of the symmetric tensor product of a given polynomial,
  * plus the gradient of another. The solution is described in the
- * documentation of StokesPolynomialError.
+ * documentation of PolynomialError.
  *
  * The integration functions of this class compute the difference of
- * the corresponding function in StokesPolynomialRHS and the weak
+ * the corresponding function in PolynomialRHS and the weak
  * Stokes operator applied to the current solution in "Newton
  * iterate". Thus, their Frechet derivative is in the integration
- * functions of MatrixStokes.
+ * functions of Matrix.
  *
  * @note No reasonable iplementation for three dimensions is provided.
  *
@@ -75,10 +77,10 @@ class StokesPolynomialRHS : public AmandusIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialResidual : public AmandusIntegrator<dim>
+class PolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
-    StokesPolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
+    PolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
 			     const Polynomials::Polynomial<double> grad_potential_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
@@ -111,7 +113,7 @@ class StokesPolynomialResidual : public AmandusIntegrator<dim>
  *
  * The according right hand sides of the Stokes equations and the
  * residuals are integrated by the functions of the classes
- * StokesPolynomialRHS and StokesPolynomialResidual.
+ * PolynomialRHS and PolynomialResidual.
  *
  * If computing on a square, say \f$[-1,1]^2\f$, the boundary
  * conditions of the Stokes problem are determined as follows: if
@@ -128,10 +130,10 @@ class StokesPolynomialResidual : public AmandusIntegrator<dim>
  * @ingroup integrators
  */
 template <int dim>
-class StokesPolynomialError : public AmandusIntegrator<dim>
+class PolynomialError : public AmandusIntegrator<dim>
 {
   public:
-    StokesPolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
+    PolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
 			  const Polynomials::Polynomial<double> grad_potential_1d);
     
     virtual void cell(DoFInfo<dim>& dinfo,
@@ -150,7 +152,7 @@ class StokesPolynomialError : public AmandusIntegrator<dim>
 //----------------------------------------------------------------------//
 
 template <int dim>
-StokesPolynomialRHS<dim>::StokesPolynomialRHS(
+PolynomialRHS<dim>::PolynomialRHS(
   const Polynomials::Polynomial<double> curl_potential_1d,
   const Polynomials::Polynomial<double> grad_potential_1d)
 		:
@@ -163,7 +165,7 @@ StokesPolynomialRHS<dim>::StokesPolynomialRHS(
 
 
 template <int dim>
-void StokesPolynomialRHS<dim>::cell(
+void PolynomialRHS<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -196,14 +198,14 @@ void StokesPolynomialRHS<dim>::cell(
 
 
 template <int dim>
-void StokesPolynomialRHS<dim>::boundary(
+void PolynomialRHS<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void StokesPolynomialRHS<dim>::face(
+void PolynomialRHS<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
@@ -213,7 +215,7 @@ void StokesPolynomialRHS<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
-StokesPolynomialResidual<dim>::StokesPolynomialResidual(
+PolynomialResidual<dim>::PolynomialResidual(
   const Polynomials::Polynomial<double> curl_potential_1d,
   const Polynomials::Polynomial<double> grad_potential_1d)
 		:
@@ -227,7 +229,7 @@ StokesPolynomialResidual<dim>::StokesPolynomialResidual(
 
 
 template <int dim>
-void StokesPolynomialResidual<dim>::cell(
+void PolynomialResidual<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -269,7 +271,7 @@ void StokesPolynomialResidual<dim>::cell(
 
 
 template <int dim>
-void StokesPolynomialResidual<dim>::boundary(
+void PolynomialResidual<dim>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -285,7 +287,7 @@ void StokesPolynomialResidual<dim>::boundary(
 
 
 template <int dim>
-void StokesPolynomialResidual<dim>::face(
+void PolynomialResidual<dim>::face(
   DoFInfo<dim>& dinfo1, 
   DoFInfo<dim>& dinfo2,
   IntegrationInfo<dim>& info1, 
@@ -304,7 +306,7 @@ void StokesPolynomialResidual<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
-StokesPolynomialError<dim>::StokesPolynomialError(
+PolynomialError<dim>::PolynomialError(
   const Polynomials::Polynomial<double> curl_potential_1d,
   const Polynomials::Polynomial<double> grad_potential_1d)
 		:
@@ -317,7 +319,7 @@ StokesPolynomialError<dim>::StokesPolynomialError(
 
 
 template <int dim>
-void StokesPolynomialError<dim>::cell(
+void PolynomialError<dim>::cell(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -370,19 +372,19 @@ void StokesPolynomialError<dim>::cell(
 
 
 template <int dim>
-void StokesPolynomialError<dim>::boundary(
+void PolynomialError<dim>::boundary(
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
-void StokesPolynomialError<dim>::face(
+void PolynomialError<dim>::face(
   DoFInfo<dim>&, 
   DoFInfo<dim>&, 
   IntegrationInfo<dim>&, 
   IntegrationInfo<dim>&) const
 {}
+}
 
 #endif
-  

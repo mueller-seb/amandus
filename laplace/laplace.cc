@@ -49,14 +49,14 @@ int main(int argc, const char** argv)
   solution1d.print(std::cout);
   
   // without factor
-  //LaplaceMatrix<d> matrix_integrator;
+  //LaplaceIntegrators::Matrix<d> matrix_integrator;
   
   // with factor 
   double fakt=-0.02;
-  LaplaceMatrixFaktor<d> matrix_integrator(fakt);
+  LaplaceIntegrators::MatrixFaktor<d> matrix_integrator(fakt);
   
-  LaplacePolynomialRHS<d> rhs(solution1d);
-  LaplacePolynomialError<d> error(solution1d);
+  LaplaceIntegrators::PolynomialRHS<d> rhs(solution1d);
+  LaplaceIntegrators::PolynomialError<d> error(solution1d);
 
   AmandusUMFPACK<d>  app(tr, fe);
   AmandusSolve<d> solver(app, matrix_integrator);

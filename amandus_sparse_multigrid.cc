@@ -219,7 +219,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
     preconditioner(this->dof_handler, mg, mg_transfer);
   try 
     {
-      solver.solve(this->matrix, sol, rhs, preconditioner);
+      solver.solve(this->matrix[0], sol, rhs, preconditioner);
     }
   catch(...) {}
   this->constraints().distribute(sol);

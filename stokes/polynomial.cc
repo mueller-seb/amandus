@@ -56,9 +56,9 @@ int main(int argc, const char** argv)
   Polynomials::Polynomial<double> solution1dp(1);
   solution1dp += Polynomials::Monomial<double>(3, 1.);
   
-  StokesMatrix<d> matrix_integrator;
-  StokesPolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
-  StokesPolynomialError<d> error_integrator(solution1d, solution1dp);
+  StokesIntegrators::Matrix<d> matrix_integrator;
+  StokesIntegrators::PolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
+  StokesIntegrators::PolynomialError<d> error_integrator(solution1d, solution1dp);
   
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   ComponentMask boundary_components(d+1, true);
