@@ -1,3 +1,6 @@
+subsection Model
+  set Startup = 1
+end
 subsection Discretization
   set FE         = FESystem<2>[FE_Q<2>(1)-FE_Q<2>(1)]
   set Refinement = 3

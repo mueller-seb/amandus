@@ -150,9 +150,10 @@ namespace Integrators
        * Constructor setting the integrator for the stationary problem
        * and optionally a BlockMask, which for DAE identifies which
        * blocks are subject to timestepping. Given a stationary
-       * operator \f$ F(u) \f$, the local integral computed is
+       * operator \f$ F(u) \f$ and a weighted timestep \f$ \omega \f$,
+       * the local integral computed is
        * \f[
-       * Mu \pm F(u),
+       * Mu \pm \omega F(u),
        * \f]
        * where the sign is positive for the implicit operator and
        * negative for the explicit.
@@ -172,6 +173,12 @@ namespace Integrators
        * velocities. Thus, the mass matrix in the fomula above would
        * have empty blocks.
        *
+       * \param enforce_homogenity Set all components corresponding to
+       * blocks which are not timestepped to zero. If the initial system
+       * satisfies the algebraic constraints then this will be true anyway
+       * but setting it allows us to choose arbitrary initial values for
+       * non-timestepped blocks.
+       *
        * @warning Requires that
        * dealii::MeshWorker::LoopControl::cells_first is false! This
        * integrator has to modify the results of the stationary
@@ -183,11 +190,12 @@ namespace Integrators
        * be applied after all these contributions have been
        * assembled. Setting
        * dealii::MeshWorker::LoopControl::cells_first to false
-       * accompliches this.
+       * accomplishes this.
        */
       Theta (AmandusIntegrator<dim>& client,
 	     bool implicit,
-	     dealii::BlockMask blocks = dealii::BlockMask());
+	     dealii::BlockMask blocks = dealii::BlockMask(),
+       bool enforce_homogenity = false);
      virtual void extract_data (const dealii::AnyData& data);
    private:
       virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
@@ -201,7 +209,8 @@ namespace Integrators
       dealii::SmartPointer<AmandusIntegrator<dim>,  Theta<dim> > client;
       bool is_implicit;
       dealii::BlockMask block_mask;
-  };  
+      bool enforce_homogenity;
+  };
 
 
   template <int dim>
@@ -363,14 +372,16 @@ namespace Integrators
   inline
   Theta<dim>::Theta(AmandusIntegrator<dim>& cl,
 		    bool implicit,
-		    dealii::BlockMask blocks)
-: client(&cl), block_mask(blocks)
+		    dealii::BlockMask blocks,
+        bool enforce_homogenity)
+: client(&cl), block_mask(blocks), enforce_homogenity(enforce_homogenity)
 {
   is_implicit = implicit;
   this->use_cell = client->use_cell;
   this->use_boundary = client->use_boundary;
   this->use_face = client->use_face;
-  // Copy vector requests
+
+  this->add_flags(client->update_flags());
 }
 
 
@@ -404,24 +415,40 @@ namespace Integrators
     
     unsigned int comp = 0;
     for (unsigned int b=0;b<fe.n_base_elements();++b)
+    {
+      unsigned int k=fe.first_block_of_base(b);
+      const dealii::FiniteElement<dim>& base = fe.base_element(b);
+      for (unsigned int m=0;m<fe.element_multiplicity(b);++m)
       {
-	unsigned int k=fe.first_block_of_base(b);
-	const dealii::FiniteElement<dim>& base = fe.base_element(b);
-	for (unsigned int m=0;m<fe.element_multiplicity(b);++m)
-	  {
-	    for (unsigned int i=0;i<dinfo.n_vectors();++i)
-	      dealii::LocalIntegrators::L2::L2(
-		dinfo.vector(i).block(k+m), info.fe_values(b),
-		dealii::make_slice(info.values[0], comp, base.n_components()));
-	    
-	    for (unsigned int i=0;i<dinfo.n_matrices();++i)
-	      if (dinfo.matrix(i, false).row == k+m
-		  && dinfo.matrix(i, false).column == k+m)
-		dealii::LocalIntegrators::L2::mass_matrix(
-		  dinfo.matrix(i, false).matrix, info.fe_values(b));
-	    comp += base.n_components();
-	  }
+        unsigned int block_idx = k + m;
+        if(this->block_mask[block_idx]) // add mass operator
+        {
+          for (unsigned int i=0;i<dinfo.n_vectors();++i)
+          {
+            dealii::LocalIntegrators::L2::L2(
+                dinfo.vector(i).block(block_idx), info.fe_values(b),
+                dealii::make_slice(info.values[0], comp, base.n_components()));
+          }
+
+          for (unsigned int i=0;i<dinfo.n_matrices();++i)
+          {
+            if (dinfo.matrix(i, false).row == block_idx
+                && dinfo.matrix(i, false).column == block_idx)
+            {
+              dealii::LocalIntegrators::L2::mass_matrix(
+                  dinfo.matrix(i, false).matrix, info.fe_values(b));
+            }
+          }
+        } else if(this->enforce_homogenity && !this->is_implicit)
+        {
+          for (unsigned int i=0;i<dinfo.n_vectors();++i)
+          {
+            dinfo.vector(i).block(block_idx) = 0.0;
+          }
+        }
+        comp += base.n_components();
       }
+    }
   }
   
   template <int dim>
