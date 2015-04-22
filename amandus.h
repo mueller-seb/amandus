@@ -155,6 +155,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * to which the constraints are to be applied.
      */
     void set_boundary (unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
+
+    void set_meanvalue(dealii::ComponentMask mask = dealii::ComponentMask());
     
     /**
      * Initialize the vector <code>v</code> to the size matching the
@@ -309,6 +311,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * boundary indicator
      */
     std::vector<dealii::ComponentMask> boundary_masks;
+
+    dealii::ComponentMask meanvalue_mask;
     
     /// The object holding the constraints for the active mesh
     dealii::ConstraintMatrix     constraint_matrix;

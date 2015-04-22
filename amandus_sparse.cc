@@ -42,6 +42,91 @@
 using namespace dealii;
 
 template <int dim>
+class MeanIntegrator : public MeshWorker::LocalIntegrator<dim>
+{
+  public:
+    MeanIntegrator() : MeshWorker::LocalIntegrator<dim>(true, false, false) {}
+
+    virtual void cell(MeshWorker::DoFInfo<dim>& dinfo,
+                      MeshWorker::IntegrationInfo<dim>& info) const
+    {
+      const std::vector<double> one(info.fe_values(0).n_quadrature_points, 1.0);
+      for(unsigned int i = 0; i < dinfo.vector(0).n_blocks(); ++i)
+      {
+        LocalIntegrators::L2::L2(dinfo.vector(0).block(i),
+                                 info.fe_values(i), one);
+      }
+    }
+};
+
+template <int dim>
+void make_meanvalue_constraints(const DoFHandler<dim>& dofh,
+                                const Mapping<dim>& mapping,
+                                const ConstraintMatrix& hanging_nodes,
+                                ConstraintMatrix& constraints,
+                                const ComponentMask& mask)
+{
+  if(mask.n_selected_components(dofh.get_fe().n_components()) == 0)
+  {
+    return;
+  }
+  MeshWorker::IntegrationInfoBox<dim> info_box;
+  UpdateFlags update_flags = update_values;
+  info_box.add_update_flags_cell(update_flags);
+  info_box.initialize(dofh.get_fe(),
+                      mapping,
+                      &dofh.block_info());
+
+  MeshWorker::DoFInfo<dim> dofinfo(dofh.block_info());
+
+  AnyData out;
+  Vector<double> mean_values(dofh.n_dofs());
+  out.add(&mean_values, "mean");
+
+  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;
+  assembler.initialize(hanging_nodes);
+  assembler.initialize(out);
+
+  MeanIntegrator<dim> integrator;
+
+  MeshWorker::integration_loop<dim, dim>(
+      dofh.begin_active(), dofh.end(),
+      dofinfo, info_box,
+      integrator, assembler);
+
+  const FiniteElement<dim>& fe_sys = dofh.get_fe();
+  std::vector<bool> component_dof_indices(dofh.n_dofs());
+  for(unsigned int component = 0; component < fe_sys.n_components(); ++component)
+  {
+    if(mask[component])
+    {
+      ComponentMask current_component(fe_sys.n_components(), false);
+      current_component.set(component, true);
+      DoFTools::extract_dofs(dofh, current_component, component_dof_indices);
+      unsigned int first_dof_idx = std::distance(
+          component_dof_indices.begin(),
+          std::find(component_dof_indices.begin(),
+                    component_dof_indices.end(),
+                    true));
+      constraints.add_line(first_dof_idx);
+      for(unsigned int dof_idx = first_dof_idx + 1;
+          dof_idx < dofh.n_dofs();
+          ++dof_idx)
+      {
+        if(component_dof_indices[dof_idx])
+        {
+          double coefficient = (-1.0 * mean_values[dof_idx] /
+                                mean_values[first_dof_idx]);
+          constraints.add_entry(first_dof_idx,
+                                dof_idx,
+                                coefficient);
+        }
+      }
+    }
+  }
+}
+
+template <int dim>
 AmandusApplicationSparse<dim>::AmandusApplicationSparse(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe,
@@ -51,6 +136,7 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
 		triangulation(&triangulation),
 		fe(&fe),
 		dof_handler(triangulation),
+    meanvalue_mask(fe.n_components(), false),
 		matrix(1),
 		use_umfpack(use_umfpack),
 	        estimates(1),
@@ -129,6 +215,12 @@ AmandusApplicationSparse<dim>::set_boundary(unsigned int index, dealii::Componen
   boundary_masks[index] = mask;
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::set_meanvalue(dealii::ComponentMask mask)
+{
+  this->meanvalue_mask = mask;
+}
 
 template <int dim>
 void AmandusApplicationSparse<dim>::setup_constraints()
@@ -140,7 +232,16 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
-    DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, boundary_masks[i]);
+  {
+    DoFTools::make_zero_boundary_constraints(this->dof_handler, i,
+                                             this->constraint_matrix,
+                                             boundary_masks[i]);
+  }
+  make_meanvalue_constraints(this->dof_handler,
+                             this->mapping,
+                             this->hanging_node_constraints,
+                             this->constraint_matrix,
+                             this->meanvalue_mask);
   DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraint_matrix);
   constraint_matrix.close();
   deallog << "Constrained " << constraint_matrix.n_constraints() << " dofs" << std::endl;
