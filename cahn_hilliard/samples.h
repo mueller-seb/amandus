@@ -80,7 +80,7 @@ namespace CahnHilliard
       {
         if(component == 1)
         {
-          return p.norm() < 0.5 ? 1.0 : -1.0;
+          return p.norm() < 0.3 ? 1.0 : -1.0;
         } else
         {
           return 0.0;
@@ -156,6 +156,65 @@ namespace CahnHilliard
       }
     }
 
+  class TopologicalFunction : public Function<2>
+  {
+    public:
+      TopologicalFunction() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          if(p.norm() < (1.0/8.0) || p(1) < p(0)*p(0) + (1.0/8.0) - 1.0)
+          {
+            return 1.0;
+          }
+        }
+        return 0.0;
+      }
+  };
+
+  class TopologicalFunction2 : public Function<2>
+  {
+    public:
+      TopologicalFunction2() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          if(p.norm() < (1.0/8.0) || p(1) < p(0)*p(0) + (1.0/8.0) - 1.0)
+          {
+            return 1.0;
+          }
+          return -1.0;
+        }
+        return 0.0;
+      }
+  };
+
+  class SquareFunction : public Function<2>
+  {
+    public:
+      SquareFunction() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          if(std::abs(p(0)) <= 0.3 && std::abs(p(1)) <= 0.3)
+          {
+            return 1.0;
+          } else {
+            return -1.0;
+          }
+        }
+        return 0.0;
+      }
+  };
 
   Function<2>* selector(int i)
   {
@@ -167,6 +226,14 @@ namespace CahnHilliard
         return new BallFunction;
       case 2:
         return new CrossFunction<2>;
+      case 3:
+        return new TopologicalFunction;
+      case 4:
+        return new TopologicalFunction2;
+      case 5:
+        return new ZeroFunction<2>(2);
+      case 6:
+        return new SquareFunction;
     }
     return 0;
   }

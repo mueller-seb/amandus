@@ -61,7 +61,10 @@ int main(int argc, const char** argv)
                                             true, timemask);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparse<d> app(tr, *fe);
+  AmandusApplicationSparse<d> app(tr, *fe, true);
+  app.parse_parameters(param);
+  //AmandusApplication<d> app(tr, *fe);
+  //app.set_meanvalue();
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

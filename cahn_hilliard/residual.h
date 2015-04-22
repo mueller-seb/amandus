@@ -3,6 +3,7 @@
 
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
+#include <deal.II/integrators/advection.h>
 #include <integrator.h>
 
 namespace CahnHilliard
@@ -52,16 +53,31 @@ namespace CahnHilliard
       Assert(info.gradients.size() >= 1,
              ExcDimensionMismatch(info.values.size(), 1));
 
+      // fixed advection
+      unsigned int n_qpoints = info.fe_values(1).n_quadrature_points;
+      std::vector<std::vector<double> > direction(
+          dim, std::vector<double>(n_qpoints, 0.0));
+        for(unsigned int q = 0; q < dim; ++q)
+        {
+          double y = info.fe_values(1).quadrature_point(q)(dim-1);
+          //direction[0][q] = (1.0 / (y*y + 1e-1));
+          direction[0][q] = (1000.0*y);
+          //direction[d][q] = 2000 * info.fe_values(1).quadrature_point(q)(d);
+        }
+
+
       const std::vector<std::vector<double> >& point = info.values[0];
       const std::vector<std::vector<Tensor<1, dim> > >& Dpoint = info.gradients[0];
+
+      double eps = 5e-2;
+      //double minus_eps_square = -1e-2;
 
       std::vector<double> minus_d_potential(point[1].size());
       for(int q = 0; q < minus_d_potential.size(); ++q)
       {
         minus_d_potential[q] = (
-            point[1][q] * (1.0 - point[1][q] * point[1][q]));
+            point[1][q] * (1.0 - point[1][q] * point[1][q])) / eps;
       }
-      double minus_eps_square = -1e-2;
 
       L2::L2(dinfo.vector(0).block(0),
              info.fe_values(0), point[0]);
@@ -70,11 +86,19 @@ namespace CahnHilliard
       Laplace::cell_residual(dinfo.vector(0).block(0),
                              info.fe_values(0),
                              Dpoint[1],
-                             minus_eps_square);
+                             -1.0*eps);
+                             //minus_eps_square);
 
       Laplace::cell_residual(dinfo.vector(0).block(1),
                              info.fe_values(1),
                              Dpoint[0]);
+
+      dealii::LocalIntegrators::Advection::cell_residual(
+          dinfo.vector(0).block(1),
+          info.fe_values(1),
+          Dpoint[1],
+          direction
+          );
     }
 }
 
