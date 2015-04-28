@@ -27,15 +27,20 @@ namespace CahnHilliard
     class Residual : public AmandusIntegrator<dim>
   {
     public:
-      Residual();
+      Residual(double diffusion, const Function<dim>& advection);
 
       virtual void cell(DoFInfo<dim>& dinfo,
                         IntegrationInfo<dim>& info) const;
+
+    private:
+      const double diffusion;
+      const Function<dim>* const advection;
   };
 
 
   template <int dim>
-    Residual<dim>::Residual()
+    Residual<dim>::Residual(double diffusion, const Function<dim>& advection) :
+      diffusion(diffusion), advection(&advection)
     {
       this->use_cell = true;
       this->use_boundary = false;
@@ -53,30 +58,20 @@ namespace CahnHilliard
       Assert(info.gradients.size() >= 1,
              ExcDimensionMismatch(info.values.size(), 1));
 
-      // fixed advection
-      unsigned int n_qpoints = info.fe_values(1).n_quadrature_points;
+      const unsigned int n_qpoints = info.fe_values(1).n_quadrature_points;
       std::vector<std::vector<double> > direction(
-          dim, std::vector<double>(n_qpoints, 0.0));
-        for(unsigned int q = 0; q < dim; ++q)
-        {
-          double y = info.fe_values(1).quadrature_point(q)(dim-1);
-          //direction[0][q] = (1.0 / (y*y + 1e-1));
-          direction[0][q] = (1000.0*y);
-          //direction[d][q] = 2000 * info.fe_values(1).quadrature_point(q)(d);
-        }
-
+          dim, std::vector<double>(n_qpoints));
+      this->advection->vector_values(info.fe_values(1).get_quadrature_points(),
+                                     direction);
 
       const std::vector<std::vector<double> >& point = info.values[0];
       const std::vector<std::vector<Tensor<1, dim> > >& Dpoint = info.gradients[0];
-
-      double eps = 5e-2;
-      //double minus_eps_square = -1e-2;
 
       std::vector<double> minus_d_potential(point[1].size());
       for(int q = 0; q < minus_d_potential.size(); ++q)
       {
         minus_d_potential[q] = (
-            point[1][q] * (1.0 - point[1][q] * point[1][q])) / eps;
+            point[1][q] * (1.0 - point[1][q] * point[1][q])) / diffusion;
       }
 
       L2::L2(dinfo.vector(0).block(0),
@@ -86,8 +81,7 @@ namespace CahnHilliard
       Laplace::cell_residual(dinfo.vector(0).block(0),
                              info.fe_values(0),
                              Dpoint[1],
-                             -1.0*eps);
-                             //minus_eps_square);
+                             -1.0*diffusion);
 
       Laplace::cell_residual(dinfo.vector(0).block(1),
                              info.fe_values(1),

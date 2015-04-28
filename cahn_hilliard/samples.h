@@ -80,7 +80,7 @@ namespace CahnHilliard
       {
         if(component == 1)
         {
-          return p.norm() < 0.3 ? 1.0 : -1.0;
+          return p.norm() < 0.2 ? 1.0 : -1.0;
         } else
         {
           return 0.0;
@@ -205,7 +205,7 @@ namespace CahnHilliard
       {
         if(component == 1)
         {
-          if(std::abs(p(0)) <= 0.3 && std::abs(p(1)) <= 0.3)
+          if(std::abs(p(0)) <= 0.15 && std::abs(p(1)) <= 0.15)
           {
             return 1.0;
           } else {
@@ -216,24 +216,135 @@ namespace CahnHilliard
       }
   };
 
-  Function<2>* selector(int i)
+  class Breakup : public Function<2>
+  {
+    public:
+      Breakup() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          if(std::abs(p(1)) <= 0.3 && std::abs(p(0)) <= p(1)*p(1) + 0.025)
+          {
+            return 1.0;
+          } else {
+            return -1.0;
+          }
+        }
+        return 0.0;
+      }
+  };
+
+  class DoubleBall : public Function<2>
+  {
+    public:
+      DoubleBall() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          double r = 0.175;
+          double overlap = 0.0025;
+          Point<2> center1(0.0, r - overlap);
+          Point<2> center2(0.0, overlap - r);
+          if((p - center1).norm() <= r || (p - center2).norm() <= r)
+          {
+            return 1.0;
+          } else {
+            return -1.0;
+          }
+        }
+        return 0.0;
+      }
+  };
+  
+  class Strip : public Function<2>
+  {
+    public:
+      Strip() : Function<2>(2) {}
+
+      virtual double value(const Point<2>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 1)
+        {
+          if(std::abs(p(1)) < 0.5 &&
+             (std::abs(p(0)) < 0.05 ||
+             ((p(0) > 0 && p(0) < -2.0*p(1)) || (p(0) < 0 && p(0) > -2.0*p(1)))
+             ))
+          {
+            return 1.0;
+          } else {
+            return -1.0;
+          }
+        }
+        return 0.0;
+      }
+  };
+
+  template <int dim>
+  Function<dim>* selector(int i)
   {
     switch(i)
     {
       case 0:
-        return new Startup<2>;
+        return new Startup<dim>;
       case 1:
         return new BallFunction;
       case 2:
-        return new CrossFunction<2>;
+        return new CrossFunction<dim>;
       case 3:
         return new TopologicalFunction;
       case 4:
         return new TopologicalFunction2;
       case 5:
-        return new ZeroFunction<2>(2);
+        return new ZeroFunction<dim>(2);
       case 6:
         return new SquareFunction;
+      case 7:
+        return new Breakup;
+      case 8:
+        return new DoubleBall;
+      case 9:
+        return new Strip;
+    }
+    return 0;
+  }
+
+
+  template <int dim>
+    class ShearAdvection : public Function<dim>
+  {
+    public:
+      ShearAdvection(double strength) : Function<dim>(dim), strength(strength) {}
+
+      virtual double value(const Point<dim>& p,
+                           const unsigned int component = 0) const
+      {
+        if(component == 0)
+        {
+          return -1.0 * this->strength * p(1);
+        } else
+        {
+          return 0.0;
+        }
+      }
+
+    private:
+      const double strength;
+  };
+
+  template <int dim>
+  Function<dim>* advectionselector(int i, double strength = 0.0)
+  {
+    switch(i)
+    {
+      case 0:
+        return new ShearAdvection<dim>(strength);
     }
     return 0;
   }

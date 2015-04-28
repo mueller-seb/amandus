@@ -38,26 +38,9 @@
 #include <fstream>
 
 #include <amandus.h>
+#include <integrator.h>
 
 using namespace dealii;
-
-template <int dim>
-class MeanIntegrator : public MeshWorker::LocalIntegrator<dim>
-{
-  public:
-    MeanIntegrator() : MeshWorker::LocalIntegrator<dim>(true, false, false) {}
-
-    virtual void cell(MeshWorker::DoFInfo<dim>& dinfo,
-                      MeshWorker::IntegrationInfo<dim>& info) const
-    {
-      const std::vector<double> one(info.fe_values(0).n_quadrature_points, 1.0);
-      for(unsigned int i = 0; i < dinfo.vector(0).n_blocks(); ++i)
-      {
-        LocalIntegrators::L2::L2(dinfo.vector(0).block(i),
-                                 info.fe_values(i), one);
-      }
-    }
-};
 
 template <int dim>
 void make_meanvalue_constraints(const DoFHandler<dim>& dofh,
@@ -87,7 +70,7 @@ void make_meanvalue_constraints(const DoFHandler<dim>& dofh,
   assembler.initialize(hanging_nodes);
   assembler.initialize(out);
 
-  MeanIntegrator<dim> integrator;
+  Integrators::MeanIntegrator<dim> integrator;
 
   MeshWorker::integration_loop<dim, dim>(
       dofh.begin_active(), dofh.end(),

@@ -486,6 +486,25 @@ namespace Integrators
 	dinfo2.matrix(i, true).matrix *= factor;
       }
   }
+
+template <int dim>
+class MeanIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
+{
+  public:
+    MeanIntegrator() : dealii::MeshWorker::LocalIntegrator<dim>(true, false, false) {}
+
+    virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                      dealii::MeshWorker::IntegrationInfo<dim>& info) const
+    {
+      const std::vector<double> one(info.fe_values(0).n_quadrature_points, 1.0);
+      for(unsigned int i = 0; i < dinfo.vector(0).n_blocks(); ++i)
+      {
+        dealii::LocalIntegrators::L2::L2(dinfo.vector(0).block(i),
+                                         info.fe_values(i), one);
+      }
+    }
+};
+
 }
 
 

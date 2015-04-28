@@ -9,6 +9,7 @@
 #include <cahn_hilliard/residual.h>
 #include <cahn_hilliard/matrix.h>
 #include <cahn_hilliard/samples.h>
+#include <cahn_hilliard/massout.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -27,6 +28,8 @@ int main(int argc, const char** argv)
 
   param.enter_subsection("Model");
   param.declare_entry("Startup", "1");
+  param.declare_entry("Diffusion", "0.1");
+  param.declare_entry("AdvectionStrength", "0.0");
   param.leave_subsection();
 
   param.read(argc, argv);
@@ -34,6 +37,9 @@ int main(int argc, const char** argv)
 
   param.enter_subsection("Model");
   int startup_no = param.get_integer("Startup");
+  double diffusion = param.get_double("Diffusion");
+  double advectionstrength = param.get_double("AdvectionStrength");
+  Function<d>* advection = CahnHilliard::advectionselector<d>(0, advectionstrength);
   param.leave_subsection();
 
   param.enter_subsection("Discretization");
@@ -49,11 +55,11 @@ int main(int argc, const char** argv)
   mask.push_back(true);
   BlockMask timemask(mask);
 
-  CahnHilliard::Matrix<d> matrix_stationary;
+  CahnHilliard::Matrix<d> matrix_stationary(diffusion, *advection);
   Integrators::Theta<d> matrix_integrator(matrix_stationary,
                                           true, timemask);
   matrix_integrator.input_vector_names.push_back("Newton iterate");
-  CahnHilliard::Residual<d> residual_integrator;
+  CahnHilliard::Residual<d> residual_integrator(diffusion, *advection);
   Integrators::Theta<d> explicit_integrator(residual_integrator,
                                             false, timemask, true);
   explicit_integrator.input_vector_names.push_back("Previous iterate");
@@ -62,8 +68,8 @@ int main(int argc, const char** argv)
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
   AmandusApplicationSparse<d> app(tr, *fe, true);
+  //AmandusApplication<d> app(tr, *fe);   // only for large diffusion
   app.parse_parameters(param);
-  //AmandusApplication<d> app(tr, *fe);
   //app.set_meanvalue();
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d> solver(app, matrix_integrator);
@@ -72,7 +78,8 @@ int main(int argc, const char** argv)
   // Set up timestepping algorithm with embedded Newton solver
 
   param.enter_subsection("Output");
-  Algorithms::DoFOutputOperator<Vector<double>, d> newout;
+  //Algorithms::DoFOutputOperator<Vector<double>, d> newout;
+  CahnHilliard::MassOutputOperator<Vector<double>, d> newout;
   newout.parse_parameters(param);
   newout.initialize(app.dofs());
   param.leave_subsection();
@@ -92,7 +99,7 @@ int main(int argc, const char** argv)
   app.setup_system();
   app.setup_vector(solution);
 
-  Function<d>& startup = *CahnHilliard::selector(startup_no);
+  Function<d>& startup = *CahnHilliard::selector<d>(startup_no);
   VectorTools::interpolate(app.dofs(), startup, solution);
 
   dealii::AnyData indata;
