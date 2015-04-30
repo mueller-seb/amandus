@@ -116,6 +116,7 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(
   bool use_umfpack)
 		:
 		control(100, 1.e-20, 1.e-2),
+    signals(triangulation.signals),
 		triangulation(&triangulation),
 		fe(&fe),
 		dof_handler(triangulation),
@@ -450,6 +451,23 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
     triangulation->refine_global(1);
   else
     triangulation->execute_coarsening_and_refinement ();
+  
+  deallog << "Triangulation "
+	  << triangulation->n_active_cells() << " cells, "
+	  << triangulation->n_levels() << " levels" << std::endl;
+}
+
+template <int dim>
+void AmandusApplicationSparse<dim>::refine_mesh(
+    const Vector<double>& criteria,
+    const double top_fraction, const double bottom_fraction,
+    const unsigned int max_n_cells)
+{
+  GridRefinement::refine_and_coarsen_fixed_number(*(this->triangulation),
+                                                  criteria,
+                                                  top_fraction, bottom_fraction,
+                                                  max_n_cells);
+  triangulation->execute_coarsening_and_refinement();
   
   deallog << "Triangulation "
 	  << triangulation->n_active_cells() << " cells, "

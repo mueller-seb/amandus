@@ -184,6 +184,12 @@ class AmandusApplicationSparse : public dealii::Subscriptor
   
     void refine_mesh (const bool global = false);
 
+    void refine_mesh(
+        const dealii::Vector<double>& criteria,
+        const double top_fraction, const double bottom_fraction,
+        const unsigned int max_n_cells =
+          std::numeric_limits< unsigned int >::max());
+
     /**
      * \brief The object describing the finite element space.
      */
@@ -292,6 +298,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * Reference to parameters read by parse_parameters().
      */
     dealii::SmartPointer<dealii::ParameterHandler> param;
+
+    typename dealii::Triangulation<dim>::Signals& signals;
     
   protected:
     /// The mesh

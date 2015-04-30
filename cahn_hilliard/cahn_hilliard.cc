@@ -76,12 +76,16 @@ int main(int argc, const char** argv)
   AmandusResidual<d> residual(app, implicit_integrator);
 
   // Set up timestepping algorithm with embedded Newton solver
+  
+  CahnHilliard::Remesher<Vector<double>, d> remesher;
+  remesher.init(&app);
 
   param.enter_subsection("Output");
   //Algorithms::DoFOutputOperator<Vector<double>, d> newout;
   CahnHilliard::MassOutputOperator<Vector<double>, d> newout;
   newout.parse_parameters(param);
   newout.initialize(app.dofs());
+  newout.initialize(&remesher);
   param.leave_subsection();
 
   Algorithms::Newton<Vector<double> > newton(residual, solver);
@@ -91,6 +95,7 @@ int main(int argc, const char** argv)
   Algorithms::ThetaTimestepping<Vector<double> > timestepping(expl, newton);
   timestepping.set_output(newout);
   timestepping.parse_parameters(param);
+  remesher.init(&timestepping);
 
   // Now we prepare for the actual timestepping
 

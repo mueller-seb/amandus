@@ -46,6 +46,7 @@ void
 AmandusResidual<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
 {
   integrator->extract_data(in);
+  application->setup_vector(*out.entry<Vector<double>*>(0));
   *out.entry<Vector<double>*>(0) = 0.;
   application->assemble_right_hand_side(out, in, *integrator);
   
