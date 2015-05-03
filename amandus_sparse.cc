@@ -140,6 +140,7 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
+    if (boundary_masks[i].n_selected_components() != 0)
     DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, boundary_masks[i]);
   DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraint_matrix);
   constraint_matrix.close();
@@ -449,10 +450,12 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
 						    const AnyData* in) const
 {
   DataOut<dim> data_out;
+  unsigned int subdivisions = fe->tensor_degree();
   if(param != 0)
   {
     param->enter_subsection("Output");
     data_out.parse_parameters(*param);
+    subdivisions = param->get_integer("Subdivisions");
     param->leave_subsection();
   } else {
     data_out.set_default_format(DataOutBase::vtk);
@@ -476,7 +479,7 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   {    
     AssertThrow(false, ExcNotImplemented());
   }
-  data_out.build_patches (this->fe->tensor_degree());
+  data_out.build_patches (subdivisions);
   
   std::ostringstream filename;
   filename << "solution-"
