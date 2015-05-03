@@ -2,8 +2,9 @@
  * @file
  * <ul>
  * <li> Stationary Elasticity equations</li>
- * <li> Homogeneous Dirichlet boundary condition</li>
- * <li> Exact polynomial solution</li>
+ * <li> Homogeneous Dirichlet boundary condition on top</li>
+ * <li> All othr boundaries free</li>
+ * <li> Gravity pulls down</li>
  * <li> Newton solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -51,12 +52,6 @@ Startup<dim>::vector_value_list (
   std::vector<Vector<double> >   &values) const
 {
   AssertDimension(points.size(), values.size());
-  
-  for (unsigned int k=0;k<points.size();++k)
-    {
-      const Point<dim>& p = points[k];
-      values[k](0) = 1.*p(0);	
-    }
 }
 
   
@@ -67,12 +62,6 @@ Startup<dim>::vector_values (
   std::vector<std::vector<double> >   &values) const
 {
   AssertVectorVectorDimension(values, this->n_components, points.size());
-  
-  for (unsigned int k=0;k<points.size();++k)
-    {
-      const Point<dim>& p = points[k];
-      values[0][k] = 1.*p(0);	
-    }
 }
 
   
@@ -98,19 +87,20 @@ int main(int argc, const char** argv)
   
   Startup<d> startup;
   std::set<unsigned int> boundaries;
-  boundaries.insert(0);
-  boundaries.insert(1);
+  boundaries.insert(3);
   
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
   ::Elasticity::Matrix<d> matrix_integrator(parameters, boundaries);
-  ::Elasticity::Residual<d> rhs_integrator(parameters, startup, boundaries);
+  ::Elasticity::Residual<d,1> rhs_integrator(parameters, startup, boundaries);
   rhs_integrator.input_vector_names.push_back("Newton iterate");
   
   AmandusUMFPACK<d> app(tr, *fe);
   app.parse_parameters(param);
-  app.set_boundary(0);
-  app.set_boundary(1);
+  app.set_boundary(0, ComponentMask(2, false));
+  app.set_boundary(1, ComponentMask(2, false));
+  app.set_boundary(2, ComponentMask(2, false));
+  app.set_boundary(3, ComponentMask(2, true));
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
   

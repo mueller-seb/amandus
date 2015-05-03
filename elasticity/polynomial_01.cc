@@ -47,6 +47,8 @@ int main(int argc, const char** argv)
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
+  std::set<unsigned int> boundaries;
+  boundaries.insert(0);
 
   Polynomials::Polynomial<double> grad_potential;
   grad_potential += Polynomials::Monomial<double>(4, 1.);
@@ -63,7 +65,7 @@ int main(int argc, const char** argv)
   
   ::Elasticity::Parameters parameters;
   parameters.parse_parameters(param);
-  ::Elasticity::Matrix<d> matrix_integrator(parameters);
+  ::Elasticity::Matrix<d> matrix_integrator(parameters, boundaries);
   ::Elasticity::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Elasticity::PolynomialError<d> error_integrator(parameters, potentials);
   if (fe->conforms(FiniteElementData<d>::H1))

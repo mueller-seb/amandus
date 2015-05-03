@@ -140,7 +140,7 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
-    if (boundary_masks[i].n_selected_components() != 0)
+    if (boundary_masks[i].n_selected_components(1) != 0)
     DoFTools::make_zero_boundary_constraints(this->dof_handler, i, this->constraint_matrix, boundary_masks[i]);
   DoFTools::make_hanging_node_constraints(this->dof_handler, this->constraint_matrix);
   constraint_matrix.close();
