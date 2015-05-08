@@ -186,9 +186,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 
     void refine_mesh(
         const dealii::Vector<double>& criteria,
-        const double top_fraction, const double bottom_fraction,
-        const unsigned int max_n_cells =
-          std::numeric_limits< unsigned int >::max());
+        const double threshold_refine, const double threshold_coarsen);
 
     /**
      * \brief The object describing the finite element space.

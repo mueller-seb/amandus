@@ -460,13 +460,14 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 template <int dim>
 void AmandusApplicationSparse<dim>::refine_mesh(
     const Vector<double>& criteria,
-    const double top_fraction, const double bottom_fraction,
-    const unsigned int max_n_cells)
+    const double threshold_refine, const double threshold_coarsen)
 {
-  GridRefinement::refine_and_coarsen_fixed_number(*(this->triangulation),
-                                                  criteria,
-                                                  top_fraction, bottom_fraction,
-                                                  max_n_cells);
+  GridRefinement::refine(*(this->triangulation),
+                         criteria,
+                         threshold_refine);
+  GridRefinement::coarsen(*(this->triangulation),
+                          criteria,
+                          threshold_coarsen);
   triangulation->execute_coarsening_and_refinement();
   
   deallog << "Triangulation "

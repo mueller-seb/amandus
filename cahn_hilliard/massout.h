@@ -95,7 +95,7 @@ namespace CahnHilliard
 
       void remesh()
       {
-        this->app->refine_mesh(this->criterion.block(0), 0.2, 0.8, 5000); // TODO: adjust parameters
+        this->app->refine_mesh(this->criterion.block(0), 0.1, 0.1); // TODO: adjust parameters
       }
 
       void prepare_transfer()
