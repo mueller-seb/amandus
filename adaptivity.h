@@ -1,6 +1,14 @@
 #ifndef __adaptivity_h
 #define __adaptivity_h
 
+/**
+ * @file
+ *
+ * @brief Utilities for adaptive mesh refinement
+ *
+ * @ingroup Postprocessing
+ */
+
 #include <amandus.h>
 #include <integrator.h>
 #include <deal.II/base/smartpointer.h>
@@ -9,7 +17,9 @@
 #include <deal.II/grid/grid_refinement.h>
 
 /**
- * Base class for remeshing operators. Has access to app's triangulation.
+ * @brief Base class for remeshing operators.
+ *
+ * @ingroup Postprocessing
  **/
 template <class VECTOR, int dim>
 class Remesher : public dealii::Algorithms::OperatorBase
@@ -29,8 +39,9 @@ class Remesher : public dealii::Algorithms::OperatorBase
 };
 
 /**
- * Remesher which is listening for refinements and interpolates given
- * vectors.
+ * @brief Remesher that interpolates stored vectors upon refinement
+ *
+ * @ingroup Postprocessing
  **/
 template <class VECTOR, int dim>
 class InterpolatingRemesher : public Remesher<VECTOR, dim>
@@ -44,23 +55,22 @@ class InterpolatingRemesher : public Remesher<VECTOR, dim>
     this->connect_transfer();
   }
 
-    void connect_transfer()
-    {
-      this->tria->signals.pre_refinement.connect(
-          dealii::std_cxx11::bind(
-              &InterpolatingRemesher<VECTOR, dim>::prepare_transfer,
-              dealii::std_cxx11::ref(*this)));
-      this->tria->signals.post_refinement.connect(
-          dealii::std_cxx11::bind(
-              &InterpolatingRemesher<VECTOR, dim>::finalize_transfer,
-              dealii::std_cxx11::ref(*this)));
-    }
-
+    /// called at pre_refinement signal of triangulation
     virtual void prepare_transfer()
     {
       this->transfer.prepare_for_coarsening_and_refinement(this->to_transfer);
     }
 
+    /**
+     * @ brief called at post_refinement signal of triangulation
+     *
+     * Setup system on new mesh and interpolate all vectors in to_transfer
+     * into transferred.
+     *
+     * Overload this function in a subclass if you need to notify some other
+     * operator of the remeshing. (Theta timestepping reassembles anyway
+     * after a timestep, thus we don't need to do it in that case)
+     */
     virtual void finalize_transfer()
     {
       this->app->setup_system();
@@ -78,14 +88,30 @@ class InterpolatingRemesher : public Remesher<VECTOR, dim>
     }
 
   protected:
+    void connect_transfer()
+    {
+      this->tria->signals.pre_refinement.connect(
+          dealii::std_cxx11::bind(
+              &InterpolatingRemesher<VECTOR, dim>::prepare_transfer,
+              dealii::std_cxx11::ref(*this)));
+      this->tria->signals.post_refinement.connect(
+          dealii::std_cxx11::bind(
+              &InterpolatingRemesher<VECTOR, dim>::finalize_transfer,
+              dealii::std_cxx11::ref(*this)));
+    }
+
     dealii::SolutionTransfer<dim, VECTOR> transfer;
+    /// Vectors to be transferred to new grid.
     std::vector<VECTOR> to_transfer;
+    /// Interpolated vectors on new grid.
     std::vector<VECTOR> transferred;
 };
 
 
 /**
- * Remesher which interpolates all vectors from out.
+ * @brief Interpolating remesher which interpolates all vectors.
+ *
+ * @ingroup Postprocessing
  **/
 template <class VECTOR, int dim>
 class AllInterpolatingRemesher : public InterpolatingRemesher<VECTOR, dim>
@@ -136,7 +162,15 @@ class AllInterpolatingRemesher : public InterpolatingRemesher<VECTOR, dim>
 
 
 /**
- * Remesher which uses an Error Integrator to calculate refinement criterion
+ * @brief Remesher interpolating all vectors and using an ErrorIntegrator
+ * to calculate criterion.
+ *
+ * Calculates a cellwise refinement indicator based on an ErrorIntegrator.
+ * Passes that information to a callback which should flag cells for
+ * refinement/coarsening depending on the indicator. Modifies the mesh and
+ * interpolates all the vectors it received.
+ *
+ * @ingroup Postprocessing
  **/
 template <class VECTOR, int dim>
 class ErrorRemesher : public AllInterpolatingRemesher<VECTOR, dim>
@@ -149,6 +183,7 @@ class ErrorRemesher : public AllInterpolatingRemesher<VECTOR, dim>
       error_integrator(&error_integrator)
   {}
 
+    /// Set callback for flagging
     void flag_callback(
         dealii::std_cxx11::function<
         void(dealii::Triangulation<dim>&, const dealii::BlockVector<double>&)>

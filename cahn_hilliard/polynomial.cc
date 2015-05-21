@@ -1,7 +1,23 @@
+/**
+ * @file
+ *
+ * @brief Stationary, polynomial Cahn-Hilliard model
+ *
+ * <ul>
+ * <li>Stationary Cahn-Hilliard model</li>
+ * <li>Polynomial solution</li>
+ * <li>Dimensions two and three</li>
+ * <li>UMFPack and Multigrid preconditioner with Schwarz-smoother for large
+ * diffusion</li>
+ * </ul>
+ *
+ * @ingroup Verification
+ */
 #include <deal.II/fe/fe.h>
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
+#include <boost/scoped_ptr.hpp>
 
 #include <apps.h>
 #include <tests.h>
@@ -9,7 +25,6 @@
 #include <cahn_hilliard/residual.h>
 #include <cahn_hilliard/matrix.h>
 
-#include <boost/scoped_ptr.hpp>
 
 using namespace dealii;
 

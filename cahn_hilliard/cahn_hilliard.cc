@@ -1,8 +1,33 @@
+/**
+ * @file
+ *
+ * @brief Instationary Cahn-Hilliard model.
+ * @ingroup Examples
+ * 
+ * The Cahn-Hilliard model, which in strong form reads
+ * \f[
+ * u' = - \Delta (\frac{1}{\epsilon} w'(u) - \epsilon \Delta u)
+ * \f]
+ * Where \f$w\f$ is usually a double-well energy function like
+ * \f$(u^2 - 1)^2\f$. The model can be derived as a gradient flow,
+ * minimizing the same Energy functional as the Allen-Cahn model. However,
+ * unlike the Allen-Cahn, this model is mass conserving.
+ *
+ * It can be used as a model for seperated phases with \f$\epsilon\f$
+ * controlling the width of the interface. Currently, multigrid is only
+ * working for very large \f$\epsilon\f$ which is probably related to the fact
+ * that the coarse grids can not resolve sharp interfaces.
+ *
+ * As the interface is the only interesting part of the solution, we can use
+ * adaptive mesh refinement to calculate with relatively few degrees of
+ * freedom.
+ */
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/base/function.h>
 #include <deal.II/fe/fe_tools.h>
+#include <boost/scoped_ptr.hpp>
 
 #include <apps.h>
 #include <adaptivity.h>
@@ -12,7 +37,6 @@
 #include <cahn_hilliard/samples.h>
 #include <cahn_hilliard/massout.h>
 
-#include <boost/scoped_ptr.hpp>
 
 using namespace dealii;
 
