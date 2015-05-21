@@ -55,6 +55,7 @@
 #include <iostream>
 #include <fstream>
 
+
 /**
  * A class managing a common ParameterHandler for most applications.
  */
@@ -110,7 +111,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 {
   public:
     typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
-  
+
     /**
      * Constructor, setting the finite element and the
      * triangulation. This constructor does not distribute the degrees
@@ -156,6 +157,12 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     void set_boundary (unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
 
+    /**
+     * Constrain solution to be mean value free.
+     *
+     * @param mask the object selecting the blocks of an dealii::FESystem
+     * to which the constraints are to be applied.
+     */
     void set_meanvalue(dealii::ComponentMask mask = dealii::ComponentMask());
     
     /**
@@ -182,11 +189,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 				  const dealii::AnyData &in,
 				  const AmandusIntegrator<dim>& integrator) const;
   
+    /**
+     * Refine the mesh globally. For more sophisticated (adaptive)
+     * refinement strategies, use a Remesher.
+     */
     void refine_mesh (const bool global = false);
-
-    void refine_mesh(
-        const dealii::Vector<double>& criteria,
-        const double threshold_refine, const double threshold_coarsen);
 
     /**
      * \brief The object describing the finite element space.

@@ -11,133 +11,13 @@
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/numerics/solution_transfer.h>
 
+#include <adaptivity.h>
+
 namespace CahnHilliard
 {
   using namespace dealii;
   using namespace Algorithms;
 
-  template <class VECTOR, int dim>
-  class Remesher
-  {
-    public:
-      Remesher() : report(0)
-      {
-      }
-
-      ~Remesher()
-      {
-        if(transfer != 0)
-        {
-          delete transfer;
-        }
-      }
-
-      void init(AmandusApplicationSparse<dim>* app)
-      {
-        this->app = app;
-        this->dofh = &(app->dofs());
-        transfer = new SolutionTransfer<dim, VECTOR>(*(this->dofh));
-        connect_transfer();
-      }
-
-      void init(Operator<VECTOR>* report)
-      {
-        this->report = report;
-      }
-
-      void remesh(AnyData& data)
-      {
-        deallog.push("Remesher");
-        deallog << "Remeshing..." << std::endl;
-        //VECTOR* solution = data.entry("solution");
-        assess(data);
-        deallog << "Total criterion: " << this->criterion.block(0).l2_norm()
-          << std::endl;
-        extract_vectors(data);
-        remesh();
-        deallog.pop();
-      }
-
-      void extract_vectors(const AnyData& data)
-      {
-        to_transfer.resize(0);
-        for(unsigned int i = 0; i < data.size(); ++i)
-        {
-          if(data.is_type<VECTOR*>(i))
-          {
-            originals.push_back(data.entry<VECTOR*>(i));
-            to_transfer.push_back(*(data.try_read_ptr<VECTOR>(i)));
-          }
-        }
-        deallog << "Extracted " << to_transfer.size() << " vectors." << std::endl;
-      }
-
-      void assess(const AnyData& data)
-      {
-        Integrators::H1ErrorIntegrator<dim> h1_error_integrator;
-        ZeroFunction<dim> zero(2);
-        ErrorIntegrator<dim> error_integrator(zero);
-        ComponentMask mask(2, false);
-        mask.set(1, true);
-        error_integrator.add(&h1_error_integrator, mask);
-        this->app->error(criterion, data, error_integrator);
-      }
-
-      void connect_transfer()
-      {
-        this->app->signals.pre_refinement.connect(
-            std_cxx11::bind(&Remesher<VECTOR, dim>::prepare_transfer,
-                            std_cxx11::ref(*this)));
-        this->app->signals.post_refinement.connect(
-            std_cxx11::bind(&Remesher<VECTOR, dim>::finalize_remeshing,
-                            std_cxx11::ref(*this)));
-      }
-
-      void remesh()
-      {
-        this->app->refine_mesh(this->criterion.block(0), 0.1, 0.1); // TODO: adjust parameters
-      }
-
-      void prepare_transfer()
-      {
-        this->transfer->prepare_for_coarsening_and_refinement(to_transfer);
-      }
-
-      void finalize_remeshing()
-      {
-        this->app->setup_system();
-        result.resize(to_transfer.size());
-        for(unsigned int i = 0; i < result.size(); ++i)
-        {
-          result[i].reinit(this->app->dofs().n_dofs());
-        }
-        this->transfer->interpolate(to_transfer, result);
-        for(unsigned int i = 0; i < result.size(); ++i)
-        {
-          deallog << "Writing back interpolated vector " << i << "." << std::endl;
-          //this->app->setup_vector(
-          *(originals[i]) = result[i];
-        }
-        if(report != 0)
-        {
-          deallog << "Reporting." << std::endl;
-          report->notify(Events::remesh);
-        }
-        //this->transfer->clear();
-        delete this->transfer;
-        this->transfer = new SolutionTransfer<dim, VECTOR>(*(this->dofh));
-      }
-
-    protected:
-      const DoFHandler<dim>* dofh;
-      AmandusApplicationSparse<dim>* app;
-      BlockVector<double> criterion;
-      SolutionTransfer<dim, VECTOR>* transfer;
-      std::vector<VECTOR*> originals;
-      std::vector<VECTOR> to_transfer;
-      std::vector<VECTOR> result;
-      Operator<VECTOR>* report;
-  };
 
   template <class VECTOR, int dim, int spacedim=dim>
   class MassOutputOperator : public OutputOperator<VECTOR>
@@ -300,7 +180,7 @@ namespace CahnHilliard
     log_mass(data.try_read_ptr<VECTOR>(0));
     if(this->remesher != 0)
     {
-      this->remesher->remesh(const_cast<AnyData&>(data));
+      this->remesher->operator()(const_cast<AnyData&>(data), AnyData());
     }
 
     timer.restart();

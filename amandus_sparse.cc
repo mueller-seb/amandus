@@ -457,24 +457,6 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 	  << triangulation->n_levels() << " levels" << std::endl;
 }
 
-template <int dim>
-void AmandusApplicationSparse<dim>::refine_mesh(
-    const Vector<double>& criteria,
-    const double threshold_refine, const double threshold_coarsen)
-{
-  GridRefinement::refine(*(this->triangulation),
-                         criteria,
-                         threshold_refine);
-  GridRefinement::coarsen(*(this->triangulation),
-                          criteria,
-                          threshold_coarsen);
-  triangulation->execute_coarsening_and_refinement();
-  
-  deallog << "Triangulation "
-	  << triangulation->n_active_cells() << " cells, "
-	  << triangulation->n_levels() << " levels" << std::endl;
-}
-
 
 template <int dim>
 void

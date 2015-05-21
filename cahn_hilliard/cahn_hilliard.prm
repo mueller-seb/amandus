@@ -1,17 +1,21 @@
 subsection Model
   set Startup = 1
+  set Diffusion = 1e-2
+  set AdvectionStrength = 1000
+  set RefineThreshold = 0.5
+  set InitialAdaption = 7
 end
 subsection Discretization
   set FE         = FESystem<2>[FE_Q<2>(1)-FE_Q<2>(1)]
-  set Refinement = 3
+  set Refinement = 1
 end
 subsection Linear Solver
   set Log frequency = 1
-  set Log history   = false
+  set Log history   = true
   set Log result    = true
   set Max steps     = 100
-  set Reduction     = 1.e-2
-  set Tolerance     = 1.e-10
+  set Reduction     = 1.e-8
+  set Tolerance     = 1.e-12
 end
 subsection Multigrid
   set Interior smoothing        = true
@@ -23,12 +27,12 @@ subsection Newton
   set Debug level         = 0
   set Debug vectors       = false
   set Log frequency       = 1
-  set Log history         = false
+  set Log history         = true
   set Log result          = true
   set Max steps           = 100
-  set Reduction           = 1.e-2
+  set Reduction           = 1.e-8
   set Stepsize iterations = 21
-  set Tolerance           = 1.e-10
+  set Tolerance           = 1.e-11
 end
 subsection Output
   set Output format = vtk
@@ -75,7 +79,7 @@ end
 subsection ThetaTimestepping
   set Adaptive   = false
   set Final      = 2.5
-  set First step = .1
+  set First step = .0001
   set Max step   = 1.
   set Print step = -1.
   set Start      = 0.
