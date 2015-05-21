@@ -15,6 +15,25 @@ cmake -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source
 make
 ```
 
+## Buildung a project for Eclipse with cmake
+After building and installing go your project folder in the build directory (e.g. /path/to/build/allen_cahn/) and use:
+
+cmake -"GEclipse CDT4 - Unix Makefiles" -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source/project/. 
+
+Note the "." at the end. Note the spelling Eclipse flag. 
+That command creates a .project file in the build folder that you can import into Eclipse via: 
+"File">"Import">"Existing Projects Into Workspace">Select the project folder in the build directory > "Finish"
+Then you might have to add the path to the deal.II and amandus source, such that Eclipse finds everything:
+RKlick the project on the left side>"Properties">"C/C++ Include Path ...">"Add Folder/File"
+1) /.../deal.ii/include
+2) /.../amandus
+After adding these it might be necessary to rerun the Indexer:
+RKlick the project on the left side>"Index">"Rebuild
+
+If you want to compile and run in Eclipse then you can set up everything as usual. See deal.II wiki, section Eclipse.
+
+
+
 ## Note: soon future change
 
 Currently, Amandus uses the builtin dealii::Vector and
