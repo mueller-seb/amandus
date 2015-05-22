@@ -12,6 +12,8 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/elasticity.h>
 
+#include <set>
+
 using namespace dealii::MeshWorker;
 
 
@@ -32,7 +34,8 @@ namespace Elasticity
   class Matrix : public AmandusIntegrator<dim>
   {
     public:
-      Matrix(const Parameters& par);
+      Matrix(const Parameters& par,
+	     const std::set<unsigned int>& dirichlet = std::set<unsigned int>());
       
       virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
       virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
@@ -40,13 +43,16 @@ namespace Elasticity
 			IntegrationInfo<dim>& info1, IntegrationInfo<dim>& info2) const;
     private:
       dealii::SmartPointer<const Parameters, class Matrix<dim> > parameters;
+      std::set<unsigned int> dirichlet_boundaries;
   };
 
 
   template <int dim>
-  Matrix<dim>::Matrix(const Parameters& par)
+  Matrix<dim>::Matrix(const Parameters& par,
+		      const std::set<unsigned int>& dirichlet)
 		  :
-		  parameters(&par)
+		  parameters(&par),
+		  dirichlet_boundaries(dirichlet)
   {
     //this->input_vector_names.push_back("Newton iterate");
   }
@@ -68,11 +74,13 @@ namespace Elasticity
     IntegrationInfo<dim>& info) const
   {
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-    if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
-      dealii::LocalIntegrators::Elasticity::nitsche_matrix(
+    if (dirichlet_boundaries.count(dinfo.face->boundary_indicator()) != 0)
+      {	
+	dealii::LocalIntegrators::Elasticity::nitsche_matrix(
 	dinfo.matrix(0,false).matrix, info.fe_values(0),
 	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
 	2.*parameters->mu);
+      }
   }
   
   
