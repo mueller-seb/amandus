@@ -82,15 +82,19 @@ using namespace dealii::MeshWorker;
 namespace Elasticity
 {
 /**
- * Integrate the residual for an elastic problem with zero right hand side.
+ * Integrate the residual for an elastic problem with right hand side
+ * depending on the second template parameter. Possible values are
+ * zero for no force and one for gravity (constant force strength
+ * -9.80665 in last coordinate direction)
  *
  * @ingroup integrators
  */
-template <int dim>
+  template <int dim, int force_type = 0>
 class Residual : public AmandusIntegrator<dim>
 {
   public:
-    Residual(const Parameters& par, const dealii::Function<dim>& bdry);
+    Residual(const Parameters& par, const dealii::Function<dim>& bdry,
+	     const std::set<unsigned int>& dirichlet = std::set<unsigned int>());
     
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
@@ -103,23 +107,26 @@ class Residual : public AmandusIntegrator<dim>
     private:
     dealii::SmartPointer<const Parameters, class Residual<dim> > parameters;
     dealii::SmartPointer<const dealii::Function<dim>, class Residual<dim> > boundary_values;
+    std::set<unsigned int> dirichlet_boundaries;
 };
 
 
 //----------------------------------------------------------------------//
 
-  template <int dim>
-  Residual<dim>::Residual(const Parameters& par, const dealii::Function<dim>& bdry)
+  template <int dim, int force_type>
+  Residual<dim, force_type>::Residual(const Parameters& par, const dealii::Function<dim>& bdry,
+				      const std::set<unsigned int>& dirichlet)
 		  :
 		  parameters(&par),
-		  boundary_values(&bdry)
+		  boundary_values(&bdry),
+		  dirichlet_boundaries(dirichlet)
   {
     this->input_vector_names.push_back("Newton iterate");
   }
 
   
-  template <int dim>
-  void Residual<dim>::cell(
+  template <int dim, int force_type>
+  void Residual<dim, force_type>::cell(
     DoFInfo<dim>& dinfo, 
     IntegrationInfo<dim>& info) const
   {
@@ -129,11 +136,14 @@ class Residual : public AmandusIntegrator<dim>
     const double mu = parameters->mu;
     const double lambda = parameters->lambda;
 
-    // std::vector<std::vector<double> > null(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-    // std::fill(null[0].begin(), null[0].end(), 1);
-    // dealii::LocalIntegrators::L2::L2(
-    //   dinfo.vector(0).block(0), info.fe_values(0), null);
-
+    if (force_type == 1)
+      {	
+	std::vector<std::vector<double> > force(dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+	std::fill(force[dim-1].begin(), force[dim-1].end(), 9.80665);
+	dealii::LocalIntegrators::L2::L2(
+	  dinfo.vector(0).block(0), info.fe_values(0), force);
+      }
+    
     if (parameters->linear)
       {
 	dealii::LocalIntegrators::Elasticity::cell_residual(
@@ -152,8 +162,8 @@ class Residual : public AmandusIntegrator<dim>
   }
 
 
-template <int dim>
-void Residual<dim>::boundary(
+template <int dim, int force_type>
+void Residual<dim, force_type>::boundary(
   DoFInfo<dim>& dinfo, 
   IntegrationInfo<dim>& info) const
 {
@@ -162,20 +172,22 @@ void Residual<dim>::boundary(
   boundary_values->vector_values(info.fe_values(0).get_quadrature_points(), null);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  if (dinfo.face->boundary_indicator() == 0 || dinfo.face->boundary_indicator() == 1)
-    dealii::LocalIntegrators::Elasticity::nitsche_residual(
-      dinfo.vector(0).block(0), info.fe_values(0),
-      dealii::make_slice(info.values[0], 0, dim),
-      dealii::make_slice(info.gradients[0], 0, dim),
-      null,
-      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-      2.*parameters->mu);
+  if (dirichlet_boundaries.count(dinfo.face->boundary_indicator()) != 0)
+    {
+      dealii::LocalIntegrators::Elasticity::nitsche_residual(
+	dinfo.vector(0).block(0), info.fe_values(0),
+	dealii::make_slice(info.values[0], 0, dim),
+	dealii::make_slice(info.gradients[0], 0, dim),
+	null,
+	dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+	2.*parameters->mu);
+    }
 }
   
 
 
-  template <int dim>
-  void Residual<dim>::face(
+  template <int dim, int force_type>
+  void Residual<dim, force_type>::face(
     DoFInfo<dim>& dinfo1, 
     DoFInfo<dim>& dinfo2,
     IntegrationInfo<dim>& info1, 
