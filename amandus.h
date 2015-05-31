@@ -409,6 +409,13 @@ class AmandusApplication
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
+    
+    dealii::FullMatrix<double> coarse_matrix;
+    dealii::MGCoarseGridSVD<double, dealii::Vector<double> > mg_coarse;
+
+    typedef dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > RELAXATION;
+    dealii::MGLevelObject<RELAXATION::AdditionalData> smoother_data;
+    dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double> > mg_smoother;
 };
 
 /// Compatibility definition

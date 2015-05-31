@@ -10,7 +10,7 @@
 #include <deal.II/lac/arpack_solver.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_gmres.h>
-#include <deal.II/lac/solver_richardson.h>
+#include <deal.II/lac/iterative_inverse.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/relaxation_block.h>
 #include <deal.II/lac/precondition_block.h>
@@ -306,7 +306,19 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
 					   ArpackSolver::largest_magnitude);
   ArpackSolver solver(control, solver_data);
 
-  solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
+  if (use_umfpack)
+    solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
+  else
+    {
+      SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+      PreconditionIdentity identity;
+      IterativeInverse<Vector<double> > inv;
+      inv.initialize(matrix[0], identity);
+      inv.solver.set_control(control);
+      inv.solver.set_data(solver_data);
+      inv.solver.select("gmres");
+      solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
+    }
 }
 
 
