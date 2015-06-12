@@ -254,6 +254,18 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   UpdateFlags update_flags = integrator.update_flags();
  
   info_box.add_update_flags_all(update_flags);
+  if(integrator.cell_quadrature != 0)
+  {
+    info_box.cell_quadrature = *(integrator.cell_quadrature);
+  }
+  if(integrator.boundary_quadrature != 0)
+  {
+    info_box.boundary_quadrature = *(integrator.boundary_quadrature);
+  }
+  if(integrator.face_quadrature != 0)
+  {
+    info_box.face_quadrature = *(integrator.face_quadrature);
+  }
   info_box.initialize(*fe, mapping, in, Vector<double>(),
 			&dof_handler.block_info());
 
@@ -308,6 +320,19 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
+  // user defined quadrature rules if set
+  if(integrator.cell_quadrature != 0)
+  {
+    info_box.cell_quadrature = *(integrator.cell_quadrature);
+  }
+  if(integrator.boundary_quadrature != 0)
+  {
+    info_box.boundary_quadrature = *(integrator.boundary_quadrature);
+  }
+  if(integrator.face_quadrature != 0)
+  {
+    info_box.face_quadrature = *(integrator.face_quadrature);
+  }
   info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
 		      &dof_handler.block_info());
   
@@ -427,8 +452,20 @@ double AmandusApplicationSparse<dim>::estimate(
   //Darcy's equation integrates a postprocessed solution of higher degree
   //than the original solution, thus we need a higher order quadrature
   //formula to obtain correct results
-  const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+4;
-  info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
+  //const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+4;
+  //info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
+  if(integrator.cell_quadrature != 0)
+  {
+    info_box.cell_quadrature = *(integrator.cell_quadrature);
+  }
+  if(integrator.boundary_quadrature != 0)
+  {
+    info_box.boundary_quadrature = *(integrator.boundary_quadrature);
+  }
+  if(integrator.face_quadrature != 0)
+  {
+    info_box.face_quadrature = *(integrator.face_quadrature);
+  }
   
   info_box.cell_selector.add("solution", true, true,true);
   info_box.face_selector.add("solution",true,true,true);
@@ -496,6 +533,18 @@ AmandusApplicationSparse<dim>::error(
   info_box.face_selector.add("solution", true, false, false);
   const unsigned int degree = this->fe->tensor_degree();
   info_box.initialize_gauss_quadrature(degree+2, degree+2, degree+2);
+  if(integrator.cell_quadrature != 0)
+  {
+    info_box.cell_quadrature = *(integrator.cell_quadrature);
+  }
+  if(integrator.boundary_quadrature != 0)
+  {
+    info_box.boundary_quadrature = *(integrator.boundary_quadrature);
+  }
+  if(integrator.face_quadrature != 0)
+  {
+    info_box.face_quadrature = *(integrator.face_quadrature);
+  }
   
   UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);

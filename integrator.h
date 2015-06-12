@@ -17,6 +17,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/base/vector_slice.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/quadrature.h>
 
 template <int dim>
 class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
@@ -35,6 +36,10 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
 
     dealii::UpdateFlags update_flags () const;
     void add_flags(const dealii::UpdateFlags flags);
+
+    dealii::Quadrature<dim>* cell_quadrature;
+    dealii::Quadrature<dim-1>* boundary_quadrature;
+    dealii::Quadrature<dim-1>* face_quadrature;
   private:
     dealii::UpdateFlags u_flags;
 };
@@ -328,10 +333,12 @@ template <int dim>
 inline
 AmandusIntegrator<dim>::AmandusIntegrator ()
 :
-timestep(0.)  , u_flags(dealii::update_JxW_values |
-			dealii::update_values |
-			dealii::update_gradients |
-			dealii::update_quadrature_points)
+  timestep(0.), 
+  cell_quadrature(0), boundary_quadrature(0), face_quadrature(0),
+  u_flags(dealii::update_JxW_values |
+          dealii::update_values |
+          dealii::update_gradients |
+          dealii::update_quadrature_points)
 {}
 
 
