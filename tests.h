@@ -260,7 +260,7 @@ class TensorProductPolynomial : public dealii::Function<dim>
     }
 
     dealii::Tensor<1, dim> gradient_laplacian(const dealii::Point<dim>& p,
-                                              const unsigned int component = 0) const
+                                              const unsigned int /*component = 0*/) const
     {
       dealii::Tensor<1, dim> grad;
       for(std::size_t d = 0; d < dim; ++d)

@@ -193,7 +193,7 @@ class ErrorRemesher : public AllInterpolatingRemesher<VECTOR, dim>
     }
 
     virtual void remesh(const dealii::AnyData& out,
-                        const dealii::AnyData& in)
+                        const dealii::AnyData& /*in*/)
     {
       this->app->error(indicator, out, *(this->error_integrator));
       this->callback(*(this->tria), indicator);
