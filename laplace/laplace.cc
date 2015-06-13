@@ -29,7 +29,7 @@
 #include <laplace/noforce.h>
 #include <laplace/polynomial.h>
 
-int main(int argc, const char** argv)
+int main()
 {
   const unsigned int d=2;
   

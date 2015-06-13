@@ -1,2 +1,3 @@
 include_guard __advectiondiffusion_parameters_h
 namespace AdvectionDiffusion
+parameter bool dummy "true" "Dummy"

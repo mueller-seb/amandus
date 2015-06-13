@@ -40,7 +40,7 @@ class TestFunction : public Function<2>
 TestFunction::TestFunction() : Function<2>(3)
 {}
 
-double TestFunction::value(const Point<2>& p,
+double TestFunction::value(const Point<2>& /*p*/,
                            const unsigned int component) const
 {
   if(component == 0) {

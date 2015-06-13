@@ -93,8 +93,8 @@ void Eigen<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorke
   const unsigned int id = dinfo.cell->material_id();
   AssertIndexRange (id, curl_coefficient.size());
   AssertIndexRange (id, mass_coefficient.size());
-  const double mu = curl_coefficient[id];
-  const double sigma = mass_coefficient[id];
+  //const double mu = curl_coefficient[id];
+  //const double sigma = mass_coefficient[id];
   
   Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0)/*, mu*/);
   // if (sigma != 0.)

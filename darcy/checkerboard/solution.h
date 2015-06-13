@@ -62,7 +62,7 @@ namespace Darcy
 
     CheckerboardTensorFunction::CheckerboardTensorFunction(
         CheckerboardTensorFunction* parent,
-        bool nocopyconstructor) :
+        bool /*nocopyconstructor*/) :
       parameters(4),
       is_inverse(true)
     {
@@ -216,7 +216,7 @@ namespace Darcy
     }
 
     double ScalarSolution::value(const Point<2>& p, 
-                                 const unsigned int component) const 
+                                 const unsigned int /*component*/) const 
     { 
       double gamma = solution_parameters.parameters[0];
 
@@ -228,7 +228,7 @@ namespace Darcy
     }
 
     Tensor<1, 2> ScalarSolution::gradient(const Point<2>& p, 
-                                          const unsigned int component) const 
+                                          const unsigned int /*component*/) const 
     { 
       const double gamma = solution_parameters.parameters[0];
 

@@ -45,7 +45,7 @@ IdentityTensorFunction<dim>::IdentityTensorFunction()
 
 template <int dim>
 typename IdentityTensorFunction<dim>::value_type
-IdentityTensorFunction<dim>::value(const Point<dim>& p) const
+IdentityTensorFunction<dim>::value(const Point<dim>& /*p*/) const
 {
   return identity;
 }
@@ -88,16 +88,16 @@ void CoefficientIntegrator<dim>::cell(
 
 template <int dim>
 void CoefficientIntegrator<dim>::boundary(
-    DoFInfo<dim>& dinfo,
-    IntegrationInfo<dim>& info) const
+    DoFInfo<dim>& /*dinfo*/,
+    IntegrationInfo<dim>& /*info*/) const
 {}
 
 template <int dim>
 void CoefficientIntegrator<dim>::face(
-    DoFInfo<dim>& dinfo1,
-    DoFInfo<dim>& dinfo2,
-    IntegrationInfo<dim>& info1,
-    IntegrationInfo<dim>& info2) const
+    DoFInfo<dim>& /*dinfo1*/,
+    DoFInfo<dim>& /*dinfo2*/,
+    IntegrationInfo<dim>& /*info1*/,
+    IntegrationInfo<dim>& /*info2*/) const
 {}
   
 template <int dim>
@@ -136,16 +136,16 @@ void ReferenceIntegrator<dim>::cell(
 
 template <int dim>
 void ReferenceIntegrator<dim>::boundary(
-    DoFInfo<dim>& dinfo,
-    IntegrationInfo<dim>& info) const
+    DoFInfo<dim>& /*dinfo*/,
+    IntegrationInfo<dim>& /*info*/) const
 {}
 
 template <int dim>
 void ReferenceIntegrator<dim>::face(
-    DoFInfo<dim>& dinfo1,
-    DoFInfo<dim>& dinfo2,
-    IntegrationInfo<dim>& info1,
-    IntegrationInfo<dim>& info2) const
+    DoFInfo<dim>& /*dinfo1*/,
+    DoFInfo<dim>& /*dinfo2*/,
+    IntegrationInfo<dim>& /*info1*/,
+    IntegrationInfo<dim>& /*info2*/) const
 {}
 
 BOOST_AUTO_TEST_CASE(coefficient_parameters)
