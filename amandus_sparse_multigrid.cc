@@ -72,6 +72,8 @@ AmandusApplication<dim>::setup_system()
   mg_transfer.build_matrices(this->dof_handler);
   
   const unsigned int n_levels = this->triangulation->n_levels();
+  mg_smoother.clear();
+  smoother_data.resize(0, n_levels-1);
   mg_matrix.resize(0, n_levels-1);
   mg_matrix.clear();
   mg_matrix_up.resize(0, n_levels-1);
@@ -149,28 +151,10 @@ AmandusApplication<dim>::assemble_mg_matrix(
   MeshWorker::integration_loop<dim, dim> (
     this->dof_handler.begin_mg(), this->dof_handler.end_mg(),
     dof_info, info_box, integrator, assembler, control);
-}
 
-
-template <int dim>
-void
-AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
-{
-  const unsigned int minlevel = 0;
-  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
-  SolverGMRES<Vector<double> > solver(this->control, solver_data);
-  // SolverCG<Vector<double> >::AdditionalData solver_data(false, false, true, true);
-  // SolverCG<Vector<double> > solver(control, solver_data);
-  // SolverRichardson<Vector<double> > solver(control, .6);
-  
-  FullMatrix<double> coarse_matrix;
-  coarse_matrix.copy_from (mg_matrix[minlevel]);
-  MGCoarseGridSVD<double, Vector<double> > mg_coarse;
+  coarse_matrix.reinit(0,0);
+  coarse_matrix.copy_from (mg_matrix[mg_matrix.min_level()]);
   mg_coarse.initialize(coarse_matrix, 1.e-15);
-  
-  typedef RelaxationBlockSSOR<SparseMatrix<double> > RELAXATION;
-  MGLevelObject<RELAXATION::AdditionalData> smoother_data(minlevel, mg_matrix.max_level());  
-  mg::SmootherRelaxation<RELAXATION, Vector<double> > mg_smoother;
 
   bool interior_dofs_only = true;
   unsigned int smoothing_steps = 1;
@@ -184,7 +168,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
     this->param->leave_subsection();
   }
 
-  for (unsigned int l=minlevel+1;l<=smoother_data.max_level();++l)
+  for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
     {
       DoFTools::make_vertex_patches(
           smoother_data[l].block_list, this->dof_handler, l, interior_dofs_only);
@@ -195,7 +179,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
     } 
   mg_smoother.initialize(mg_matrix, smoother_data);
   if (false)
-    for (unsigned int l=minlevel+1;l<=smoother_data.max_level();++l)
+    for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
       {
 	deallog << "Level " << l << ' ';
 	mg_smoother[l].log_statistics();
@@ -203,6 +187,18 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
   
   mg_smoother.set_steps(smoothing_steps);
   mg_smoother.set_variable(variable_smoothing_steps);
+}
+
+
+template <int dim>
+void
+AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+{
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+  SolverGMRES<Vector<double> > solver(this->control, solver_data);
+  // SolverCG<Vector<double> >::AdditionalData solver_data(false, false, true, true);
+  // SolverCG<Vector<double> > solver(control, solver_data);
+  // SolverRichardson<Vector<double> > solver(control, .6);  
   
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
@@ -212,7 +208,7 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
-  mg.set_minlevel(minlevel);
+  mg.set_minlevel(mg_matrix.min_level());
   
   PreconditionMG<dim, Vector<double>,
     MGTransferPrebuilt<Vector<double> > >

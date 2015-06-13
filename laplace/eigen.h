@@ -38,9 +38,9 @@ namespace LaplaceIntegrators
   template <int dim>
   void Eigen<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
   {
-    AssertDimension (dinfo.n_matrices(), 2);
     Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0));
-    L2::mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0));
+    if(dinfo.n_matrices()==2)
+      L2::mass_matrix(dinfo.matrix(1,false).matrix, info.fe_values(0));
   }
   
   

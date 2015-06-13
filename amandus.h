@@ -55,6 +55,7 @@
 #include <iostream>
 #include <fstream>
 
+
 /**
  * A class managing a common ParameterHandler for most applications.
  */
@@ -110,7 +111,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 {
   public:
     typedef dealii::MeshWorker::IntegrationInfo<dim> CellInfo;
-  
+
     /**
      * Constructor, setting the finite element and the
      * triangulation. This constructor does not distribute the degrees
@@ -155,6 +156,14 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * to which the constraints are to be applied.
      */
     void set_boundary (unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
+
+    /**
+     * Constrain solution to be mean value free.
+     *
+     * @param mask the object selecting the blocks of an dealii::FESystem
+     * to which the constraints are to be applied.
+     */
+    void set_meanvalue(dealii::ComponentMask mask = dealii::ComponentMask());
     
     /**
      * Initialize the vector <code>v</code> to the size matching the
@@ -180,6 +189,10 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 				  const dealii::AnyData &in,
 				  const AmandusIntegrator<dim>& integrator) const;
   
+    /**
+     * Refine the mesh globally. For more sophisticated (adaptive)
+     * refinement strategies, use a Remesher.
+     */
     void refine_mesh (const bool global = false);
 
     /**
@@ -290,6 +303,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * Reference to parameters read by parse_parameters().
      */
     dealii::SmartPointer<dealii::ParameterHandler> param;
+
+    typename dealii::Triangulation<dim>::Signals& signals;
     
   protected:
     /// The mesh
@@ -309,6 +324,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * boundary indicator
      */
     std::vector<dealii::ComponentMask> boundary_masks;
+
+    dealii::ComponentMask meanvalue_mask;
     
     /// The object holding the constraints for the active mesh
     dealii::ConstraintMatrix     constraint_matrix;
@@ -409,6 +426,13 @@ class AmandusApplication
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
+    
+    dealii::FullMatrix<double> coarse_matrix;
+    dealii::MGCoarseGridSVD<double, dealii::Vector<double> > mg_coarse;
+
+    typedef dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > RELAXATION;
+    dealii::MGLevelObject<RELAXATION::AdditionalData> smoother_data;
+    dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double> > mg_smoother;
 };
 
 /// Compatibility definition

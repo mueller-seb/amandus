@@ -16,7 +16,7 @@ USE_MATHJAX            = YES
 MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
 
 HAVE_DOT	       = YES
-DOT_IMAGE_FORMAT       = svg
+DOT_IMAGE_FORMAT       = png  # svg causes problems on bitbucket
 INCLUDE_GRAPH	       = NO
 INCLUDED_BY_GRAPH      = NO
 CALL_GRAPH	       = YES

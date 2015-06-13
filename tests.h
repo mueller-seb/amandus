@@ -210,11 +210,14 @@ class TensorProductPolynomial : public dealii::Function<dim>
     TensorProductPolynomial(const dealii::Polynomials::Polynomial<double>& pol,
                             unsigned int n_components = 1)
       : dealii::Function<dim>(n_components),
-      polynomial(&pol), derivative(pol.derivative())
+      polynomial(&pol),
+      derivative(pol.derivative()),
+      derivative2(derivative.derivative()),
+      derivative3(derivative2.derivative())
     {}
 
     virtual double value(const dealii::Point<dim>& p,
-                         const unsigned int component = 0) const
+                         const unsigned int /*component = 0*/) const
     {
       double value = 1;
       for(std::size_t d = 0; d < dim; ++d)
@@ -225,7 +228,7 @@ class TensorProductPolynomial : public dealii::Function<dim>
     }
 
     virtual dealii::Tensor<1, dim> gradient(const dealii::Point<dim>& p,
-                                            const unsigned int component = 0) const
+                                            const unsigned int /*component = 0*/) const
     {
       dealii::Tensor<1, dim> grad;
       for(std::size_t d = 0; d < dim; ++d)
@@ -240,9 +243,66 @@ class TensorProductPolynomial : public dealii::Function<dim>
       return grad;
     }
 
+    virtual double laplacian(const dealii::Point<dim>& p,
+                             const unsigned int /*component = 0*/) const
+    {
+      double laplace = 0.0;
+      for(std::size_t d = 0; d < dim; ++d)
+      {
+        double factor = 1.0;
+        for(std::size_t i = 0; i < dim; ++i)
+        {
+          factor *= (i != d) ? polynomial->value(p(i)) : derivative2.value(p(d));
+        }
+        laplace += factor;
+      }
+      return laplace;
+    }
+
+    dealii::Tensor<1, dim> gradient_laplacian(const dealii::Point<dim>& p,
+                                              const unsigned int component = 0) const
+    {
+      dealii::Tensor<1, dim> grad;
+      for(std::size_t d = 0; d < dim; ++d)
+      {
+        double grad1 = 1.0;
+        double grad2 = 0.0;
+        for(std::size_t i = 0; i < dim; ++i)
+        {
+          grad1 *= (i != d) ? polynomial->value(p(i)) : derivative3.value(p(d));
+        }
+        for(std::size_t j = 0; j < dim; ++j)
+        {
+          if(j != d)
+          {
+            double grad2factor = 1.0;
+            for(std::size_t i = 0; i < dim; ++i)
+            {
+              if(i != j && i != d)
+              {
+                grad2factor *= polynomial->value(p(i));
+              } else if(i == d)
+              {
+                grad2factor *= derivative.value(p(i));
+              } else
+              {
+                grad2factor *= derivative2.value(p(i));
+              }
+            }
+            grad2 += grad2factor;
+          }
+        }
+        grad[d] = grad1 + grad2;
+      }
+      
+      return grad;
+    }
+
   private:
     const dealii::Polynomials::Polynomial<double>* polynomial;
     const dealii::Polynomials::Polynomial<double> derivative;
+    const dealii::Polynomials::Polynomial<double> derivative2;
+    const dealii::Polynomials::Polynomial<double> derivative3;
 };
 
 

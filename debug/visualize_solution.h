@@ -89,4 +89,27 @@ namespace debug
       std::ofstream output(filename.str().c_str());
       data_out.write(output);
     }
+
+  template <int dim>
+    void output_errors(dealii::BlockVector<double> errors,
+                       const dealii::Triangulation<dim>& tria,
+                       unsigned int s, std::string prefix)
+    {
+      dealii::DataOut<dim> data_out;
+      data_out.attach_triangulation(tria);
+
+      for(std::size_t i = 0; i < errors.n_blocks(); ++i)
+      {
+        std::ostringstream name;
+        name << prefix << "_error" << i;
+        data_out.add_data_vector(
+            errors.block(i), name.str(), dealii::DataOut<dim>::type_cell_data);
+      }
+      data_out.build_patches();
+
+      std::ostringstream filename;
+      filename << prefix << "_errors-" << s << ".vtk";
+      std::ofstream out_file(filename.str().c_str());
+      data_out.write_vtk(out_file);
+    }
 }
