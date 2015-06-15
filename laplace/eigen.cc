@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   LaplaceIntegrators::Eigen<d> matrix_integrator;
-  AmandusApplication<d> app(tr, *fe);
+  AmandusUMFPACK<d> app(tr, *fe);
   app.parse_parameters(param);
   
   app.set_number_of_matrices(2);
