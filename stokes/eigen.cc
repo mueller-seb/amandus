@@ -48,6 +48,9 @@ int main(int argc, const char** argv)
   StokesIntegrators::Eigen<d> matrix_integrator;
   AmandusUMFPACK<d> app(tr, *fe);
   app.parse_parameters(param);
+  ComponentMask boundary_components(d+1, true);
+  boundary_components.set(d, false);
+  app.set_boundary(0, boundary_components);
   
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
