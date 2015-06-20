@@ -14,6 +14,7 @@ SET(EXAMPLES laplace advection advection-diffusion
   allen_cahn cahn_hilliard
   brusselator readiff
   elasticity
+  schroedinger
   )
 # To be added after fixing: darcy brinkman lotkavolterra
 
