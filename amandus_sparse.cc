@@ -213,11 +213,12 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   DoFTools::make_hanging_node_constraints(this->dof_handler, this->hanging_node_constraints);
   hanging_node_constraints.close();
   deallog << "Hanging nodes " << hanging_node_constraints.n_constraints() << std::endl;
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
   
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
   {
-    if (boundary_masks[i].n_selected_components(1) != 0)
+    if (boundary_masks[i].n_selected_components(n_comp) != 0)
     {
       DoFTools::make_zero_boundary_constraints(this->dof_handler, i,
                                                this->constraint_matrix,

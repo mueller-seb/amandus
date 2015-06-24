@@ -28,7 +28,7 @@ FUNCTION(AMANDUS_ADD_TEST test_name test_exec)
   ENDIF()
 ENDFUNCTION()
 
-ADD_SUBDIRECTORY(testing)
+# ADD_SUBDIRECTORY(testing)
 
 ADD_SUBDIRECTORY(elasticity)
 ADD_SUBDIRECTORY(advection)

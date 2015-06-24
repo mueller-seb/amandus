@@ -99,7 +99,7 @@ namespace Darcy
 
   template <int dim>
     typename IdentityTensorFunction<dim>::value_type
-    IdentityTensorFunction<dim>::value(const dealii::Point<dim>& p) const
+    IdentityTensorFunction<dim>::value(const dealii::Point<dim>& /*p*/) const
     {
       return identity;
     }

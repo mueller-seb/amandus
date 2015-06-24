@@ -172,7 +172,7 @@ void Residual<dim, force_type>::boundary(
   boundary_values->vector_values(info.fe_values(0).get_quadrature_points(), null);
   
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  if (dirichlet_boundaries.count(dinfo.face->boundary_indicator()) != 0)
+  if (dirichlet_boundaries.count(dinfo.face->boundary_id()) != 0)
     {
       dealii::LocalIntegrators::Elasticity::nitsche_residual(
 	dinfo.vector(0).block(0), info.fe_values(0),

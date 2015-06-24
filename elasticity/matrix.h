@@ -74,7 +74,7 @@ namespace Elasticity
     IntegrationInfo<dim>& info) const
   {
     const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-    if (dirichlet_boundaries.count(dinfo.face->boundary_indicator()) != 0)
+    if (dirichlet_boundaries.count(dinfo.face->boundary_id()) != 0)
       {	
 	dealii::LocalIntegrators::Elasticity::nitsche_matrix(
 	dinfo.matrix(0,false).matrix, info.fe_values(0),
