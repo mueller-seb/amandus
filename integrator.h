@@ -19,6 +19,10 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
 
+/**
+ * A local integrator which additionally manages the update flags and
+ * quadrature rules to be used.
+ */
 template <int dim>
 class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
 {
@@ -28,18 +32,48 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
      */
     AmandusIntegrator ();
     /**
+     * \brief Extract data independent of the cell.
+     *
      * Extract data which does not depend on the current cell from
      * AnyData, before the loop over cells and faces is run.
+     * By default, get the current time step if we are in a
+     * timestepping scheme.
      */
     virtual void extract_data (const dealii::AnyData& data);
+    /**
+     * \brief Current timestep if applicable.
+     */
     double timestep;
 
+    /**
+     * \brief Returns the update flags to be used.
+     */
     dealii::UpdateFlags update_flags () const;
+    /**
+     * \brief Add update flags.
+     */
     void add_flags(const dealii::UpdateFlags flags);
 
-    dealii::Quadrature<dim>* cell_quadrature;
-    dealii::Quadrature<dim-1>* boundary_quadrature;
-    dealii::Quadrature<dim-1>* face_quadrature;
+    /**
+     * \brief Quadrature rule used on cells.
+     *
+     * This is a null pointer by default, which implies that we are using
+     * a Gauss quadrature rule, whose size is choosen as to integrate a
+     * finite element function and its requested derivatives exactly.
+     */
+    dealii::SmartPointer<dealii::Quadrature<dim> > cell_quadrature;
+    /**
+     * \brief Quadrature rule used on boundary faces.
+     *
+     * Behaves like cell_quadrature.
+     */
+    dealii::SmartPointer<dealii::Quadrature<dim-1> > boundary_quadrature;
+    /**
+     * \brief Quadrature rule used on faces.
+     *
+     * Behaves like cell_quadrature.
+     */
+    dealii::SmartPointer<dealii::Quadrature<dim-1> > face_quadrature;
   private:
     dealii::UpdateFlags u_flags;
 };
@@ -133,10 +167,10 @@ class ErrorIntegrator : public AmandusIntegrator<dim>
   protected:
     dealii::ComponentMask component_mask;
     unsigned int block_idx;
-    const dealii::Function<dim>* solution;
+    dealii::SmartPointer<const dealii::Function<dim> > solution;
 
   private:
-    std::vector<ErrorIntegrator<dim>* > error_integrators;
+    std::vector<dealii::SmartPointer<ErrorIntegrator<dim> > > error_integrators;
 };
 
 
@@ -494,6 +528,9 @@ namespace Integrators
       }
   }
 
+/**
+ * Calculate the mean value operator.
+ */
 template <int dim>
 class MeanIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
 {
