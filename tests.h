@@ -63,6 +63,43 @@ solve_and_error(dealii::BlockVector<double>& errors,
   app.error(errors, solution_data, error);
 }
 
+//// Function overloading solve_and_error //
+
+template <int dim>
+void
+solve_and_error(unsigned int step,
+                dealii::BlockVector<double>& errors,
+		AmandusApplicationSparse<dim> &app,
+		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
+		dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
+		const AmandusIntegrator<dim>& error)
+{
+  dealii::Vector<double> res;
+  dealii::Vector<double> sol;
+  
+  solver.notify(dealii::Algorithms::Events::remesh);
+  app.setup_system();
+  app.setup_vector(res);
+  app.setup_vector(sol);
+  
+  dealii::AnyData solution_data;
+  dealii::Vector<double>* p = &sol;
+  solution_data.add(p, "solution");
+  
+  dealii::AnyData data;
+  dealii::Vector<double>* rhs = &res;
+  data.add(rhs, "RHS");
+  dealii::AnyData residual_data;
+  residual(data, residual_data);
+  dealii::deallog << "Residual " << res.l2_norm() << std::endl;
+  solver(solution_data, data);
+  app.error(errors, solution_data, error);
+  app.output_results(step, &solution_data);
+}
+
+//////////////////////////////////////////
+
+
 /**
  * This function solves an equation with an iterative solver on a given
  * mesh and computes the errors.
