@@ -1,3 +1,0 @@
-include_guard __allen_cahn_parameters_h
-namespace AllenCahn
-parameter double	diffusion	"1."	"Diffusion"

@@ -1,4 +1,0 @@
-subsection Discretization
-  set FE         = FE_DGQ(4)
-  set Refinement = 1
-end

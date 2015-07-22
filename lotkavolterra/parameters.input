@@ -1,7 +1,0 @@
-double	birth1	"1."	"Birth1"	"Birth rate of species 1"
-double	birth2	"0."	"Birth2"	"Birth rate of species 2"
-double	death1	"0."	"Death1"	"Death rate of species 1"
-double	death2	"1."	"Death2"	"Death rate of species 2"
-double	eat12	"1."	"Two eats one"  "Coupling constant"
-double	diff1	".01"	"Diffusion1"    "Diffusion of species 1"
-double	diff2	".02"	"Diffusion2"    "Diffusion of species 2"
