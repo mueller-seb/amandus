@@ -1,0 +1,77 @@
+/**********************************************************************
+ *  Copyright (C) 2011 - 2014 by the authors
+ *  Distributed under the MIT License
+ *
+ * See the files AUTHORS and LICENSE in the project root directory
+ **********************************************************************/
+/**
+ * @file
+ *
+ * @brief Polynomial solution of Darcy equations
+ * <ul>
+ * <li>Exact polynomial solution to the Darcy problem</li>
+ * <li>Raviart-Thomas elements</li>
+ * <li>Homogeneous no-slip boundary condition</li>
+ * <li>Linear solver</li>
+ * </ul>
+ *
+ * @ingroup Examples
+ */
+
+#include <deal.II/fe/fe_raviart_thomas.h>
+#include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_system.h>
+#include <deal.II/algorithms/newton.h>
+#include <deal.II/numerics/dof_output_operator.h>
+#include <deal.II/numerics/dof_output_operator.templates.h>
+#include <apps.h>
+#include <darcy/polynomial/polynomial.h>
+#include <darcy/matrix.h>
+
+
+int main()
+{
+  const unsigned int d=2;
+  
+  std::ofstream logfile("deallog");
+  deallog.attach(logfile);
+  
+  Triangulation<d> tr;
+  GridGenerator::hyper_cube (tr, -1, 1);
+  tr.refine_global(1);
+  
+  const unsigned int degree = 3;
+  FE_RaviartThomas<d> vec(degree);
+  FE_DGQ<d> scal(degree);
+  FESystem<d> fe(vec, 1, scal, 1);
+
+  Polynomials::Polynomial<double> vector_potential;
+  vector_potential += Polynomials::Monomial<double>(4, 1.);
+  vector_potential += Polynomials::Monomial<double>(2, -2.);
+  vector_potential += Polynomials::Monomial<double>(0, 1.);
+  vector_potential.print(std::cout);
+
+  Polynomials::Polynomial<double> scalar_potential;
+  scalar_potential += Polynomials::Monomial<double>(3, -1.);
+  scalar_potential += Polynomials::Monomial<double>(1, 3.);
+  
+  Polynomials::Polynomial<double> pressure_source(1);
+//  pressure_source += Polynomials::Monomial<double>(3, 1.);
+  
+  DarcyMatrix<d> matrix_integrator;
+  DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  rhs_integrator.input_vector_names.push_back("Newton iterate");
+  DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
+  
+  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  app.set_boundary(0);
+  AmandusSolve<d>       solver(app, matrix_integrator);
+  AmandusResidual<d>    residual(app, rhs_integrator);
+  
+  Algorithms::Newton<Vector<double> > newton(residual, solver);
+  newton.control.log_history(true);
+  newton.control.set_reduction(1.e-14);
+  newton.threshold(.1);
+  
+  global_refinement_nonlinear_loop(5, app, newton, &error_integrator);
+}

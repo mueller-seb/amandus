@@ -16,7 +16,7 @@ cmake -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source
 make
 ```
 
-## Building a project for Eclipse with cmake
+## Buildung a project for Eclipse with cmake
 After building and installing go your project folder in the build directory (e.g. /path/to/build/allen_cahn/) and use:
 
 cmake -"GEclipse CDT4 - Unix Makefiles" -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source/project/. 
