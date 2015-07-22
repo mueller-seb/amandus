@@ -177,7 +177,12 @@ global_refinement_eigenvalue_loop(unsigned int n_steps,
     }
 }
 
-// loop with convergnece table
+/**
+ * @file
+ * @brief Global refinement linear loop shows convergence table on console
+ *
+ * @ingroup apps
+ */
 
 template <int dim>
 void
