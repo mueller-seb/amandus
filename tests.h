@@ -63,7 +63,6 @@ solve_and_error(dealii::BlockVector<double>& errors,
   app.error(errors, solution_data, error);
 }
 
-
 /**
  * This function solves an equation with an iterative solver on a given
  * mesh and computes the errors.

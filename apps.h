@@ -19,7 +19,8 @@
 #include <iomanip>
 
 /**
- *
+ * @file
+ * @brief Global refinement linear loop shows convergence table on console
  *
  * @ingroup apps
  */
@@ -35,6 +36,8 @@ global_refinement_linear_loop(unsigned int n_steps,
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
+  dealii::BlockVector<double> errors(5);
+  dealii::ConvergenceTable convergence_table;
   
   for (unsigned int s=0;s<n_steps;++s)
     {
@@ -59,10 +62,17 @@ global_refinement_linear_loop(unsigned int n_steps,
       residual(data, residual_data);
       dealii::deallog << "Residual " << res.l2_norm() << std::endl;
       solver(solution_data, data);
-
       if (error != 0)
 	{
-	  app.error(solution_data, *error, 5);
+          app.error(errors, solution_data, *error);
+          for (unsigned int i=0;i<errors.n_blocks();++i) 
+             dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
+        
+          convergence_table.add_value("L2 u", errors.block(0).l2_norm());
+          convergence_table.add_value("H1 u", errors.block(1).l2_norm());
+          convergence_table.add_value("div u", errors.block(2).l2_norm());
+          convergence_table.add_value("L2 p", errors.block(3).l2_norm());
+          convergence_table.add_value("H1 p", errors.block(4).l2_norm());
        	}
 
       if (estimator != 0)
@@ -70,13 +80,29 @@ global_refinement_linear_loop(unsigned int n_steps,
 	  dealii::deallog << "Error::Estimate: "
 			  << app.estimate(solution_data, *estimator)
 			  << std::endl;
-	}
-      
+	}      
       app.output_results(s, &solution_data);
+
+    }
+
+  if(error != 0)
+    {
+      convergence_table.evaluate_convergence_rates("L2 u", dealii::ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("H1 u", dealii::ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("L2 p", dealii::ConvergenceTable::reduction_rate_log2);
+      convergence_table.evaluate_convergence_rates("H1 p", dealii::ConvergenceTable::reduction_rate_log2);
+
+      convergence_table.set_scientific("L2 u", 1);
+      convergence_table.set_scientific("H1 u", 1);
+      convergence_table.set_scientific("div u",0);
+      convergence_table.set_scientific("L2 p", 1);
+      convergence_table.set_scientific("H1 p", 1);
+
+      std::cout << std::endl;
+      convergence_table.write_text(std::cout);
     }
 
 }
-
 
 /**
  *
@@ -175,105 +201,6 @@ global_refinement_eigenvalue_loop(unsigned int n_steps,
       
       app.output_results(s, &out_data);
     }
-}
-
-/**
- * @file
- * @brief Global refinement linear loop shows convergence table on console
- *
- * @ingroup apps
- */
-
-template <int dim>
-void
-global_refinement_linear_loop_ct(unsigned int n_steps,
-			      AmandusApplicationSparse<dim> &app,
-			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
-			      const AmandusIntegrator<dim>* error = 0,
-			      const AmandusIntegrator<dim>* estimator = 0,
-			      const dealii::Function<dim>* initial_vector = 0)
-{
-  dealii::Vector<double> res;
-  dealii::Vector<double> sol;
-  dealii::BlockVector<double> errors(5);
-  dealii::Vector<double> acc_errors(5);
-  dealii::ConvergenceTable convergence_table;
-
-  
-  for (unsigned int s=0;s<n_steps;++s)
-    {
-      dealii::deallog << "Step " << s << std::endl;
-      app.refine_mesh(true);
-      solver.notify(dealii::Algorithms::Events::remesh);
-      app.setup_system();
-      app.setup_vector(res);
-      app.setup_vector(sol);
-
-      if (initial_vector)
-	dealii::VectorTools::interpolate(app.dofs(), *initial_vector, sol);
-      
-      dealii::AnyData solution_data;
-      dealii::Vector<double>* p = &sol;
-      solution_data.add(p, "solution");
-      
-      dealii::AnyData data;
-      dealii::Vector<double>* rhs = &res;
-      data.add(rhs, "RHS");
-      dealii::AnyData residual_data;
-      residual(data, residual_data);
-      dealii::deallog << "Residual " << res.l2_norm() << std::endl;
-      solver(solution_data, data);
-      app.error(errors, solution_data, *error);
-
-      if (error != 0)
-	{
-	  app.error(solution_data, *error, 5);
-       	}
-
-      if (estimator != 0)
-	{
-	  dealii::deallog << "Error::Estimate: "
-			  << app.estimate(solution_data, *estimator)
-			  << std::endl;
-	}
-      
-      app.output_results(s, &solution_data);
-
-     for (unsigned int i=0;i<errors.n_blocks();++i) 
-        {
-         acc_errors(i) = errors.block(i).l2_norm();
-         dealii::deallog << "Error(" << i << "): " << acc_errors(i) << std::endl;
-        }
-         convergence_table.add_value("L2 u", acc_errors(0));
-         convergence_table.add_value("H1 u", acc_errors(1));
-         convergence_table.add_value("div u", acc_errors(2));
-         convergence_table.add_value("L2 p", acc_errors(3));
-         convergence_table.add_value("H1 p", acc_errors(4));
-
-    }
-
-//    convergence_table.evaluate_convergence_rates("L2 u", ConvergenceTable::reduction_rate);
-    convergence_table.evaluate_convergence_rates("L2 u", dealii::ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("H1 u", dealii::ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("L2 p", dealii::ConvergenceTable::reduction_rate_log2);
-    convergence_table.evaluate_convergence_rates("H1 p", dealii::ConvergenceTable::reduction_rate_log2);
-
-//    convergence_table.set_precision("L2 u", 3);
-//    convergence_table.set_precision("H1 u", 3);
-//    convergence_table.set_precision("div u",3);
-//    convergence_table.set_precision("L2 p", 3);
-//    convergence_table.set_precision("H1 p", 3);
-
-//    convergence_table.set_scientific("L2 u", 0);
-//    convergence_table.set_scientific("H1 u", 0);
-//    convergence_table.set_scientific("div u",0);
-//    convergence_table.set_scientific("L2 p", 0);
-//    convergence_table.set_scientific("H1 p", 0);
-
-  std::cout << std::endl;
-  convergence_table.write_text(std::cout);
-
 }
 
 
