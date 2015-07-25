@@ -66,13 +66,17 @@ global_refinement_linear_loop(unsigned int n_steps,
 	{
           app.error(errors, solution_data, *error);
           for (unsigned int i=0;i<errors.n_blocks();++i) 
+	   if(errors.block(i).l2_norm() != 0){
              dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
-        
+           }
           convergence_table.add_value("L2 u", errors.block(0).l2_norm());
           convergence_table.add_value("H1 u", errors.block(1).l2_norm());
-          convergence_table.add_value("div u", errors.block(2).l2_norm());
-          convergence_table.add_value("L2 p", errors.block(3).l2_norm());
-          convergence_table.add_value("H1 p", errors.block(4).l2_norm());
+	  if(errors.block(2).l2_norm() != 0)
+	   {
+             convergence_table.add_value("div u", errors.block(2).l2_norm());
+             convergence_table.add_value("L2 p", errors.block(3).l2_norm());
+             convergence_table.add_value("H1 p", errors.block(4).l2_norm());
+	   }
        	}
 
       if (estimator != 0)
@@ -89,15 +93,19 @@ global_refinement_linear_loop(unsigned int n_steps,
     {
       convergence_table.evaluate_convergence_rates("L2 u", dealii::ConvergenceTable::reduction_rate_log2);
       convergence_table.evaluate_convergence_rates("H1 u", dealii::ConvergenceTable::reduction_rate_log2);
-      convergence_table.evaluate_convergence_rates("L2 p", dealii::ConvergenceTable::reduction_rate_log2);
-      convergence_table.evaluate_convergence_rates("H1 p", dealii::ConvergenceTable::reduction_rate_log2);
-
+      if(errors.block(2).l2_norm() != 0)
+       {
+         convergence_table.evaluate_convergence_rates("L2 p", dealii::ConvergenceTable::reduction_rate_log2);
+         convergence_table.evaluate_convergence_rates("H1 p", dealii::ConvergenceTable::reduction_rate_log2);
+       }
       convergence_table.set_scientific("L2 u", 1);
       convergence_table.set_scientific("H1 u", 1);
-      convergence_table.set_scientific("div u",0);
-      convergence_table.set_scientific("L2 p", 1);
-      convergence_table.set_scientific("H1 p", 1);
-
+      if(errors.block(2).l2_norm() != 0)
+       {
+         convergence_table.set_scientific("div u",0);
+         convergence_table.set_scientific("L2 p", 1);
+         convergence_table.set_scientific("H1 p", 1);
+       }
       std::cout << std::endl;
       convergence_table.write_text(std::cout);
     }
