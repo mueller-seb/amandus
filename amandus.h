@@ -305,6 +305,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     dealii::SmartPointer<dealii::ParameterHandler> param;
 
     typename dealii::Triangulation<dim>::Signals& signals;
+
+    bool vertex_patches = true ;
     
   protected:
     /// The mesh
