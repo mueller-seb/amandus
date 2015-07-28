@@ -12,6 +12,7 @@
 #include <deal.II/lac/solver_richardson.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/relaxation_block.h>
+#include <deal.II/lac/iterative_inverse.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/block_vector.h>
 
@@ -227,6 +228,43 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
     }
   catch(...) {}
   this->constraints().distribute(sol);
+}
+
+
+template <int dim>
+void
+AmandusApplication<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
+				      std::vector<Vector<double> >& eigenvectors)
+{
+  AssertDimension(2*eigenvalues.size(), eigenvectors.size());
+  ArpackSolver::AdditionalData arpack_data(eigenvectors.size()+2,
+					   ArpackSolver::largest_magnitude);
+  ArpackSolver solver(this->control, arpack_data);
+
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+  mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
+  mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
+  mg::Matrix<Vector<double> > mgup(mg_matrix_up);
+  
+  Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
+				mg_coarse, mg_transfer,
+				mg_smoother, mg_smoother);
+  mg.set_edge_matrices(mgdown, mgup);
+  mg.set_minlevel(mg_matrix.min_level());
+  
+  PreconditionMG<dim, Vector<double>,
+    MGTransferPrebuilt<Vector<double> > >
+    preconditioner(this->dof_handler, mg, mg_transfer);
+  
+  PreconditionIdentity identity;
+  IterativeInverse<Vector<double> > inv;
+  inv.initialize(this->matrix[0], preconditioner);
+    //inv.initialize(this->matrix[0], identity);
+  inv.solver.set_control(this->control);
+  inv.solver.set_data(solver_data);
+  inv.solver.select("gmres");
+  solver.solve(this->matrix[0], this->matrix[1], inv,
+	       eigenvalues, eigenvectors, eigenvalues.size());
 }
 
 
