@@ -170,8 +170,16 @@ AmandusApplication<dim>::assemble_mg_matrix(
 
   for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
     {
-      DoFTools::make_vertex_patches(
+      if (this->vertex_patches)
+        {
+	  DoFTools::make_vertex_patches(
           smoother_data[l].block_list, this->dof_handler, l, interior_dofs_only);
+	}
+      else
+        {
+          smoother_data[l].block_list.reinit(this->triangulation->n_cells(l), this->dof_handler.n_dofs(l), this->fe->dofs_per_cell);
+	  DoFTools::make_cell_patches(smoother_data[l].block_list, this->dof_handler, l);
+	}
       smoother_data[l].block_list.compress();
       smoother_data[l].relaxation = 1.;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
