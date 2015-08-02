@@ -126,7 +126,7 @@ namespace CahnHilliard
   MassOutputOperator<VECTOR, dim, spacedim>::log_mass(const VECTOR* solution)
   {
     double mass = 0.0;
-    for(int i = 0; i < this->cdofmask.size(); ++i)
+    for(unsigned int i = 0; i < this->cdofmask.size(); ++i)
     {
       if(this->cdofmask[i])
       {
