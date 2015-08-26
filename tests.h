@@ -60,6 +60,8 @@ solve_and_error(dealii::BlockVector<double>& errors,
   residual(data, residual_data);
   dealii::deallog << "Residual " << res.l2_norm() << std::endl;
   solver(solution_data, data);
+  app.output_results(0, &solution_data);
+  
   app.error(errors, solution_data, error);
 }
 

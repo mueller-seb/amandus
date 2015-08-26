@@ -70,7 +70,7 @@ AmandusApplication<dim>::setup_system()
 
   mg_transfer.initialize_constraints(this->constraint_matrix, mg_constraints);
   mg_transfer.build_matrices(this->dof_handler);
-  
+
   const unsigned int n_levels = this->triangulation->n_levels();
   mg_smoother.clear();
   smoother_data.resize(0, n_levels-1);
@@ -81,7 +81,7 @@ AmandusApplication<dim>::setup_system()
   mg_matrix_down.resize(0, n_levels-1);
   mg_matrix_down.clear();
   mg_sparsity.resize(0, n_levels-1);
-  
+
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
     {
@@ -99,7 +99,7 @@ template <int dim>
 void AmandusApplication<dim>::setup_constraints()
 {
   AmandusApplicationSparse<dim>::setup_constraints();
-  
+
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
 }
@@ -115,7 +115,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
 
   std::vector<MGLevelObject<Vector<double> > > aux(in.size());
   AnyData mg_in;
-    
+
   MeshWorker::IntegrationInfoBox<dim> info_box;
 
   std::size_t in_idx = 0;
@@ -132,6 +132,8 @@ AmandusApplication<dim>::assemble_mg_matrix(
                            *(in.read_ptr<Vector<double> >(in_idx)));
     mg_in.add(&(aux[in_idx]), *i);
     info_box.cell_selector.add(*i, true, true, false);
+    info_box.boundary_selector.add(*i, true, true, false);
+    info_box.face_selector.add(*i, true, true, false);    
   }
 
   UpdateFlags update_flags = integrator.update_flags();
@@ -140,7 +142,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
                       &this->dof_handler.block_info());
 
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
-  
+
   MeshWorker::Assembler::MGMatrixSimple<SparseMatrix<double> > assembler;
   assembler.initialize(mg_constraints);
   assembler.initialize(mg_matrix);
@@ -176,7 +178,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
       smoother_data[l].relaxation = 1.;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
       smoother_data[l].threshold = 1.e-12;
-    } 
+    }
   mg_smoother.initialize(mg_matrix, smoother_data);
   if (false)
     for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
@@ -184,7 +186,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
 	deallog << "Level " << l << ' ';
 	mg_smoother[l].log_statistics();
       }
-  
+
   mg_smoother.set_steps(smoothing_steps);
   mg_smoother.set_variable(variable_smoothing_steps);
 }
@@ -198,22 +200,22 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
   SolverGMRES<Vector<double> > solver(this->control, solver_data);
   // SolverCG<Vector<double> >::AdditionalData solver_data(false, false, true, true);
   // SolverCG<Vector<double> > solver(control, solver_data);
-  // SolverRichardson<Vector<double> > solver(control, .6);  
-  
+  // SolverRichardson<Vector<double> > solver(control, .6);
+
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
   mg::Matrix<Vector<double> > mgup(mg_matrix_up);
-  
+
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
   mg.set_minlevel(mg_matrix.min_level());
-  
+
   PreconditionMG<dim, Vector<double>,
     MGTransferPrebuilt<Vector<double> > >
     preconditioner(this->dof_handler, mg, mg_transfer);
-  try 
+  try
     {
       solver.solve(this->matrix[0], sol, rhs, preconditioner);
     }
@@ -224,4 +226,3 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 
 template class AmandusApplication<2>;
 template class AmandusApplication<3>;
-

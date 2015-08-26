@@ -29,28 +29,28 @@
 int main(int argc, const char** argv)
 {
   const unsigned int d=2;
-  
+
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
-  
+
   AmandusParameters param;
   ::Advection::Parameters::declare_parameters(param);
   param.read(argc, argv);
   param.log_parameters(deallog);
-  
+
   param.enter_subsection("Discretization");
   boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
-  
+
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
-  
+
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(2, -1.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
+  //solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
-  
+
   std::vector<Polynomials::Polynomial<double> > potentials(1);
   potentials[0] = solution1d;
 
@@ -59,12 +59,13 @@ int main(int argc, const char** argv)
   ::Advection::Matrix<d> matrix_integrator(parameters);
   ::Advection::PolynomialRHS<d> rhs_integrator(parameters, potentials);
   ::Advection::PolynomialError<d> error_integrator(parameters, potentials);
-  
+
   AmandusUMFPACK<d>  app(tr, *fe);
+  app.parse_parameters(param);
   AmandusSolve<d>    solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
-  
+
   BlockVector<double> errors(2);
   Vector<double> acc_errors(2);
   solve_and_error(errors, app, solver, residual, error_integrator);
@@ -73,6 +74,6 @@ int main(int argc, const char** argv)
       acc_errors(i) = errors.block(i).l2_norm();
       deallog << "Error(" << i << "): " << acc_errors(i) << std::endl;
     }
-  Assert(acc_errors(0) < 1.e-14, ExcErrorTooLarge(errors(0)));
-  Assert(acc_errors(1) < 1.e-13, ExcErrorTooLarge(errors(1)));
+  Assert(acc_errors(0) < 1.e-14, ExcErrorTooLarge(acc_errors(0)));
+  Assert(acc_errors(1) < 1.e-13, ExcErrorTooLarge(acc_errors(1)));
 }
