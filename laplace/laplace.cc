@@ -16,7 +16,7 @@
  * </ul>
  *
  * @author Anja Bettendorf
- * 
+ *
  * @ingroup Examples
  */
 
@@ -32,29 +32,29 @@
 int main()
 {
   const unsigned int d=2;
-  
+
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
-  
+
   Triangulation<d> tr;
   GridGenerator::hyper_cube (tr, -1, 1);
   tr.refine_global(3);
-  
+
   const unsigned int degree = 2;
   FE_DGQ<d> fe(degree);
-  
+
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(3, -1.);
   solution1d += Polynomials::Monomial<double>(1, 3.);
   solution1d.print(std::cout);
-  
+
   // without factor
   //LaplaceIntegrators::Matrix<d> matrix_integrator;
-  
-  // with factor 
-  double fakt=-0.02;
+
+  // with factor
+  double fakt=1.;
   LaplaceIntegrators::MatrixFaktor<d> matrix_integrator(fakt);
-  
+
   LaplaceIntegrators::PolynomialRHS<d> rhs(solution1d);
   LaplaceIntegrators::PolynomialError<d> error(solution1d);
 
@@ -62,7 +62,7 @@ int main()
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs);
 
-  
+
   global_refinement_linear_loop(3, app, solver, residual, &error);
 
 }

@@ -34,7 +34,7 @@ class PolynomialRHS : public AmandusIntegrator<dim>
 {
   public:
     PolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
-    
+
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
     virtual void boundary(DoFInfo<dim>& dinfo,
@@ -60,7 +60,7 @@ class PolynomialResidual : public AmandusIntegrator<dim>
 {
   public:
     PolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
-    
+
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
     virtual void boundary(DoFInfo<dim>& dinfo,
@@ -79,7 +79,7 @@ class PolynomialError : public AmandusIntegrator<dim>
 {
   public:
     PolynomialError(const Polynomials::Polynomial<double> solution_1d);
-    
+
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
     virtual void boundary(DoFInfo<dim>& dinfo,
@@ -107,7 +107,7 @@ PolynomialRHS<dim>::PolynomialRHS(
 
 template <int dim>
 void PolynomialRHS<dim>::cell(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
@@ -120,26 +120,26 @@ void PolynomialRHS<dim>::cell(
       const double y = info.fe_values(0).quadrature_point(k)(1);
       solution_1d.value(x, px);
       solution_1d.value(y, py);
-      
+
       rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
-  
+
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
 
 
 template <int dim>
 void PolynomialRHS<dim>::boundary(
-  DoFInfo<dim>&, 
+  DoFInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
 void PolynomialRHS<dim>::face(
-  DoFInfo<dim>&, 
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&, 
+  DoFInfo<dim>&,
+  DoFInfo<dim>&,
+  IntegrationInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 
@@ -158,12 +158,12 @@ PolynomialResidual<dim>::PolynomialResidual(
 
 template <int dim>
 void PolynomialResidual<dim>::cell(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
-  
+
   std::vector<double> rhs (info.fe_values(0).n_quadrature_points, 0.);
 
   std::vector<double> px(3);
@@ -174,7 +174,7 @@ void PolynomialResidual<dim>::cell(
       const double y = info.fe_values(0).quadrature_point(k)(1);
       solution_1d.value(x, px);
       solution_1d.value(y, py);
-      
+
       rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
 
@@ -192,7 +192,7 @@ void PolynomialResidual<dim>::cell(
 
 template <int dim>
 void PolynomialResidual<dim>::boundary(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   std::vector<double> null(info.fe_values(0).n_quadrature_points, 0.);
@@ -208,9 +208,9 @@ void PolynomialResidual<dim>::boundary(
 
 template <int dim>
 void PolynomialResidual<dim>::face(
-  DoFInfo<dim>& dinfo1, 
+  DoFInfo<dim>& dinfo1,
   DoFInfo<dim>& dinfo2,
-  IntegrationInfo<dim>& info1, 
+  IntegrationInfo<dim>& info1,
   IntegrationInfo<dim>& info2) const
 {
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
@@ -239,11 +239,11 @@ PolynomialError<dim>::PolynomialError(
 
 template <int dim>
 void PolynomialError<dim>::cell(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
-  
+
   std::vector<double> px(3);
   std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
@@ -253,7 +253,7 @@ void PolynomialError<dim>::cell(
       solution_1d.value(x, px);
       solution_1d.value(y, py);
       const double dx = info.fe_values(0).JxW(k);
-      
+
       Tensor<1,dim> Du = info.gradients[0][0][k];
       Du[0] -= px[1]*py[0];
       Du[1] -= px[0]*py[1];
@@ -270,19 +270,18 @@ void PolynomialError<dim>::cell(
 
 template <int dim>
 void PolynomialError<dim>::boundary(
-  DoFInfo<dim>&, 
+  DoFInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
 void PolynomialError<dim>::face(
-  DoFInfo<dim>&, 
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&, 
+  DoFInfo<dim>&,
+  DoFInfo<dim>&,
+  IntegrationInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 }
 
 #endif
-  

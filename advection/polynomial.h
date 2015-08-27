@@ -10,8 +10,7 @@
 #include <deal.II/base/polynomial.h>
 #include <deal.II/base/tensor.h>
 #include <deal.II/integrators/l2.h>
-#include <deal.II/integrators/laplace.h>
-#include <deal.II/integrators/divergence.h>
+#include <deal.II/integrators/advection.h>
 #include <advection/parameters.h>
 #include <integrator.h>
 
@@ -27,7 +26,7 @@ namespace Advection
  * PolynomialError which operates on the same polynomial
  * solutions. The solution obtained is described in
  * PolynomialError.
- * 
+ *
  * @author Guido Kanschat
  * @date 2014
  *
@@ -39,7 +38,7 @@ class PolynomialRHS : public AmandusIntegrator<dim>
   public:
     PolynomialRHS(const Parameters& par,
 			    const std::vector<Polynomials::Polynomial<double> > potentials_1d);
-    
+
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
     virtual void boundary(DoFInfo<dim>& dinfo,
@@ -47,6 +46,8 @@ class PolynomialRHS : public AmandusIntegrator<dim>
   private:
     dealii::SmartPointer<const Parameters, class PolynomialRHS<dim> > parameters;
     std::vector<Polynomials::Polynomial<double> > potentials_1d;
+
+    std::vector<std::vector<double> > velocity;
 };
 
 
@@ -82,7 +83,7 @@ class PolynomialError : public AmandusIntegrator<dim>
   public:
     PolynomialError(const Parameters& par,
 			      const std::vector<Polynomials::Polynomial<double> > potentials_1d);
-    
+
     virtual void cell(DoFInfo<dim>& dinfo,
 		      IntegrationInfo<dim>& info) const;
     virtual void boundary(DoFInfo<dim>& dinfo,
@@ -104,16 +105,19 @@ PolynomialRHS<dim>::PolynomialRHS(
   const std::vector<Polynomials::Polynomial<double> > potentials_1d)
 		:
 		parameters(&par),
-		potentials_1d(potentials_1d)
+  potentials_1d(potentials_1d),
+  velocity(dim, std::vector<double>(1))
 {
-  this->use_boundary = false;
+  this->use_boundary = true;
   this->use_face = false;
+  velocity[0][0] = 1.;
+  velocity[1][0] = 2.;
 }
 
 
 template <int dim>
 void PolynomialRHS<dim>::cell(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
@@ -126,20 +130,39 @@ void PolynomialRHS<dim>::cell(
       const double y = info.fe_values(0).quadrature_point(k)(1);
       potentials_1d[0].value(x, px);
       potentials_1d[0].value(y, py);
-      
-      //      rhs[k] = direction[0][0] * px[1]*py[0] + direction[0][1] * px[0]*py[1];
-      rhs[k] = 1. * px[1]*py[0] + 2. * px[0]*py[1];
+
+      rhs[k] = velocity[0][0] * px[1]*py[0] + velocity[1][0] * px[0]*py[1];
     }
-  
+
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
 
 
 template <int dim>
 void PolynomialRHS<dim>::boundary(
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&) const
-{}
+  DoFInfo<dim>& dinfo,
+  IntegrationInfo<dim>& info) const
+{
+  std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
+  std::vector<double> null(info.fe_values(0).n_quadrature_points, 0.);
+
+  std::vector<double> px(2);
+  std::vector<double> py(2);
+  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
+    {
+      const double x = info.fe_values(0).quadrature_point(k)(0);
+      const double y = info.fe_values(0).quadrature_point(k)(1);
+      potentials_1d[0].value(x, px);
+      potentials_1d[0].value(y, py);
+
+      rhs[k] = px[0]*py[0];
+    }
+
+  dealii::LocalIntegrators::Advection::
+    upwind_value_residual(dinfo.vector(0).block(0),
+			  info.fe_values(0), null, rhs, velocity);
+
+}
 
 //----------------------------------------------------------------------//
 
@@ -158,11 +181,11 @@ PolynomialError<dim>::PolynomialError(
 
 template <int dim>
 void PolynomialError<dim>::cell(
-  DoFInfo<dim>& dinfo, 
+  DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
   Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
-  
+
   std::vector<double> px(3);
   std::vector<double> py(3);
   for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
@@ -172,7 +195,7 @@ void PolynomialError<dim>::cell(
       potentials_1d[0].value(x, px);
       potentials_1d[0].value(y, py);
       const double dx = info.fe_values(0).JxW(k);
-      
+
       Tensor<1,dim> Du = info.gradients[0][0][k];
       Du[0] -= px[1]*py[0];
       Du[1] -= px[0]*py[1];
@@ -184,7 +207,7 @@ void PolynomialError<dim>::cell(
       // 1. H^1(u)
       dinfo.value(1) += (Du*Du) * dx;
     }
-  
+
   for (unsigned int i=0;i<2;++i)
     dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
@@ -192,20 +215,19 @@ void PolynomialError<dim>::cell(
 
 template <int dim>
 void PolynomialError<dim>::boundary(
-  DoFInfo<dim>&, 
+  DoFInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 
 
 template <int dim>
 void PolynomialError<dim>::face(
-  DoFInfo<dim>&, 
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&, 
+  DoFInfo<dim>&,
+  DoFInfo<dim>&,
+  IntegrationInfo<dim>&,
   IntegrationInfo<dim>&) const
 {}
 
 }
 
 #endif
-  

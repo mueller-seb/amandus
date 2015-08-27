@@ -154,7 +154,7 @@ AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler &param)
   param.enter_subsection("Linear Solver");
   control.parse_parameters(param);
   param.leave_subsection();
-  
+
   this->param = &param;
 }
 
@@ -176,7 +176,7 @@ AmandusApplicationSparse<dim>::setup_system()
   this->dof_handler.distribute_mg_dofs(*this->fe);
   dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
-  
+
   deallog << "DoFHandler: " << this->dof_handler.n_dofs()
 	  << std::endl;
 
@@ -214,7 +214,7 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   hanging_node_constraints.close();
   deallog << "Hanging nodes " << hanging_node_constraints.n_constraints() << std::endl;
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
-  
+
   constraint_matrix.clear();
   for (unsigned int i=0;i<boundary_masks.size();++i)
   {
@@ -250,9 +250,11 @@ AmandusApplicationSparse<dim>::assemble_matrix(
        i != integrator.input_vector_names.end();++i)
     {
       info_box.cell_selector.add(*i, true, true, false);
+      info_box.boundary_selector.add(*i, true, true, false);
+      info_box.face_selector.add(*i, true, true, false);
     }
   UpdateFlags update_flags = integrator.update_flags();
- 
+
   info_box.add_update_flags_all(update_flags);
   if(integrator.cell_quadrature != 0)
   {
@@ -317,7 +319,7 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
       info_box.boundary_selector.add(*i, true, true, false);
       info_box.face_selector.add(*i, true, true, false);
     }
-  
+
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
   // user defined quadrature rules if set
@@ -335,13 +337,13 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   }
   info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
 		      &dof_handler.block_info());
-  
+
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
-  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;  
+  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;
   assembler.initialize(this->constraints());
   assembler.initialize(out);
-  
+
   MeshWorker::LoopControl control;
   control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(
@@ -366,18 +368,18 @@ AmandusApplicationSparse<dim>::verify_residual(
       info_box.boundary_selector.add(*i, true, true, false);
       info_box.face_selector.add(*i, true, true, false);
     }
-  
+
   UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
 		      &dof_handler.block_info());
-  
+
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
 
-  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;  
+  MeshWorker::Assembler::ResidualSimple<Vector<double> > assembler;
   assembler.initialize(this->constraint_matrix);
   assembler.initialize(out);
-  
+
   MeshWorker::LoopControl control;
   control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(
@@ -447,7 +449,7 @@ double AmandusApplicationSparse<dim>::estimate(
       cell != triangulation->end() ; ++cell, ++i)
     cell->set_user_index(i);
   MeshWorker::IntegrationInfoBox<dim> info_box;
-  
+
   //TODO: choice of quadrature rule needs to be adjusted. E.g. the estimator for
   //Darcy's equation integrates a postprocessed solution of higher degree
   //than the original solution, thus we need a higher order quadrature
@@ -466,31 +468,31 @@ double AmandusApplicationSparse<dim>::estimate(
   {
     info_box.face_quadrature = *(integrator.face_quadrature);
   }
-  
+
   info_box.cell_selector.add("solution", true, true,true);
   info_box.face_selector.add("solution",true,true,true);
   info_box.boundary_selector.add("solution", true, true, false);
   UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
   info_box.add_update_flags_all(update_flags);
-  
+
   info_box.initialize(*fe, mapping, in, Vector<double>());
-  
+
   MeshWorker::DoFInfo<dim> dof_info(dof_handler);
-  
+
   MeshWorker::Assembler::CellsAndFaces<double> assembler ;
   AnyData out_data;
   BlockVector<double>* est =&estimates ;
-  out_data.add (est,"cells" ); 
-  
+  out_data.add (est,"cells" );
+
   assembler.initialize(out_data, false);
-  
+
   MeshWorker::LoopControl control;
   control.cells_first = false;
   MeshWorker::integration_loop< dim , dim >(
     dof_handler.begin_active(), dof_handler.end(),
     dof_info, info_box,
     integrator, assembler, control);
-  
+
   return estimates.block(0).l2_norm();
 }
 
@@ -504,7 +506,7 @@ void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
     triangulation->refine_global(1);
   else
     triangulation->execute_coarsening_and_refinement ();
-  
+
   deallog << "Triangulation "
 	  << triangulation->n_active_cells() << " cells, "
 	  << triangulation->n_levels() << " levels" << std::endl;
@@ -545,20 +547,20 @@ AmandusApplicationSparse<dim>::error(
   {
     info_box.face_quadrature = *(integrator.face_quadrature);
   }
-  
+
   UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, solution_data, Vector<double>(),
 		      &this->dof_handler.block_info());
-  
+
   MeshWorker::DoFInfo<dim> dof_info(this->dof_handler.block_info());
-  
+
   MeshWorker::Assembler::CellsAndFaces<double> assembler;
   AnyData out_data;
   BlockVector<double> *est = &errors;
   out_data.add(est, "cells");
   assembler.initialize(out_data, false);
-  
+
   MeshWorker::LoopControl control;
   control.cells_first = false;
   MeshWorker::integration_loop<dim, dim> (
@@ -588,7 +590,7 @@ AmandusApplicationSparse<dim>::error(
 {
   BlockVector<double> errors(num_errs);
   error(errors, solution_data, integrator);
-  
+
   for (unsigned int i=0;i<num_errs;++i)
     deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
 }
@@ -625,18 +627,18 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
 			       output_data_types);
   }
   else
-  {    
+  {
     AssertThrow(false, ExcNotImplemented());
   }
   data_out.build_patches (subdivisions);
-  
+
   std::ostringstream filename;
   filename << "solution-"
     << cycle
     << data_out.default_suffix();
 
-  deallog << "Writing " << filename.str() << std::endl;  
-  
+  deallog << "Writing " << filename.str() << std::endl;
+
   std::ofstream output(filename.str().c_str());
   data_out.write(output);
 }
