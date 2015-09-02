@@ -43,7 +43,7 @@ namespace CahnHilliard
 
       // fixed potential function for now
       std::vector<double> minus_dd_potential(point_of_linearization.size());
-      for(int q = 0; q < minus_dd_potential.size(); ++q)
+      for(unsigned int q = 0; q < minus_dd_potential.size(); ++q)
       {
         minus_dd_potential[q] = (
             1.0 -

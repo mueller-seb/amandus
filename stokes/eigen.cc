@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
   
   StokesIntegrators::Eigen<d> matrix_integrator;
-  AmandusUMFPACK<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   ComponentMask boundary_components(d+1, true);
   boundary_components.set(d, false);

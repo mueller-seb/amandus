@@ -68,7 +68,7 @@ namespace CahnHilliard
       const std::vector<std::vector<Tensor<1, dim> > >& Dpoint = info.gradients[0];
 
       std::vector<double> minus_d_potential(point[1].size());
-      for(int q = 0; q < minus_d_potential.size(); ++q)
+      for(unsigned int q = 0; q < minus_d_potential.size(); ++q)
       {
         minus_d_potential[q] = (
             point[1][q] * (1.0 - point[1][q] * point[1][q])) / diffusion;

@@ -1,8 +1,9 @@
 #include <deal.II/base/function.h>
 
+using namespace dealii;
+
 namespace CahnHilliard
 {
-  using namespace dealii;
 
   template <int dim>
     class Startup : public Function<dim>

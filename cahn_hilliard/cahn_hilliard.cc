@@ -21,7 +21,8 @@
  * As the interface is the only interesting part of the solution, we can use
  * adaptive mesh refinement to calculate with relatively few degrees of
  * freedom.
- */
+ */#
+#include <deal.II/base/function.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/numerics/dof_output_operator.h>

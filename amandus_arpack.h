@@ -30,7 +30,7 @@ class AmandusArpack
     AmandusArpack(AmandusApplicationSparse<dim>& application,
 		  AmandusIntegrator<dim>& integrator);
     /**
-     * Apply the solution operator. If indecated by events, reassemble matrices 
+     * Apply the solution operator. If indicated by events, reassemble matrices 
      */
     virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in);
   private:

@@ -102,7 +102,7 @@ namespace AdvectionDiffusion
     dir(0) = direction[0][0];
     dir(1) = direction[1][0];
 
-    const Point<dim> &normal = info.fe_values(0).normal_vector(1);
+    const Tensor<1,dim> &normal = info.fe_values(0).normal_vector(1);
 
     // Dirichlet boundary condition only at the inflow boundary
     if (normal*dir < 0 )

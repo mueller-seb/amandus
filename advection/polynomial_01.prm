@@ -16,6 +16,6 @@ subsection Newton
   set Tolerance           = 1.e-10
 end
 subsection Output
-  set Output format = gnuplot
+  set Output format = none
   set Subdivisions  = 2
 end

@@ -305,6 +305,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     dealii::SmartPointer<dealii::ParameterHandler> param;
 
     typename dealii::Triangulation<dim>::Signals& signals;
+
+    bool vertex_patches = true ;
     
   protected:
     /// The mesh
@@ -414,6 +416,15 @@ class AmandusApplication
      * side given. Uses the multigrid preconditioner.
      */
     void solve (dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
+
+    /**
+     * Solve the eigenvalue system stored in the first element of
+     * #matrix with mass matrix in the second. Use iterative inverse
+     * of the first matrix for shifting.
+     */
+    virtual void arpack_solve (std::vector<std::complex<double> >& eigenvalues,
+			       std::vector<dealii::Vector<double> >& eigenvectors);
+    
     
     //  protected:
 

@@ -32,7 +32,7 @@ global_refinement_linear_loop(unsigned int n_steps,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
 			      const AmandusIntegrator<dim>* error = 0,
-			      //const AmandusIntegrator<dim>* estimator = 0,
+			      const AmandusIntegrator<dim>* estimator = 0,
 			      const dealii::Function<dim>* initial_vector = 0)
 {
   dealii::Vector<double> res;
@@ -66,7 +66,6 @@ global_refinement_linear_loop(unsigned int n_steps,
       dealii::Vector<double>* rhs = &res;
       data.add(rhs, "RHS");
       dealii::AnyData residual_data;
-      //std::cout<<"i am here ***************************2****"<<std::endl;
       residual(data, residual_data);
       dealii::deallog << "Residual " << res.l2_norm() << std::endl;
       solver(solution_data, data);
@@ -87,12 +86,12 @@ global_refinement_linear_loop(unsigned int n_steps,
 	   }
        	}
 
-/*      if (estimator != 0)
+      if (estimator != 0)
 	{
 	  dealii::deallog << "Error::Estimate: "
 			  << app.estimate(solution_data, *estimator)
 			  << std::endl;
-	}  */
+	}
       app.output_results(s, &solution_data);
 
     }
@@ -131,7 +130,7 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
 			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
 			      const AmandusIntegrator<dim>* error = 0,
-			    //  const AmandusIntegrator<dim>* estimator = 0,
+			      const AmandusIntegrator<dim>* estimator = 0,
 			      const dealii::Function<dim>* initial_vector = 0)
 {
   dealii::Vector<double> res;
@@ -162,12 +161,12 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 	  app.error(solution_data, *error, 5);
        	}
 
-    /*  if (estimator != 0)
+      if (estimator != 0)
 	{
 	  dealii::deallog << "Error::Estimate: "
 			  << app.estimate(solution_data, *estimator)
 			  << std::endl;
-	} */
+	} 
 
       app.output_results(s, &solution_data);
     }

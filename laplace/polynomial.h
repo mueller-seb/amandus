@@ -121,7 +121,7 @@ void PolynomialRHS<dim>::cell(
       solution_1d.value(x, px);
       solution_1d.value(y, py);
 
-      rhs[k] = 1.;//-px[2]*py[0]-px[0]*py[2];
+      rhs[k] = -px[2]*py[0]-px[0]*py[2];
     }
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
