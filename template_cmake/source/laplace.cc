@@ -24,10 +24,10 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
-#include <laplace/matrix.h>
-#include <laplace/matrix_factor.h>
-#include <laplace/noforce.h>
-#include <laplace/polynomial.h>
+#include <matrix.h>
+#include <matrix_factor.h>
+#include <noforce.h>
+#include <polynomial.h>
 
 int main()
 {

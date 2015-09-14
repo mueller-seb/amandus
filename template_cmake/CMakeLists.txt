@@ -8,17 +8,17 @@ FILE(GLOB sources source/*.cc)
 ADD_EXECUTABLE(laplace ${sources} parameters.h)
 
 # Amandus headers and static library location
-# replace with path of your amandus source
-INCLUDE_DIRECTORIES(~/amandus/source)
-ADD_LIBRARY(amandus STATIC IMPORTED)
-SET_TARGET_PROPERTIES(amandus PROPERTIES
-    IMPORTED_LOCATION
-
-# replace to your path of amandus build directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../build/libamandus.a)
+IF(DEFINED ENV{AMANDUS})
+  INCLUDE_DIRECTORIES($ENV{AMANDUS}/source)
+  ADD_LIBRARY(amandus STATIC IMPORTED)
+  SET_TARGET_PROPERTIES(amandus PROPERTIES
+     IMPORTED_LOCATION $ENV{AMANDUS}/build/libamandus.a)
 
 # again change target laplace to as you want
-TARGET_LINK_LIBRARIES(laplace amandus)
+  TARGET_LINK_LIBRARIES(laplace amandus)
+ELSE()
+ MESSAGE(FATAL_ERROR "SET ENV_VARIABLE FOR AMANDUS")
+ENDIF()
 
 ## Compiler flags
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -30,7 +30,7 @@ endif()
 FIND_PACKAGE(deal.II 8.0 REQUIRED
   HINTS
 
-# provide the path for dealii
+# provide the path for dealii install directory
   ${DEAL_II_DIR} /scratch/dealii/install/ ../../ $ENV{DEAL_II_DIR})
 
 # change laplace to your target file
@@ -38,10 +38,8 @@ DEAL_II_SETUP_TARGET(laplace)
 
 ADD_CUSTOM_COMMAND(
   OUTPUT parameters.h
-
-# replace ./scripts with your amdundus source/scripts
-  COMMAND perl ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/make_parameters.pl
+  COMMAND perl $ENV{AMANDUS}/source/scripts/make_parameters.pl
   ${CMAKE_CURRENT_SOURCE_DIR}/parameters.input > ${CMAKE_CURRENT_SOURCE_DIR}/include/parameters.h
 
 # again change this path to as above
-  DEPENDS parameters.input ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/make_parameters.pl)
+  DEPENDS parameters.input $ENV{AMANDUS}/source/scripts/make_parameters.pl)
