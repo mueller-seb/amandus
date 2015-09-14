@@ -37,7 +37,9 @@ global_refinement_linear_loop(unsigned int n_steps,
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
-  dealii::BlockVector<double> errors(5);
+  dealii::BlockVector<double> errors;
+	if (error != 0)
+		errors.reinit(error->n_errors());
   dealii::ConvergenceTable convergence_table;
 
   for (unsigned int s=0;s<n_steps;++s)
@@ -166,7 +168,7 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 	  dealii::deallog << "Error::Estimate: "
 			  << app.estimate(solution_data, *estimator)
 			  << std::endl;
-	} 
+	}
 
       app.output_results(s, &solution_data);
     }
