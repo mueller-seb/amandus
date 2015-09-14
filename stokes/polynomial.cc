@@ -68,5 +68,5 @@ int main(int argc, const char** argv)
   AmandusResidual<d>    residual(app, rhs_integrator);
   app.control.set_reduction(1.e-10);
   
-  global_refinement_linear_loop(3, app, solver, residual, &error_integrator);
+  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
 }
