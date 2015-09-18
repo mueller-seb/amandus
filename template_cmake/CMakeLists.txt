@@ -8,7 +8,7 @@ SET(AMANDUS_PATH_INCLUDE ${AMANDUS_PATH_LIB}/include/amandus)
 # DEAL.II package configuration
 # Set the path after HINTS with the address to the directory where
 # deal.II is installed.
-FIND_PACKAGE(deal.II 8.0 REQUIRED
+FIND_PACKAGE(deal.II 8.3 REQUIRED
   HINTS
   ${DEAL_II_DIR} /export/home/nshakir/dealii/install/ ../../ $ENV{DEAL_II_DIR})
 
