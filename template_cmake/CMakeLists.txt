@@ -2,15 +2,13 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 # Set the path to the amandus directory containing
 # a source/ directory with the sources
-SET(AMANDUS_PATH_LIB /export/home/nshakir/amandus/build)
+SET(AMANDUS_PATH_LIB $ENV{AMANDUS_DIR})
 SET(AMANDUS_PATH_INCLUDE ${AMANDUS_PATH_LIB}/include/amandus)
 
 # DEAL.II package configuration
 # Set the path after HINTS with the address to the directory where
 # deal.II is installed.
-FIND_PACKAGE(deal.II 8.3 REQUIRED
-  HINTS
-  ${DEAL_II_DIR} /export/home/nshakir/dealii/install/ ../../ $ENV{DEAL_II_DIR})
+FIND_PACKAGE(deal.II 8.3 REQUIRED HINTS $ENV{DEAL_II_DIR})
 
 # Amandus headers and static library location
 INCLUDE_DIRECTORIES(${AMANDUS_PATH_INCLUDE})
