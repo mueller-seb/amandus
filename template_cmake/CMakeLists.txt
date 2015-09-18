@@ -2,8 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 # Set the path to the amandus directory containing
 # a source/ directory with the sources
-SET(AMANDUS_PATH_SRC /export/home/nshakir/amandus/source)
 SET(AMANDUS_PATH_LIB /export/home/nshakir/amandus/build)
+SET(AMANDUS_PATH_INCLUDE ${AMANDUS_PATH_LIB}/include/amandus)
 
 # DEAL.II package configuration
 # Set the path after HINTS with the address to the directory where
@@ -13,7 +13,7 @@ FIND_PACKAGE(deal.II 8.0 REQUIRED
   ${DEAL_II_DIR} /export/home/nshakir/dealii/install/ ../../ $ENV{DEAL_II_DIR})
 
 # Amandus headers and static library location
-INCLUDE_DIRECTORIES(${AMANDUS_PATH_SRC})
+INCLUDE_DIRECTORIES(${AMANDUS_PATH_INCLUDE})
 ADD_LIBRARY(amandus STATIC IMPORTED)
 SET_TARGET_PROPERTIES(amandus PROPERTIES
     IMPORTED_LOCATION
@@ -49,6 +49,6 @@ ENDFOREACH()
 # Generates parameter files
 ADD_CUSTOM_COMMAND(
   OUTPUT parameters.h
-  COMMAND perl ${AMANDUS_PATH_SRC}/scripts/make_parameters.pl
+  COMMAND perl ${AMANDUS_PATH_INCLUDE}/scripts/make_parameters.pl
   ${CMAKE_CURRENT_SOURCE_DIR}/parameters.input > ${CMAKE_CURRENT_SOURCE_DIR}/include/parameters.h
-  DEPENDS parameters.input ${AMANDUS_PATH_SRC}/scripts/make_parameters.pl)
+  DEPENDS parameters.input ${AMANDUS_PATH_INCLUDE}/scripts/make_parameters.pl)
