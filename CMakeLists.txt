@@ -6,7 +6,18 @@ DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(amandus)
 
 INCLUDE(CTest)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+
+# keep a reference from build directory to headers in source directory
+EXECUTE_PROCESS(
+  COMMAND
+  mkdir -p "${CMAKE_BINARY_DIR}/include")
+EXECUTE_PROCESS(
+  COMMAND
+  ln -nsf ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/include/amandus)
+# include headers found in src directory via symbolic link
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include/amandus)
+# include headers generated during build with scripts/make_parameters.pl
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 ADD_LIBRARY(amandus
   amandus.cc amandus_parameters.cc amandus_sparse.cc amandus_sparse_multigrid.cc)
