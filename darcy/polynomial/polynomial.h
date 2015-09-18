@@ -58,7 +58,7 @@ using namespace MeshWorker;
  */
 namespace Darcy
 {
-  namespace Polynomial 
+  namespace Polynomial
   {
 
     template <int dim>
@@ -160,7 +160,7 @@ namespace Darcy
 
     template <int dim>
       void RHS<dim>::cell(
-          DoFInfo<dim>& dinfo, 
+          DoFInfo<dim>& dinfo,
           IntegrationInfo<dim>& info) const
       {
         std::vector<std::vector<double> > rhs_u(
@@ -204,16 +204,16 @@ namespace Darcy
 
     template <int dim>
       void RHS<dim>::boundary(
-          DoFInfo<dim>&, 
+          DoFInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
 
     template <int dim>
       void RHS<dim>::face(
-          DoFInfo<dim>&, 
-          DoFInfo<dim>&, 
-          IntegrationInfo<dim>&, 
+          DoFInfo<dim>&,
+          DoFInfo<dim>&,
+          IntegrationInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
@@ -237,7 +237,7 @@ namespace Darcy
 
     template <int dim>
       void Residual<dim>::cell(
-          DoFInfo<dim>& dinfo, 
+          DoFInfo<dim>& dinfo,
           IntegrationInfo<dim>& info) const
       {
         Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
@@ -291,16 +291,16 @@ namespace Darcy
 
     template <int dim>
       void Residual<dim>::boundary(
-          DoFInfo<dim>&, 
+          DoFInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
 
     template <int dim>
       void Residual<dim>::face(
-          DoFInfo<dim>&, 
           DoFInfo<dim>&,
-          IntegrationInfo<dim>&, 
+          DoFInfo<dim>&,
+          IntegrationInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
@@ -316,6 +316,7 @@ namespace Darcy
         grad_potential_1d(grad_potential_1d),
         pressure_1d(pressure_1d)
     {
+      this->num_errors = 5;
       this->use_boundary = false;
       this->use_face = false;
     }
@@ -323,7 +324,7 @@ namespace Darcy
 
     template <int dim>
       void Error<dim>::cell(
-          DoFInfo<dim>& dinfo, 
+          DoFInfo<dim>& dinfo,
           IntegrationInfo<dim>& info) const
       {
         std::vector<double> px(3);
@@ -389,16 +390,16 @@ namespace Darcy
 
     template <int dim>
       void Error<dim>::boundary(
-          DoFInfo<dim>&, 
+          DoFInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
 
     template <int dim>
       void Error<dim>::face(
-          DoFInfo<dim>&, 
-          DoFInfo<dim>&, 
-          IntegrationInfo<dim>&, 
+          DoFInfo<dim>&,
+          DoFInfo<dim>&,
+          IntegrationInfo<dim>&,
           IntegrationInfo<dim>&) const
       {}
 
@@ -406,4 +407,3 @@ namespace Darcy
 }
 
 #endif
-  

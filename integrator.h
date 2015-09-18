@@ -46,6 +46,11 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
     double timestep;
 
     /**
+    * The number of errors to compute if this is called by an error computation or estimation loop.
+    */
+    unsigned int n_errors() const;
+
+    /**
      * \brief Returns the update flags to be used.
      */
     dealii::UpdateFlags update_flags () const;
@@ -74,6 +79,10 @@ class AmandusIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
      * Behaves like cell_quadrature.
      */
     dealii::SmartPointer<dealii::Quadrature<dim-1> > face_quadrature;
+
+  protected:
+    unsigned int num_errors;
+
   private:
     dealii::UpdateFlags u_flags;
 };
@@ -271,7 +280,7 @@ namespace Integrators
 
   template <int dim>
     void L2ErrorIntegrator<dim>::cell(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo, 
+        dealii::MeshWorker::DoFInfo<dim>& dinfo,
         dealii::MeshWorker::IntegrationInfo<dim>& info) const
     {
       Assert(info.values.size() >= 1,
@@ -325,7 +334,7 @@ namespace Integrators
 
   template <int dim>
     void H1ErrorIntegrator<dim>::cell(
-        dealii::MeshWorker::DoFInfo<dim>& dinfo, 
+        dealii::MeshWorker::DoFInfo<dim>& dinfo,
         dealii::MeshWorker::IntegrationInfo<dim>& info) const
     {
       Assert(info.values.size() >= 1,
@@ -367,8 +376,8 @@ template <int dim>
 inline
 AmandusIntegrator<dim>::AmandusIntegrator ()
 :
-  timestep(0.), 
-  cell_quadrature(0), boundary_quadrature(0), face_quadrature(0),
+  timestep(0.),
+  cell_quadrature(0), boundary_quadrature(0), face_quadrature(0), num_errors(0),
   u_flags(dealii::update_JxW_values |
           dealii::update_values |
           dealii::update_gradients |
@@ -382,6 +391,15 @@ dealii::UpdateFlags
 AmandusIntegrator<dim>::update_flags () const
 {
   return u_flags;
+}
+
+
+template <int dim>
+inline
+unsigned int
+AmandusIntegrator<dim>::n_errors () const
+{
+  return num_errors;
 }
 
 
@@ -438,8 +456,8 @@ namespace Integrators
 	this->timestep = *ts;
       }
   }
-  
-  
+
+
   template <int dim>
   void
   Theta<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
@@ -451,9 +469,9 @@ namespace Integrators
       dinfo.vector(i) *= factor;
     for (unsigned int i=0;i<dinfo.n_matrices();++i)
       dinfo.matrix(i, false).matrix *= factor;
-    
+
     const dealii::FiniteElement<dim>& fe = info.finite_element();
-    
+
     unsigned int comp = 0;
     for (unsigned int b=0;b<fe.n_base_elements();++b)
     {
@@ -491,7 +509,7 @@ namespace Integrators
       }
     }
   }
-  
+
   template <int dim>
   void
   Theta<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
@@ -504,7 +522,7 @@ namespace Integrators
     for (unsigned int i=0;i<dinfo.n_matrices();++i)
       dinfo.matrix(i, false).matrix *= factor;
   }
-  
+
   template <int dim>
   void
   Theta<dim>::face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
@@ -554,14 +572,3 @@ class MeanIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

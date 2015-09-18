@@ -234,6 +234,7 @@ PolynomialError<dim>::PolynomialError(
 {
   this->use_boundary = false;
   this->use_face = false;
+  this->num_errors = 2;
 }
 
 

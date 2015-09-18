@@ -174,6 +174,7 @@ PolynomialError<dim>::PolynomialError(
 		parameters(&par),
 		potentials_1d(potentials_1d)
 {
+  this->num_errors = 2;
   this->use_boundary = false;
   this->use_face = false;
 }
