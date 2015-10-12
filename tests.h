@@ -148,12 +148,13 @@ class ExactResidual : public AmandusResidual<dim>
       quadrature(n_qpoints)
     {}
 
-    virtual void notify(const dealii::Algorithms::Event& e)
+    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
     {
-      if(e.test(dealii::Algorithms::Events::initial) |
-         e.test(dealii::Algorithms::Events::remesh))
+      dealii::LogStream::Prefix p("ExactResidual");
+
+      if(this->notifications.test(dealii::Algorithms::Events::initial) ||
+         this->notifications.test(dealii::Algorithms::Events::remesh))
       {
-        dealii::LogStream::Prefix p("ExactResidual");
         dealii::deallog << "Projecting exact solution." << std::endl;
         this->application->setup_vector(projection);
         dealii::VectorTools::project(this->application->dofs(),
@@ -161,13 +162,8 @@ class ExactResidual : public AmandusResidual<dim>
                                      quadrature,
                                      *exact_solution,
                                      projection);
+        this->notifications.clear();
       }
-      AmandusResidual<dim>::notify(e);
-    }
-		    
-    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
-    {
-      dealii::LogStream::Prefix p("ExactResidual");
 
       AmandusResidual<dim>::operator()(out, in);
 
