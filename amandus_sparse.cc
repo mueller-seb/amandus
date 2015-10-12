@@ -450,12 +450,6 @@ double AmandusApplicationSparse<dim>::estimate(
     cell->set_user_index(i);
   MeshWorker::IntegrationInfoBox<dim> info_box;
 
-  //TODO: choice of quadrature rule needs to be adjusted. E.g. the estimator for
-  //Darcy's equation integrates a postprocessed solution of higher degree
-  //than the original solution, thus we need a higher order quadrature
-  //formula to obtain correct results
-  //const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+4;
-  //info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
   if(integrator.cell_quadrature != 0)
   {
     info_box.cell_quadrature = *(integrator.cell_quadrature);
