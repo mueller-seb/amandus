@@ -14,7 +14,7 @@
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 /**
  * Error is not close to machine accuracy

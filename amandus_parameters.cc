@@ -9,7 +9,7 @@
 #include <deal.II/base/data_out_base.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 using namespace dealii;
 

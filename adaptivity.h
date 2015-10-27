@@ -1,5 +1,5 @@
-#ifndef __adaptivity_h
-#define __adaptivity_h
+#ifndef amandus_adaptivity_h
+#define amandus_adaptivity_h
 
 /**
  * @file
@@ -9,8 +9,8 @@
  * @ingroup Postprocessing
  */
 
-#include <amandus.h>
-#include <integrator.h>
+#include <amandus/amandus.h>
+#include <amandus/integrator.h>
 #include <deal.II/base/smartpointer.h>
 #include <deal.II/algorithms/operator.h>
 #include <deal.II/numerics/solution_transfer.h>
