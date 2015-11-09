@@ -16,7 +16,7 @@
 #include <deal.II/base/convergence_table.h>
 #include <deal.II/base/quadrature_lib.h>
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 #include <iomanip>
 #include <sstream>
 

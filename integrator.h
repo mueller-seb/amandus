@@ -6,8 +6,8 @@
  *
  **********************************************************************/
 
-#ifndef __amandus_integrator_h
-#define __amandus_integrator_h
+#ifndef amandus_integrator_h
+#define amandus_integrator_h
 
 #include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/local_integrator.h>

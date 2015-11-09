@@ -6,8 +6,8 @@
  *
  **********************************************************************/
 
-#ifndef __amandus_h
-#define __amandus_h
+#ifndef amandus_amandus_h
+#define amandus_amandus_h
 
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparse_direct.h>
@@ -50,7 +50,7 @@
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/algorithms/operator.h>
 
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 #include <iostream>
 #include <fstream>

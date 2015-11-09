@@ -43,7 +43,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 using namespace dealii;
 

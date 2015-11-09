@@ -37,8 +37,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <amandus.h>
-#include <integrator.h>
+#include <amandus/amandus.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 

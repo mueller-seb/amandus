@@ -1,0 +1,34 @@
+########################################################################
+##                                                                    ##
+##               The amandus project configuration file               ##
+##                                                                    ##
+########################################################################
+
+@PACKAGE_INIT@
+
+#
+# General information
+#
+
+SET(AMANDUS_PACKAGE_NAME "@AMANDUS_PACKAGE_NAME@")
+SET(AMANDUS_PACKAGE_VERSION "@AMANDUS_PACKAGE_VERSION@")
+SET(AMANDUS_PACKAGE_VENDOR "@AMANDUS_PACKAGE_VENDOR@")
+SET(AMANDUS_PACKAGE_DESCRIPTION "@AMANDUS_PACKAGE_DESCRIPTION@")
+
+SET(AMANDUS_PATH ${PACKAGE_PREFIX_DIR})
+SET(AMANDUS_INCLUDE_DIR ${PACKAGE_PREFIX_DIR}/include)
+ADD_LIBRARY(amandus STATIC IMPORTED)
+SET_TARGET_PROPERTIES(amandus PROPERTIES
+    IMPORTED_LOCATION
+    ${AMANDUS_PATH}/lib/libamandus.a)
+
+
+SET(AMANDUS_DEAL_II_PATH "@DEAL_II_PATH@")
+
+FIND_PACKAGE(deal.II REQUIRED HINTS ${AMANDUS_DEAL_II_PATH})
+
+SET(CMAKE_CXX_FLAGS ${DEAL_II_CXX_FLAGS} CACHE STRING "")
+SET(CMAKE_CXX_FLAGS_RELEASE ${DEAL_II_CXX_FLAGS_RELEASE} CACHE STRING "")
+SET(CMAKE_CXX_FLAGS_DEBUG ${DEAL_II_CXX_FLAGS_DEBUG} CACHE STRING "")
+
+MESSAGE("Amandus configuration complete")
