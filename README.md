@@ -9,10 +9,22 @@ by doxygen](http://pesser.bitbucket.org/amandus_doc/).
 
 ## Building and installing
 
-Amandus uses [cmake](http://www.cmake.org/) for configuration. It supports in and out of source builds, but not installing. In-source buids are not recommended if you plan on updating or developing. Thus, a typical setup runs like this 
+Amandus uses [cmake](http://www.cmake.org/) for configuration. It supports in and out of source builds. In-source builds are not recommended if you plan on updating or developing. Thus, a typical setup runs like this
 ```
 cd build
 cmake -DDEAL_II_DIR=/path/to/installed/dealii /path/to/amandus/source
+make
+```
+Optionally you can install it with
+```
+cmake -DCMAKE_INSTALL_PREFIX=/path/to/install/amandus/to /path/to/amandus/source
+make install
+```
+
+In order to use Amandus for your own project you can use a setup similiar to
+the example in `template_cmake` directory which would be compiled as
+```
+cmake -DAMANDUS_DIR=/path/to/amandus/build/or/install /path/to/your/project/source
 make
 ```
 
