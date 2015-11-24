@@ -376,7 +376,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
  *
  * @ingroup apps
  */
-template <int dim>
+template <int dim,typename RELAXATION=dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >
 class AmandusApplication
   : public AmandusApplicationSparse<dim>
 {
@@ -441,9 +441,12 @@ class AmandusApplication
     dealii::FullMatrix<double> coarse_matrix;
     dealii::MGCoarseGridSVD<double, dealii::Vector<double> > mg_coarse;
 
-    typedef dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > RELAXATION;
-    dealii::MGLevelObject<RELAXATION::AdditionalData> smoother_data;
+    dealii::MGLevelObject<typename RELAXATION::AdditionalData> smoother_data;
     dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double> > mg_smoother;
+    bool log_smoother_statistics = false ;
+    bool right_preconditioning = true ;
+    bool use_default_residual = true ;
+    double smoother_relaxation = 1.0 ;
 };
 
 /// Compatibility definition
