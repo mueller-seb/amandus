@@ -47,8 +47,8 @@
 
 using namespace dealii;
 
-template <int dim>
-AmandusApplication<dim>::AmandusApplication(
+template <int dim, typename RELAXATION>
+AmandusApplication<dim, RELAXATION>::AmandusApplication(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
@@ -57,9 +57,9 @@ AmandusApplication<dim>::AmandusApplication(
 {}
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::setup_system()
+AmandusApplication<dim, RELAXATION>::setup_system()
 {
   mg_transfer.clear();
   AmandusApplicationSparse<dim>::setup_system();
@@ -96,8 +96,8 @@ AmandusApplication<dim>::setup_system()
 }
 
 
-template <int dim>
-void AmandusApplication<dim>::setup_constraints()
+template <int dim, typename RELAXATION>
+void AmandusApplication<dim,RELAXATION>::setup_constraints()
 {
   AmandusApplicationSparse<dim>::setup_constraints();
 
@@ -106,9 +106,9 @@ void AmandusApplication<dim>::setup_constraints()
 }
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::assemble_mg_matrix(
+AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
   const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
@@ -184,12 +184,12 @@ AmandusApplication<dim>::assemble_mg_matrix(
 	  DoFTools::make_cell_patches(smoother_data[l].block_list, this->dof_handler, l);
 	}
       smoother_data[l].block_list.compress();
-      smoother_data[l].relaxation = 1.;
+      smoother_data[l].relaxation = smoother_relaxation ;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
       smoother_data[l].threshold = 1.e-12;
     }
   mg_smoother.initialize(mg_matrix, smoother_data);
-  if (false)
+  if (log_smoother_statistics)
     for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
       {
 	deallog << "Level " << l << ' ';
@@ -200,12 +200,11 @@ AmandusApplication<dim>::assemble_mg_matrix(
   mg_smoother.set_variable(variable_smoothing_steps);
 }
 
-
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
-  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(100, right_preconditioning, use_default_residual);
   SolverGMRES<Vector<double> > solver(this->control, solver_data);
   // SolverCG<Vector<double> >::AdditionalData solver_data(false, false, true, true);
   // SolverCG<Vector<double> > solver(control, solver_data);
@@ -233,10 +232,10 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 }
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
-				      std::vector<Vector<double> >& eigenvectors)
+AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
+						  std::vector<Vector<double> >& eigenvectors)
 {
   AssertDimension(2*eigenvalues.size(), eigenvectors.size());
   ArpackSolver::AdditionalData arpack_data(eigenvectors.size()+2,
@@ -269,6 +268,7 @@ AmandusApplication<dim>::arpack_solve(std::vector<std::complex<double> >& eigenv
 	       eigenvalues, eigenvectors, eigenvalues.size());
 }
 
-
-template class AmandusApplication<2>;
-template class AmandusApplication<3>;
+template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<3,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<2,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<3,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;
