@@ -19,7 +19,7 @@
  */
 template <int dim>
 class AmandusArpack
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     /**

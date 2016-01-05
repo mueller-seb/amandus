@@ -476,7 +476,7 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
  */
 template <int dim>
 class AmandusResidual
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
 public:
   /**
@@ -511,7 +511,7 @@ public:
  */
 template <int dim>
 class AmandusSolve
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     /**

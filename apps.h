@@ -30,8 +30,8 @@ template <int dim>
 void
 global_refinement_linear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
-			      dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-			      dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
+			      dealii::Algorithms::OperatorBase& solver,
+			      dealii::Algorithms::OperatorBase& residual,
 			      const AmandusIntegrator<dim>* error = 0,
 			      const AmandusIntegrator<dim>* estimator = 0,
 			      const dealii::Function<dim>* initial_vector = 0)
@@ -111,7 +111,7 @@ template <int dim>
 void
 global_refinement_nonlinear_loop(unsigned int n_steps,
 			      AmandusApplicationSparse<dim> &app,
-			      dealii::Algorithms::Operator<dealii::Vector<double> >& solve,
+			      dealii::Algorithms::OperatorBase& solve,
 			      const AmandusIntegrator<dim>* error = 0,
 			      const AmandusIntegrator<dim>* estimator = 0,
 			      const dealii::Function<dim>* initial_vector = 0)
@@ -185,7 +185,7 @@ void
 global_refinement_eigenvalue_loop(unsigned int n_steps,
 				  unsigned int n_values,
 				  AmandusApplicationSparse<dim> &app,
-				  dealii::Algorithms::Operator<dealii::Vector<double> >& solve)
+				  dealii::Algorithms::OperatorBase& solve)
 {
   std::vector<std::complex<double> > eigenvalues(n_values);
   std::vector<dealii::Vector<double> > eigenvectors(2*n_values);
