@@ -26,7 +26,7 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <apps.h>
 #include <darcy/polynomial/polynomial.h>
-#include <darcy/matrix.h>
+#include <darcy/integrators.h>
 
 
 int main()
@@ -58,10 +58,10 @@ int main()
   Polynomials::Polynomial<double> pressure_source(1);
 //  pressure_source += Polynomials::Monomial<double>(3, 1.);
   
-  DarcyMatrix<d> matrix_integrator;
-  DarcyPolynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
+  Darcy::SystemIntegrator<d> matrix_integrator;
+  Darcy::Polynomial::Residual<d> rhs_integrator(vector_potential, scalar_potential, pressure_source);
   rhs_integrator.input_vector_names.push_back("Newton iterate");
-  DarcyPolynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
+  Darcy::Polynomial::Error<d> error_integrator(vector_potential, scalar_potential, pressure_source);
   
   AmandusApplicationSparseMultigrid<d> app(tr, fe);
   app.set_boundary(0);
