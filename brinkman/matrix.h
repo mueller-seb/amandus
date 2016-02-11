@@ -9,11 +9,11 @@
 #ifndef __brinkman_matrix_h
 #define __brinkman_matrix_h
 
-#include <integrators/laplace.h>
-#include <integrators/elasticity.h>
-#include <integrators/divergence.h>
-#include <integrators/l2.h>
-#include <integrators/elasticity.h>
+#include <deal.II/integrators/laplace.h>
+#include <deal.II/integrators/elasticity.h>
+#include <deal.II/integrators/divergence.h>
+#include <deal.II/integrators/l2.h>
+#include <deal.II/integrators/elasticity.h>
 
 #include <integrator.h>
 #include <brinkman/parameters.h>
@@ -51,7 +51,7 @@ namespace Brinkman
     for (unsigned k=0;k<int_fe.n_quadrature_points;++k)
       {
 	const double dx = int_fe.JxW(k) * factor;
-	const Point<dim>& n = int_fe.normal_vector(k);
+	const Tensor<1,dim> n = int_fe.normal_vector(k);
 	if (dim==2)
 	  cross_product(aux1, n);
 	    

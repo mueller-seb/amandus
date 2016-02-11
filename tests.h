@@ -37,8 +37,8 @@ template <int dim>
 void
 solve_and_error(dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
+		dealii::Algorithms::OperatorBase& solver,
+		dealii::Algorithms::OperatorBase& residual,
 		const AmandusIntegrator<dim>& error)
 {
   dealii::Vector<double> res;
@@ -81,7 +81,7 @@ void
 iterative_solve_and_error(
     dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
+		dealii::Algorithms::OperatorBase& solver,
 		const ErrorIntegrator<dim>& error,
     const dealii::Function<dim>* initial_function = 0,
     unsigned int n_qpoints = 0)
