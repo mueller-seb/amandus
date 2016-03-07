@@ -28,15 +28,15 @@
  *
  */
 
-#include <deal.II/fe/fe_tools.h>
+#include <amandus/apps.h>
+#include <amandus/elasticity/matrix.h>
+#include <amandus/elasticity/residual.h>
 #include <deal.II/algorithms/newton.h>
+#include <deal.II/base/function.h>
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <deal.II/base/function.h>
-#include <amandus/apps.h>
 #include <elasticity/parameters.h>
-#include <amandus/elasticity/residual.h>
-#include <amandus/elasticity/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

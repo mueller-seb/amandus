@@ -7,15 +7,15 @@
 #ifndef __elasticity_eigen_h
 #define __elasticity_eigen_h
 
+#include <amandus/elasticity/matrix_integrators.h>
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
-#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/elasticity.h>
+#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/meshworker/integration_info.h>
 #include <elasticity/parameters.h>
-#include <amandus/elasticity/matrix_integrators.h>
 
 #include <set>
 
@@ -79,8 +79,7 @@ Eigen<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     AssertDimension(dinfo.n_matrices(), 1);
   }
 
-  dealii::LocalIntegrators::L2::mass_matrix(
-    dinfo.matrix(0, false).matrix, info.fe_values(0));
+  dealii::LocalIntegrators::L2::mass_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
   dealii::LocalIntegrators::Elasticity::cell_matrix(
     dinfo.matrix(0, false).matrix, info.fe_values(0), 2. * parameters->mu);
   dealii::LocalIntegrators::GradDiv::cell_matrix(

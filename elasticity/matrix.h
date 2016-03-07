@@ -1,15 +1,15 @@
 #ifndef __elasticity_matrix_h
 #define __elasticity_matrix_h
 
+#include <amandus/elasticity/matrix_integrators.h>
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
-#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/elasticity.h>
+#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/meshworker/integration_info.h>
 #include <elasticity/parameters.h>
-#include <amandus/elasticity/matrix_integrators.h>
 
 #include <set>
 
@@ -32,7 +32,8 @@ template <int dim>
 class Matrix : public AmandusIntegrator<dim>
 {
 public:
-  Matrix(const Parameters& par, const std::set<unsigned int>& dirichlet = std::set<unsigned int>());
+  Matrix(const Parameters& par, const std::set<unsigned int>& dirichlet = std::set<unsigned int>(),
+         const std::set<unsigned int>& tangential = std::set<unsigned int>());
 
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
@@ -42,12 +43,15 @@ public:
 private:
   dealii::SmartPointer<const Parameters, class Matrix<dim>> parameters;
   std::set<unsigned int> dirichlet_boundaries;
+  std::set<unsigned int> tangential_boundaries;
 };
 
 template <int dim>
-Matrix<dim>::Matrix(const Parameters& par, const std::set<unsigned int>& dirichlet)
+Matrix<dim>::Matrix(const Parameters& par, const std::set<unsigned int>& dirichlet,
+                    const std::set<unsigned int>& tangential)
   : parameters(&par)
   , dirichlet_boundaries(dirichlet)
+  , tangential_boundaries(tangential)
 {
   // this->input_vector_names.push_back("Newton iterate");
 }
@@ -82,6 +86,14 @@ Matrix<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   if (dirichlet_boundaries.count(dinfo.face->boundary_id()) != 0)
   {
     dealii::LocalIntegrators::Elasticity::nitsche_matrix(
+      dinfo.matrix(0, false).matrix,
+      info.fe_values(0),
+      dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+      2. * parameters->mu);
+  }
+  else if (tangential_boundaries.count(dinfo.face->boundary_id()) != 0)
+  {
+    dealii::LocalIntegrators::Elasticity::nitsche_tangential_matrix(
       dinfo.matrix(0, false).matrix,
       info.fe_values(0),
       dealii::LocalIntegrators::Laplace::compute_penalty(dinfo, dinfo, deg, deg),

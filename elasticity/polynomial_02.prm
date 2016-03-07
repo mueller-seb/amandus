@@ -1,0 +1,12 @@
+set Mu = 10.
+set Lambda = 100.
+set Linear = true
+subsection Discretization
+#  set FE         = FESystem[FESystem[FE_DGQ(3)^d]]
+  set FE         = FE_RaviartThomas(4)
+  set Refinement = 0
+end
+subsection Output
+  set Output format = gnuplot
+  set Subdivisions  = 4
+end

@@ -70,6 +70,19 @@ private:
  * residuals are integrated by the functions of the classes
  * PolynomialRHS.
  *
+ * Here, we use the formulas
+ * \f{gather*}{
+ * 2 \nabla \cdot \epsilon(u) =
+ * 2 \nabla \cdot \begin{pmatrix}
+ * \partial_1 u_1 & \tfrac{\partial_2 u_1 + \partial_1 u_2}{2}\\
+ *  \tfrac{\partial_2 u_1 + \partial_1 u_2}{2} & \partial_2 u_2
+ * \end{pmatrix}
+ * =  \begin{pmatrix}
+ * 2 \partial_{11} u_1 + \partial_{22} u_1 + \partial_{12} u_2 \\
+ * 2 \partial_{22} u_2 + \partial_{11} u_2 + \partial_{12} u_1
+ * \end{pmatrix}
+ * \f}
+ *
  * @author Guido Kanschat
  * @date 2014
  *

@@ -94,7 +94,7 @@ main(int argc, const char** argv)
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   app.boundary_patches = true;
-  
+
   app.set_boundary(0, ComponentMask(2, false));
   app.set_boundary(1, ComponentMask(2, false));
   app.set_boundary(2, ComponentMask(2, false));
