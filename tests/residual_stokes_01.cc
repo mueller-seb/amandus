@@ -17,9 +17,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <tests.h>
-#include <stokes/noforce.h>
-#include <stokes/matrix.h>
+#include <amandus/tests.h>
+#include <amandus/stokes/noforce.h>
+#include <amandus/stokes/matrix.h>
 
 int main()
 {

@@ -4,8 +4,8 @@
 #define __elasticity_matrix_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <integrator.h>
-#include <elasticity/parameters.h>
+#include <amandus/integrator.h>
+#include <amandus/elasticity/parameters.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/divergence.h>

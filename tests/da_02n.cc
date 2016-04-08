@@ -23,9 +23,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <darcy/polynomial/polynomial.h>
-#include <darcy/integrators.h>
+#include <amandus/apps.h>
+#include <amandus/darcy/polynomial/polynomial.h>
+#include <amandus/darcy/integrators.h>
 
 
 int main()

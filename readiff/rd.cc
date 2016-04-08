@@ -25,9 +25,9 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/utilities.h>
-#include <apps.h>
-#include <readiff/residual.h>
-#include <readiff/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/readiff/residual.h>
+#include <amandus/readiff/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

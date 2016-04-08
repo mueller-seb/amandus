@@ -30,13 +30,13 @@
 #include <deal.II/fe/fe_tools.h>
 #include <boost/scoped_ptr.hpp>
 
-#include <apps.h>
-#include <adaptivity.h>
+#include <amandus/apps.h>
+#include <amandus/adaptivity.h>
 
-#include <cahn_hilliard/residual.h>
-#include <cahn_hilliard/matrix.h>
-#include <cahn_hilliard/samples.h>
-#include <cahn_hilliard/massout.h>
+#include <amandus/cahn_hilliard/residual.h>
+#include <amandus/cahn_hilliard/matrix.h>
+#include <amandus/cahn_hilliard/samples.h>
+#include <amandus/cahn_hilliard/massout.h>
 
 
 using namespace dealii;

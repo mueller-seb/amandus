@@ -22,9 +22,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <amandus_arpack.h>
-#include <maxwell/eigen.h>
+#include <amandus/apps.h>
+#include <amandus/amandus_arpack.h>
+#include <amandus/maxwell/eigen.h>
 
 #include <boost/scoped_ptr.hpp>
 

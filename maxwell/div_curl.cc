@@ -19,9 +19,9 @@
 #include <deal.II/fe/fe_nedelec.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_system.h>
-#include <apps.h>
-#include <maxwell/matrix.h>
-#include <rhs_one.h>
+#include <amandus/apps.h>
+#include <amandus/maxwell/matrix.h>
+#include <amandus/rhs_one.h>
 
 
 int main()

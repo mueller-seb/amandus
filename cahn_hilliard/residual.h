@@ -4,7 +4,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/advection.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 namespace CahnHilliard
 {

@@ -22,9 +22,9 @@
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/fe/fe_tools.h>
 
-#include <debug/visualize_solution.h>
+#include <amandus/debug/visualize_solution.h>
 
-#include <darcy/estimator.h>
+#include <amandus/darcy/estimator.h>
 
 int main(int argc, const char** argv)
 {

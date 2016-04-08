@@ -7,8 +7,8 @@
 #define BOOST_TEST_MODULE test_solution_parameters
 #include <boost/test/included/unit_test.hpp>
 
-#include <darcy/checkerboard/solution_parameters.h>
-#include <darcy/checkerboard/solution.h>
+#include <amandus/darcy/checkerboard/solution_parameters.h>
+#include <amandus/darcy/checkerboard/solution.h>
 
 #define TOL 0.001
 
