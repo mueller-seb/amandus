@@ -13,7 +13,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
-#include <amandus/elasticity/parameters.h>
+#include <elasticity/parameters.h>
 #include <amandus/integrator.h>
 
 using namespace dealii;

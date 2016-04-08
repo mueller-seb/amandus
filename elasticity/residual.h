@@ -13,7 +13,7 @@
 #include <deal.II/integrators/elasticity.h>
 #include <deal.II/integrators/divergence.h>
 #include <amandus/integrator.h>
-#include <amandus/elasticity/parameters.h>
+#include <elasticity/parameters.h>
 #include <amandus/elasticity/integrators.h>
 
 using namespace dealii::MeshWorker;

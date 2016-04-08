@@ -18,7 +18,7 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
 #include <amandus/apps.h>
-#include <amandus/elasticity/parameters.h>
+#include <elasticity/parameters.h>
 #include <amandus/elasticity/residual.h>
 #include <amandus/elasticity/matrix.h>
 

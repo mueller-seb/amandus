@@ -15,7 +15,7 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <amandus/integrator.h>
-#include <amandus/readiff/parameters.h>
+#include <readiff/parameters.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;

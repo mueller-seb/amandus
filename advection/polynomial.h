@@ -11,7 +11,7 @@
 #include <deal.II/base/tensor.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/advection.h>
-#include <amandus/advection/parameters.h>
+#include <advection/parameters.h>
 #include <amandus/integrator.h>
 
 using namespace dealii;
