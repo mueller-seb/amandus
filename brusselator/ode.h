@@ -16,7 +16,7 @@
 #include <brusselator/parameters.h>
 
 class Explicit
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     Explicit(const Brusselator::Parameters& par);
@@ -47,7 +47,7 @@ Explicit:: operator() (dealii::AnyData &out, const dealii::AnyData &in)
 
 
 class ImplicitResidual
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     ImplicitResidual(const Brusselator::Parameters& par);
@@ -80,7 +80,7 @@ const dealii::Vector<double>& p = *in.read_ptr<dealii::Vector<double> >("Previou
 
 
 class ImplicitSolve
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     ImplicitSolve(const Brusselator::Parameters& par);
