@@ -12,7 +12,7 @@
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
-#include <brusselator/parameters.h>
+#include <amandus/brusselator/parameters.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
