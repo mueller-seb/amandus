@@ -134,7 +134,7 @@ class Start : public Function<dim>
       }
     }
 
-    virtual Tensor<1, dim> gradient(const Point<2>& p,
+    virtual Tensor<1, dim> gradient(const Point<dim>& p,
                                   const unsigned int component = 0) const
     {
       dealii::Tensor<1, dim> grad;
