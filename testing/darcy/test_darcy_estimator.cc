@@ -19,9 +19,9 @@
 #include <deal.II/numerics/fe_field_function.h>
 #include <deal.II/base/quadrature_lib.h>
 
-#include <darcy/integrators.h>
-#include <darcy/estimator.h>
-#include <darcy/checkerboard/solution.h>
+#include <amandus/darcy/integrators.h>
+#include <amandus/darcy/estimator.h>
+#include <amandus/darcy/checkerboard/solution.h>
 
 using namespace dealii;
 using namespace Darcy;

@@ -17,9 +17,9 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <apps.h>
-#include <darcy/polynomial/polynomial.h>
-#include <darcy/integrators.h>
+#include <amandus/apps.h>
+#include <amandus/darcy/polynomial/polynomial.h>
+#include <amandus/darcy/integrators.h>
 #include <deal.II/fe/fe_tools.h>
 
 int main(int argc, const char** argv)

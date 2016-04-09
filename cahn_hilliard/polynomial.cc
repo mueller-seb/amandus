@@ -19,11 +19,11 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <boost/scoped_ptr.hpp>
 
-#include <apps.h>
-#include <tests.h>
+#include <amandus/apps.h>
+#include <amandus/tests.h>
 
-#include <cahn_hilliard/residual.h>
-#include <cahn_hilliard/matrix.h>
+#include <amandus/cahn_hilliard/residual.h>
+#include <amandus/cahn_hilliard/matrix.h>
 
 
 using namespace dealii;

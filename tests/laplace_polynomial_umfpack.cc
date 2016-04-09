@@ -20,9 +20,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <laplace/polynomial.h>
-#include <laplace/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/laplace/polynomial.h>
+#include <amandus/laplace/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

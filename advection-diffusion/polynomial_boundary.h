@@ -13,8 +13,8 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <advection-diffusion/parameters.h>
-#include <integrator.h>
-#include <advection-diffusion/boundary_values.h>
+#include <amandus/integrator.h>
+#include <amandus/advection-diffusion/boundary_values.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;

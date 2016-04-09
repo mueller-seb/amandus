@@ -13,7 +13,7 @@
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/base/smartpointer.h>
-#include <brusselator/parameters.h>
+#include <amandus/brusselator/parameters.h>
 
 class Explicit
   : public dealii::Algorithms::OperatorBase

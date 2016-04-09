@@ -20,9 +20,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <advection-diffusion/polynomial_boundary.h>
-#include <advection-diffusion/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/advection-diffusion/polynomial_boundary.h>
+#include <amandus/advection-diffusion/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

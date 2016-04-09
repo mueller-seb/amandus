@@ -24,9 +24,9 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
-#include <apps.h>
-#include <allen_cahn/residual.h>
-#include <allen_cahn/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/allen_cahn/residual.h>
+#include <amandus/allen_cahn/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

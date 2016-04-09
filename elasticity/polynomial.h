@@ -14,7 +14,7 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <elasticity/parameters.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;

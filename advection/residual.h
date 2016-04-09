@@ -9,8 +9,8 @@
 
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/advection.h>
-#include <integrator.h>
-#include <advection/parameters.h>
+#include <amandus/integrator.h>
+#include <amandus/advection/parameters.h>
 
 using namespace dealii::MeshWorker;
 

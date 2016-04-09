@@ -15,8 +15,8 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/elasticity.h>
 
-#include <integrator.h>
-#include <brinkman/parameters.h>
+#include <amandus/integrator.h>
+#include <amandus/brinkman/parameters.h>
 
 using namespace dealii;
 using namespace dealii::LocalIntegrators;

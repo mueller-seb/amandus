@@ -23,10 +23,10 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
-#include <apps.h>
-#include <brusselator/implicit.h>
-#include <brusselator/explicit.h>
-#include <brusselator/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/brusselator/implicit.h>
+#include <amandus/brusselator/explicit.h>
+#include <amandus/brusselator/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
