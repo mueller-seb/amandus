@@ -11,6 +11,7 @@ SET(EXAMPLES laplace advection advection-diffusion
   stokes maxwell
   allen_cahn cahn_hilliard
   brusselator readiff
+  elasticity
   )
 # To be added after fixing: darcy brinkman lotkavolterra
 
