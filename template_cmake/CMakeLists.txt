@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 FIND_PACKAGE(amandus REQUIRED HINTS ${AMANDUS_DIR} $ENV{AMANDUS_DIR})
-INCLUDE_DIRECTORIES(${AMANDUS_DIR}/include)
+INCLUDE_DIRECTORIES(${AMANDUS_INCLUDE_DIR})
 
 # Headers, sources and parameter files
 # This will create an executable for each main file present in the
