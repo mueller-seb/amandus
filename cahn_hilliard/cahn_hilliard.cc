@@ -167,7 +167,10 @@ int main(int argc, const char** argv)
 
   // Now we prepare for the actual timestepping
 
-  timestepping.notify(dealii::Algorithms::Events::remesh);
+  timestepping.notify(dealii::Algorithms::Events::initial);
+  tr.signals.post_refinement.connect(
+      [&timestepping]() {
+      timestepping.notify(dealii::Algorithms::Events::remesh); });
   dealii::Vector<double> solution;
   app.setup_system();
   app.setup_vector(solution);
