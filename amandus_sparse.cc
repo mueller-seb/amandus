@@ -481,7 +481,7 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
 template <int dim>
 double AmandusApplicationSparse<dim>::estimate(
   const AnyData &in,
-  const AmandusIntegrator<dim>& integrator)
+  AmandusIntegrator<dim>& integrator)
 {
   estimates.block(0).reinit(triangulation->n_active_cells());
   unsigned int i=0;
@@ -502,6 +502,8 @@ double AmandusApplicationSparse<dim>::estimate(
   {
     info_box.face_quadrature = *(integrator.face_quadrature);
   }
+
+  integrator.extract_data(in);
 
   UpdateFlags update_flags = integrator.update_flags();
   bool values_flag = update_flags & update_values;
@@ -539,8 +541,7 @@ double AmandusApplicationSparse<dim>::estimate(
 template <int dim>
 void AmandusApplicationSparse<dim>::refine_mesh (const bool global)
 {
-  bool cell_refined = false;
-  if (global || !cell_refined)
+  if (global)
     triangulation->refine_global(1);
   else
     triangulation->execute_coarsening_and_refinement ();

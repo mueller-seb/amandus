@@ -267,11 +267,14 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
   mg::Matrix<Vector<double> > mgup(mg_matrix_up);
+  mg::Matrix<Vector<double> > mgfluxdown(mg_matrix_flux_down);
+  mg::Matrix<Vector<double> > mgfluxup(mg_matrix_flux_up);
   
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
+  mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
   mg.set_minlevel(mg_matrix.min_level());
   
   PreconditionMG<dim, Vector<double>,
