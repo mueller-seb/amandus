@@ -110,7 +110,7 @@ AmandusArpack<dim>::operator() (dealii::AnyData &out, const dealii::AnyData &in)
       || this->notifications.test(Algorithms::Events::remesh))
     {
       dealii::deallog << "Assemble matrices" << std::endl;
-      application->assemble_matrix(in, *integrator);
+      application->assemble_matrix(in, *integrator, true);
       application->assemble_mg_matrix(in, *integrator);
       this->notifications.clear();
     }

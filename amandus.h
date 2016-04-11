@@ -221,7 +221,8 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * Use the integrator to build the matrix for the leaf mesh.
      */
     void assemble_matrix (const dealii::AnyData &in,
-			  const AmandusIntegrator<dim>& integrator);
+			  const AmandusIntegrator<dim>& integrator,
+			  const bool is_eigenvalue_problem = false);
     /**
      * Empty function here, but it is reimplemented in AmandusApplicationMultigrid.
      */
