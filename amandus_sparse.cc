@@ -448,6 +448,8 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
       inv.solver.select("gmres");
       solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
     }
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    constraints().distribute(eigenvectors[i]);
 }
 
 
