@@ -264,6 +264,10 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   inv.solver.set_control(this->control);
   inv.solver.set_data(solver_data);
   inv.solver.select("gmres");
+  
+  for (unsigned int i=0;i<matrix[1].m();++i)
+    matrix[1].diag_element(i) = 0.;
+  
   solver.solve(this->matrix[0], this->matrix[1], inv,
 	       eigenvalues, eigenvectors, eigenvalues.size());
 }
