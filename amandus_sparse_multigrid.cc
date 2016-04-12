@@ -266,7 +266,7 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   inv.solver.select("gmres");
   
   for (unsigned int i=0;i<this->matrix[1].m();++i)
-    if (constraints().is_constrained(i))
+    if (this->constraints().is_constrained(i))
       this->matrix[1].diag_element(i) = 0.;
   
   solver.solve(this->matrix[0], this->matrix[1], inv,
