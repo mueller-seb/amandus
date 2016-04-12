@@ -240,8 +240,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::assemble_matrix(
   const dealii::AnyData &in,
-  const AmandusIntegrator<dim>& integrator,
-  const bool is_eigenvalue_problem)
+  const AmandusIntegrator<dim>& integrator)
 {
   for (unsigned int m=0;m<matrix.size();++m)
     matrix[m] = 0.;
@@ -290,9 +289,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(
 
   for (unsigned int m=0;m<matrix.size();++m)
     for (unsigned int i=0;i<matrix[m].m();++i)
-      if (constraints().is_constrained(i)
-          && (m!=1 || !is_eigenvalue_problem))
-        matrix[m].diag_element(i) = 1.;
+      if (constraints().is_constrained(i))
+	matrix[m].diag_element(i) = 1.;
 
   if (use_umfpack)
     {
