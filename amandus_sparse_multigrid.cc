@@ -271,6 +271,9 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   
   solver.solve(this->matrix[0], this->matrix[1], inv,
 	       eigenvalues, eigenvectors, eigenvalues.size());
+  
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    this->constraints().distribute(eigenvectors[i]);
 }
 
 template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
