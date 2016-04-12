@@ -636,7 +636,10 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   if (in != 0)
   {
     for (unsigned int i=0;i<in->size();++i)
-      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
+      if(in->entry<Vector<double>*>(i)->size()==triangulation->n_active_cells())
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+      else
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
 			       DataOut_DoFData<DoFHandler<dim>, dim, dim>::type_dof_data,
 			       output_data_types);
   }
