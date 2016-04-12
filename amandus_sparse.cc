@@ -434,7 +434,8 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
   ArpackSolver solver(control, solver_data);
   
   for (unsigned int i=0;i<matrix[1].m();++i)
-    matrix[1].diag_element(i) = 0.;
+    if (constraints().is_constrained(i))
+      matrix[1].diag_element(i) = 0.;
 
   if (use_umfpack)
     solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
