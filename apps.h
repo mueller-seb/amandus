@@ -110,11 +110,12 @@ global_refinement_linear_loop(unsigned int n_steps,
 template <int dim>
 void
 global_refinement_nonlinear_loop(unsigned int n_steps,
-			      AmandusApplicationSparse<dim> &app,
-			      dealii::Algorithms::OperatorBase& solve,
-			      const AmandusIntegrator<dim>* error = 0,
-			      const AmandusIntegrator<dim>* estimator = 0,
-			      const dealii::Function<dim>* initial_vector = 0)
+            AmandusApplicationSparse<dim> &app,
+            dealii::Algorithms::OperatorBase& solve,
+            const AmandusIntegrator<dim>* error = 0,
+            const AmandusIntegrator<dim>* estimator = 0,
+            const dealii::Function<dim>* initial_vector = 0,
+            const dealii::Function<dim>* inhom_boundary = 0)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -130,13 +131,14 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       solve.notify(dealii::Algorithms::Events::remesh);
       app.setup_system();
       app.setup_vector(sol);
+      
       if (initial_vector)
-	{
-	  dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
-	  dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
-	}
-      else
-	sol = 0.;
+      {
+        dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
+        dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
+      }
+      if(inhom_boundary != 0)
+        app.update_vector_inhom_boundary(sol, *inhom_boundary);
 
       dealii::AnyData solution_data;
       solution_data.add(&sol, "solution");
