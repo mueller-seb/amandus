@@ -170,6 +170,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * DoFHandler. This requires that setup_system() is called before.
      */
     virtual void setup_vector (dealii::Vector<double>& v) const;
+
+    /**
+     * Sets degrees on the boundary to their inhomogeneous Dirichlet constraints. 
+     * This requires that setup_system() and setup_vector are called before.
+     */
+    virtual void update_vector_inhom_boundary (dealii::Vector<double>& v,
+                                               const dealii::Function<dim>& inhom_boundary) const;
   
     /**
      * Initialize the finite element system on the current mesh.  This
