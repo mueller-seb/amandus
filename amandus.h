@@ -431,10 +431,13 @@ class AmandusApplication
     dealii::MGConstrainedDoFs    mg_constraints;
   
     dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
+    dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity_fluxes;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
   
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_down;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
     
