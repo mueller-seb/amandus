@@ -86,6 +86,12 @@ class InterpolatingRemesher : public Remesher<VECTOR, dim>
       }
       this->transfer.interpolate(this->to_transfer, this->transferred);
       this->transfer.clear();
+      for(typename std::vector<VECTOR>::iterator result = this->transferred.begin();
+          result != this->transferred.end();
+          ++result)
+      {
+        this->app->hanging_nodes().distribute(*result);
+      }
     }
 
   protected:
