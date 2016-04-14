@@ -309,17 +309,18 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
       // output
       dealii::AnyData out_data;
       out_data.merge(solution_data);
-      if (error != 0)
-        for (unsigned int i=0; i<errors.n_blocks(); ++i)
-          {
-            std::string  err_name {"Error("};
-            err_name += std::to_string( i );
-            err_name += ")";
-            out_data.add(&errors.block(i),err_name);
-          }
-      dealii::Vector<double> indicators;
-      indicators = app.indicators();
-      out_data.add(&indicators,"estimator");
+      /* needs pull request #45 */
+      //if (error != 0)
+      //  for (unsigned int i=0; i<errors.n_blocks(); ++i)
+      //    {
+      //      std::string  err_name {"Error("};
+      //      err_name += std::to_string( i );
+      //      err_name += ")";
+      //      out_data.add(&errors.block(i),err_name);
+      //    }
+      //dealii::Vector<double> indicators;
+      //indicators = app.indicators();
+      //out_data.add(&indicators,"estimator");
       app.output_results(step, &out_data);
       std::cout << std::endl;
       convergence_table.write_text(std::cout);
