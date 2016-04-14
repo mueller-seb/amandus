@@ -51,12 +51,12 @@ namespace RefineStrategy
 
     void operator()(const dealii::Vector<double> &indicator)
     {
-      this->tria.set_all_refine_flags();
+      this->tria->set_all_refine_flags();
     }
 
     void operator()()
     {
-      this->tria.set_all_refine_flags();
+      this->tria->set_all_refine_flags();
     }
 
   };
