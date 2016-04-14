@@ -229,6 +229,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 				     const AmandusIntegrator<dim>& integrator);
 
     /**
+     * \brief The error indicators
+     */
+    const dealii::Vector<double>& indicators() const;
+
+    /**
      * Currently disabled.
      *
      * \todo: Make sure it takes an AnyData with a vector called "solution".
@@ -565,6 +570,13 @@ inline const dealii::ConstraintMatrix&
 AmandusApplicationSparse<dim>::hanging_nodes () const
 {
   return hanging_node_constraints;
+}
+
+template <int dim>
+inline const dealii::Vector<double>&
+AmandusApplicationSparse<dim>::indicators () const
+{
+  return estimates.block(0);
 }
 
 
