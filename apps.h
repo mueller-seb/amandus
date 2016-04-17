@@ -234,12 +234,12 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
                                 AmandusApplicationSparse<dim> &app,
                                 dealii::Triangulation<dim>& tria,
                                 dealii::Algorithms::OperatorBase &solver,
-                                dealii::Algorithms::OperatorBase &residual,
+                                dealii::Algorithms::OperatorBase &right_hand_side,
                                 AmandusIntegrator<dim> &estimator,
                                 AmandusRefineStrategy<dim> &mark,
                                 const AmandusIntegrator<dim> *error = 0)
 {
-  dealii::Vector<double> res;
+  dealii::Vector<double> rhs;
   dealii::Vector<double> sol;
   dealii::BlockVector<double> errors;
   if (error != 0)
@@ -248,36 +248,25 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
   unsigned int step=0;
   
   // initial setup
+  solver.notify(dealii::Algorithms::Events::remesh);
   app.setup_system();
   app.setup_vector(sol);
   dealii::AnyData solution_data;
   solution_data.add(&sol, "solution");
+  dealii::AnyData data;
   EstimateRemesher<dealii::Vector<double>, dim> remesh(app,tria,mark,estimator);
-
+  
   while (true)
     {
       dealii::deallog << "Step " << step++ << std::endl;
-
-      // setup
-      app.setup_system();
-
-      app.setup_vector(sol);
-      dealii::AnyData solution_data;
-      dealii::Vector<double> *p = &sol;
-      solution_data.add(p, "solution");
-
-      app.setup_vector(res);
-      dealii::AnyData data;
-      dealii::Vector<double> *rhs = &res;
-      data.add(rhs, "RHS");
-
-      dealii::AnyData residual_data;
-      residual(data, residual_data);
-
+      
       // solve
-      dealii::deallog << "Residual " << res.l2_norm() << std::endl;
-      solver.notify(dealii::Algorithms::Events::remesh);
-      solver(solution_data, data);
+      app.setup_vector(rhs);
+      dealii::AnyData rhs_data;
+      rhs_data.add(&rhs, "RHS");
+      right_hand_side(rhs_data, data);
+      app.constraints().set_zero(sol);
+      solver(solution_data, rhs_data);
 
       // error
       dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
@@ -329,8 +318,8 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
       if (app.dofs().n_dofs()>=max_dofs) break;
 
       // mark & refine using remesher
-      dealii::AnyData in_data;
-      remesh(solution_data,in_data);
+      remesh(solution_data,data);
+      solver.notify(dealii::Algorithms::Events::remesh);
     }
 }
 
