@@ -449,9 +449,6 @@ class AmandusApplication
     double smoother_relaxation = 1.0 ;
 };
 
-/// Compatibility definition
-#define AmandusApplicationSparseMultigrid AmandusApplication
-
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints
  * and homogeneous Dirichlet boundary conditions.

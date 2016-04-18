@@ -101,7 +101,7 @@ int main(int argc, const char** argv)
   explicit_integrator.input_vector_names.push_back("Previous iterate");
 
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

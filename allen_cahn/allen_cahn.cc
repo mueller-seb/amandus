@@ -125,7 +125,7 @@ int main(int argc, const char** argv)
   Integrators::Theta<d> implicit_integrator(residual_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

@@ -40,7 +40,7 @@ int main(int argc, const char** argv)
   LaplaceIntegrators::Matrix<d> matrix_integrator;
   LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   
   verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

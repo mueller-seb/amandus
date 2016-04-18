@@ -69,7 +69,7 @@ void run(AmandusParameters& param)
   param.enter_subsection("Testing");
   if(param.get_bool("Multigrid"))
   {
-    app_init = new AmandusApplicationSparseMultigrid<d>(tr, *fe);
+    app_init = new AmandusApplication<d>(tr, *fe);
   } else {
     app_init = new AmandusApplicationSparse<d>(tr, *fe, param.get_bool("UMFPack"));
   }
