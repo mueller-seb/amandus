@@ -167,6 +167,28 @@ AmandusApplicationSparse<dim>::setup_vector(Vector<double>& v) const
   v.reinit(dof_handler.n_dofs());
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::update_vector_inhom_boundary(Vector<double>& v,
+                                            const dealii::Function<dim>& inhom_boundary) const
+{
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+  for (unsigned int i=0;i<boundary_masks.size();++i)
+  {
+    if (boundary_masks[i].n_selected_components(n_comp) != 0)
+    {
+      std::map<dealii::types::global_dof_index, double> boundary_dofs;
+      dealii::VectorTools::interpolate_boundary_values(this->dof_handler, i,
+                                                       inhom_boundary, boundary_dofs,
+                                                       boundary_masks[i]);
+      for(auto bdry_dof = boundary_dofs.begin(); bdry_dof != boundary_dofs.end();++bdry_dof)
+        v(bdry_dof->first) = bdry_dof->second;
+      
+      hanging_node_constraints.distribute(v);
+    }
+  }
+}
+
 
 template <int dim>
 void
