@@ -19,19 +19,18 @@
  * @ingroup Examples
  */
 
-#include <deal.II/fe/fe_tools.h>
+#include <amandus/apps.h>
+#include <amandus/laplace/matrix.h>
+#include <amandus/laplace/polynomial.h>
 #include <deal.II/algorithms/newton.h>
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <amandus/apps.h>
-#include <amandus/laplace/polynomial.h>
-#include <amandus/laplace/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
-int main(int argc, const char **argv)
-{
-  const unsigned int d=2;
+int main(int argc, const char **argv) {
+  const unsigned int d = 2;
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
@@ -41,10 +40,11 @@ int main(int argc, const char **argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(
+      FETools::get_fe_from_name<d>(param.get("FE")));
 
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -1, 1);
+  GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
@@ -63,15 +63,14 @@ int main(int argc, const char **argv)
 
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   app.set_boundary(0);
-  AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d>    residual(app, rhs_integrator);
+  AmandusSolve<d> solver(app, matrix_integrator);
+  AmandusResidual<d> residual(app, rhs_integrator);
 
-  Algorithms::Newton<Vector<double> > newton(residual, solver);
+  Algorithms::Newton<Vector<double>> newton(residual, solver);
   newton.parse_parameters(param);
 
-  global_refinement_nonlinear_loop(5, app, newton,&error_integrator,
-                                   static_cast<AmandusIntegrator<d>*>(nullptr),
-                                   static_cast<dealii::Function<d>*>(nullptr),
+  global_refinement_nonlinear_loop(5, app, newton, &error_integrator,
+                                   static_cast<AmandusIntegrator<d> *>(nullptr),
+                                   static_cast<dealii::Function<d> *>(nullptr),
                                    &bd_function);
-
 }
