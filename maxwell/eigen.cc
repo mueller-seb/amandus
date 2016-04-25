@@ -10,7 +10,7 @@
  * <li> Maxwell operator</li>
  * <li> Dirichlet boundary condition</li>
  * <li> Eigenvalue problem</li>
- * <li> UMFPack</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * <li> <a
  * href="http://perso.univ-rennes1.fr/monique.dauge/benchmax.html">Benchmark
  * problem</a> published by Monique Dauge
@@ -44,12 +44,12 @@ int main(int argc, const char** argv)
   boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
   
   Triangulation<d> tr;
-  GridGenerator::hyper_L (tr, -1, 1);
+  GridGenerator::hyper_cube (tr, 0, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   
   MaxwellIntegrators::DivCurl::Eigen<d> matrix_integrator;
-  AmandusUMFPACK<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   app.set_boundary(0);
   app.set_number_of_matrices(2);

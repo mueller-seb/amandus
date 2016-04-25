@@ -10,7 +10,7 @@
  * <li> Laplace operator</li>
  * <li> Dirichlet boundary condition</li>
  * <li> Eigenvalue problem</li>
- * <li> UMFPack</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
  * @ingroup Examples

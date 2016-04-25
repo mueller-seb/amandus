@@ -264,8 +264,16 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   inv.solver.set_control(this->control);
   inv.solver.set_data(solver_data);
   inv.solver.select("gmres");
+  
+  for (unsigned int i=0;i<this->matrix[1].m();++i)
+    if (this->constraints().is_constrained(i))
+      this->matrix[1].diag_element(i) = 0.;
+  
   solver.solve(this->matrix[0], this->matrix[1], inv,
 	       eigenvalues, eigenvectors, eigenvalues.size());
+  
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    this->constraints().distribute(eigenvectors[i]);
 }
 
 template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;

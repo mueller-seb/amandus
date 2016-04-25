@@ -432,6 +432,10 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
   ArpackSolver::AdditionalData solver_data(eigenvectors.size()+2,
 					   ArpackSolver::largest_magnitude);
   ArpackSolver solver(control, solver_data);
+  
+  for (unsigned int i=0;i<matrix[1].m();++i)
+    if (constraints().is_constrained(i))
+      matrix[1].diag_element(i) = 0.;
 
   if (use_umfpack)
     solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
@@ -446,6 +450,8 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
       inv.solver.select("gmres");
       solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
     }
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    constraints().distribute(eigenvectors[i]);
 }
 
 
