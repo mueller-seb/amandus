@@ -62,7 +62,7 @@ int main(int argc, const char** argv)
   Darcy::Polynomial::Error<d> error_integrator(
       vector_potential, scalar_potential, pressure_source);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);

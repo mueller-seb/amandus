@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
   Theta<d> ri(rhs_integrator, true);
   ri.input_vector_names.push_back("Newton iterate");
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   
   verify_theta_residual(5, app, mi, ri);
 }
