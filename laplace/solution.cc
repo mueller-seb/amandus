@@ -19,34 +19,33 @@
  * @ingroup Examples
  */
 
-#include <deal.II/fe/fe_tools.h>
+#include <amandus/adaptivity.h>
+#include <amandus/apps.h>
+#include <amandus/laplace/matrix.h>
+#include <amandus/laplace/solution.h>
+#include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <amandus/apps.h>
-#include <amandus/laplace/solution.h>
-#include <amandus/laplace/matrix.h>
-#include <amandus/adaptivity.h>
-#include <amandus/refine_strategy.h>
 
 #include <boost/scoped_ptr.hpp>
 
-class Waterfall : public Function<2>
-{
+class Waterfall : public Function<2> {
 public:
-  Waterfall (const double k = 60.);
+  Waterfall(const double k = 60.);
 
-  virtual double value (const Point<2>   &p,
-                        const unsigned int  component = 0) const;
+  virtual double value(const Point<2> &p,
+                       const unsigned int component = 0) const;
 
-  virtual void value_list (const std::vector<Point<2> > &points,
-                           std::vector<double>            &values,
-                           const unsigned int              component = 0) const;
-  virtual Tensor<1,2> gradient (const Point<2>   &p,
-                                const unsigned int  component = 0) const;
+  virtual void value_list(const std::vector<Point<2>> &points,
+                          std::vector<double> &values,
+                          const unsigned int component = 0) const;
+  virtual Tensor<1, 2> gradient(const Point<2> &p,
+                                const unsigned int component = 0) const;
 
-  virtual double laplacian (const Point<2>   &p,
-                            const unsigned int  component = 0) const;
+  virtual double laplacian(const Point<2> &p,
+                           const unsigned int component = 0) const;
 
 private:
   const double k;
@@ -107,10 +106,8 @@ Waterfall::gradient (const Point<2>   &p,
 
 //---------------------------------------------------------//
 
-
-int main(int argc, const char **argv)
-{
-  const unsigned int d=2;
+int main(int argc, const char **argv) {
+  const unsigned int d = 2;
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
@@ -121,10 +118,11 @@ int main(int argc, const char **argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d> > fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(
+      FETools::get_fe_from_name<d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
-  GridGenerator::hyper_cube (tr, 0, 1);
+  GridGenerator::hyper_cube(tr, 0, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
@@ -139,11 +137,11 @@ int main(int argc, const char **argv)
   AmandusApplicationSparseMultigrid<d> app(tr, *fe);
   app.set_boundary(0);
   app.parse_parameters(param);
-  AmandusSolve<d>       solver(app, matrix_integrator);
-  AmandusResidual<d>    residual(app, rhs_integrator);
-  RefineStrategy::MarkBulk<d> refine_strategy(tr,0.5);
+  AmandusSolve<d> solver(app, matrix_integrator);
+  AmandusResidual<d> residual(app, rhs_integrator);
+  RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
 
-  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"), app, tr, solver, residual,
-                                  estimate_integrator,refine_strategy,&error_integrator);
-
+  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"), app, tr, solver,
+                                  residual, estimate_integrator,
+                                  refine_strategy, &error_integrator);
 }
