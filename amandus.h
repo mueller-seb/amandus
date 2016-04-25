@@ -229,6 +229,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
 				     const AmandusIntegrator<dim>& integrator);
 
     /**
+     * \brief The error indicators
+     */
+    const dealii::Vector<double>& indicators() const;
+
+    /**
      * Currently disabled.
      *
      * \todo: Make sure it takes an AnyData with a vector called "solution".
@@ -431,10 +436,13 @@ class AmandusApplication
     dealii::MGConstrainedDoFs    mg_constraints;
   
     dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
+    dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity_fluxes;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
   
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_down;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
     
@@ -559,6 +567,13 @@ inline const dealii::ConstraintMatrix&
 AmandusApplicationSparse<dim>::hanging_nodes () const
 {
   return hanging_node_constraints;
+}
+
+template <int dim>
+inline const dealii::Vector<double>&
+AmandusApplicationSparse<dim>::indicators () const
+{
+  return estimates.block(0);
 }
 
 

@@ -81,7 +81,12 @@ AmandusApplication<dim, RELAXATION>::setup_system()
   mg_matrix_up.clear();
   mg_matrix_down.resize(0, n_levels-1);
   mg_matrix_down.clear();
+  mg_matrix_flux_up.resize(0, n_levels-1);
+  mg_matrix_flux_up.clear();
+  mg_matrix_flux_down.resize(0, n_levels-1);
+  mg_matrix_flux_down.clear();
   mg_sparsity.resize(0, n_levels-1);
+  mg_sparsity_fluxes.resize(0, n_levels-1);
 
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
@@ -92,6 +97,18 @@ AmandusApplication<dim, RELAXATION>::setup_system()
       mg_matrix[level].reinit(mg_sparsity[level]);
       mg_matrix_up[level].reinit(mg_sparsity[level]);
       mg_matrix_down[level].reinit(mg_sparsity[level]);
+
+      if(level > 0)
+      {
+        DynamicSparsityPattern dg_sparsity;
+        dg_sparsity.reinit(this->dof_handler.n_dofs(level - 1),
+                           this->dof_handler.n_dofs(level));
+        MGTools::make_flux_sparsity_pattern_edge(this->dof_handler,
+                                                 dg_sparsity, level);
+        mg_sparsity_fluxes[level].copy_from(dg_sparsity);
+        mg_matrix_flux_up[level].reinit(mg_sparsity_fluxes[level]);
+        mg_matrix_flux_down[level].reinit(mg_sparsity_fluxes[level]);
+      }
     }
 }
 
@@ -148,6 +165,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
   assembler.initialize(mg_constraints);
   assembler.initialize(mg_matrix);
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
+  assembler.initialize_fluxes(mg_matrix_flux_up, mg_matrix_flux_down);
 
   MeshWorker::LoopControl control;
   control.cells_first = false;
@@ -213,11 +231,14 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
   mg::Matrix<Vector<double> > mgup(mg_matrix_up);
+  mg::Matrix<Vector<double> > mgfluxdown(mg_matrix_flux_down);
+  mg::Matrix<Vector<double> > mgfluxup(mg_matrix_flux_up);
 
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
+  mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
   mg.set_minlevel(mg_matrix.min_level());
 
   PreconditionMG<dim, Vector<double>,
