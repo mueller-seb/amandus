@@ -134,9 +134,9 @@ int main(int argc, const char **argv) {
 
   LaplaceIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  app.set_boundary(0);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
+  app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
