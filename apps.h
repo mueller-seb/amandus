@@ -96,7 +96,17 @@ global_refinement_linear_loop(unsigned int n_steps,
 			  << app.estimate(solution_data, *estimator)
 			  << std::endl;
 	}
-      app.output_results(s, &solution_data);
+      dealii::AnyData out_data;
+      out_data.merge(solution_data);
+      if (error != 0)
+        for (unsigned int i=0; i<errors.n_blocks(); ++i)
+        {
+          std::string  err_name {"Error("};
+          err_name += std::to_string( i );
+          err_name += ")";
+          out_data.add(&errors.block(i),err_name);
+        }
+      app.output_results(s, &out_data);
       std::cout << std::endl;
       convergence_table.write_text(std::cout);
     }
@@ -168,7 +178,17 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
 			  << std::endl;
 	}
 
-      app.output_results(s, &solution_data);
+      dealii::AnyData out_data;
+      out_data.merge(solution_data);
+      if (error != 0)
+        for (unsigned int i=0; i<errors.n_blocks(); ++i)
+        {
+          std::string  err_name {"Error("};
+          err_name += std::to_string( i );
+          err_name += ")";
+          out_data.add(&errors.block(i),err_name);
+        }
+      app.output_results(s, &out_data);
       std::cout << std::endl;
       convergence_table.write_text(std::cout);
     }
