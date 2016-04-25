@@ -114,7 +114,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
 {
   mg_matrix = 0.;
 
-  std::vector<MGLevelObject<Vector<double> > > aux(in.size());
+  std::vector<MGLevelObject<Vector<double> > > aux(integrator.input_vector_names.size());
   AnyData mg_in;
 
   MeshWorker::IntegrationInfoBox<dim> info_box;
@@ -130,7 +130,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
     aux[in_idx].resize(min_level, max_level);
     mg_transfer.copy_to_mg(this->dof_handler,
                            aux[in_idx],
-                           *(in.read_ptr<Vector<double> >(in_idx)));
+                           *(in.read_ptr<Vector<double> >(*i)));
     mg_in.add(&(aux[in_idx]), *i);
     info_box.cell_selector.add(*i, true, true, false);
     info_box.boundary_selector.add(*i, true, true, false);
