@@ -28,8 +28,7 @@ EXECUTE_PROCESS(
   COMMAND
   ln -nsf ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/include/amandus)
 # include headers found in src directory via symbolic link
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include
-  ${CMAKE_BINARY_DIR}/include/amandus)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 # include headers generated during build with scripts/make_parameters.pl
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
