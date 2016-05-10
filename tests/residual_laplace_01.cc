@@ -41,6 +41,7 @@ int main(int argc, const char** argv)
   LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   
   AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   
   verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

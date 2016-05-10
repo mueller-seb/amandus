@@ -299,5 +299,7 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
 
 template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
 template class AmandusApplication<3,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<2,dealii::RelaxationBlockSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<3,dealii::RelaxationBlockSOR<dealii::SparseMatrix<double> > >;
 template class AmandusApplication<2,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;
 template class AmandusApplication<3,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;

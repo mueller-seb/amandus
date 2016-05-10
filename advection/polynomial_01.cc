@@ -21,6 +21,7 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <amandus/tests.h>
+#include <advection/parameters.h>
 #include <amandus/advection/polynomial.h>
 #include <amandus/advection/matrix.h>
 
@@ -64,7 +65,6 @@ int main(int argc, const char** argv)
   app.parse_parameters(param);
   AmandusSolve<d>    solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
-  app.control.set_reduction(1.e-10);
 
   BlockVector<double> errors(2);
   Vector<double> acc_errors(2);
