@@ -17,9 +17,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <tests.h>
-#include <darcy/noforce.h>
-#include <darcy/matrix.h>
+#include <amandus/tests.h>
+#include <amandus/darcy/polynomial/noforce.h>
+#include <amandus/darcy/integrators.h>
 
 int main()
 {
@@ -36,7 +36,7 @@ int main()
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
-  DarcyMatrix<d> matrix_integrator;
+  Darcy::SystemIntegrator<d> matrix_integrator;
   DarcyNoForceResidual<d> rhs_integrator;
   
   AmandusApplicationSparse<d> app(tr, fe);

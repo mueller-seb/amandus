@@ -22,9 +22,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <stokes/polynomial.h>
-#include <stokes/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/stokes/polynomial.h>
+#include <amandus/stokes/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -60,7 +60,7 @@ int main(int argc, const char** argv)
   StokesIntegrators::PolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
   StokesIntegrators::PolynomialError<d> error_integrator(solution1d, solution1dp);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   ComponentMask boundary_components(d+1, true);
   boundary_components.set(d, false);
   app.set_boundary(0, boundary_components);

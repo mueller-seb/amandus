@@ -7,7 +7,7 @@
 #ifndef __darcy_integrators_h
 #define __darcy_integrators_h
 
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 #include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/dof_info.h>

@@ -21,7 +21,7 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/base/function_lib.h>
-#include <brusselator/ode.h>
+#include <amandus/brusselator/ode.h>
 
 #include <fstream>
 

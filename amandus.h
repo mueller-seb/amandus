@@ -6,8 +6,8 @@
  *
  **********************************************************************/
 
-#ifndef __amandus_h
-#define __amandus_h
+#ifndef amandus_amandus_h
+#define amandus_amandus_h
 
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparse_direct.h>
@@ -50,7 +50,7 @@
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/algorithms/operator.h>
 
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 #include <iostream>
 #include <fstream>
@@ -170,6 +170,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * DoFHandler. This requires that setup_system() is called before.
      */
     virtual void setup_vector (dealii::Vector<double>& v) const;
+
+    /**
+     * Sets degrees on the boundary to their inhomogeneous Dirichlet constraints. 
+     * This requires that setup_system() and setup_vector are called before.
+     */
+    virtual void update_vector_inhom_boundary (dealii::Vector<double>& v,
+                                               const dealii::Function<dim>& inhom_boundary) const;
   
     /**
      * Initialize the finite element system on the current mesh.  This
@@ -227,6 +234,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     virtual void assemble_mg_matrix (const dealii::AnyData &in,
 				     const AmandusIntegrator<dim>& integrator);
+
+    /**
+     * \brief The error indicators
+     */
+    const dealii::Vector<double>& indicators() const;
 
     /**
      * Currently disabled.
@@ -376,7 +388,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
  *
  * @ingroup apps
  */
-template <int dim>
+template <int dim,typename RELAXATION=dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >
 class AmandusApplication
   : public AmandusApplicationSparse<dim>
 {
@@ -431,23 +443,26 @@ class AmandusApplication
     dealii::MGConstrainedDoFs    mg_constraints;
   
     dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
+    dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity_fluxes;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
   
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_down;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
     
     dealii::FullMatrix<double> coarse_matrix;
     dealii::MGCoarseGridSVD<double, dealii::Vector<double> > mg_coarse;
 
-    typedef dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > RELAXATION;
-    dealii::MGLevelObject<RELAXATION::AdditionalData> smoother_data;
+    dealii::MGLevelObject<typename RELAXATION::AdditionalData> smoother_data;
     dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double> > mg_smoother;
+    bool log_smoother_statistics = false ;
+    bool right_preconditioning = true ;
+    bool use_default_residual = true ;
+    double smoother_relaxation = 1.0 ;
 };
-
-/// Compatibility definition
-#define AmandusApplicationSparseMultigrid AmandusApplication
 
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints
@@ -473,7 +488,7 @@ class AmandusUMFPACK : public AmandusApplicationSparse<dim>
  */
 template <int dim>
 class AmandusResidual
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
 public:
   /**
@@ -508,7 +523,7 @@ public:
  */
 template <int dim>
 class AmandusSolve
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     /**
@@ -559,6 +574,13 @@ inline const dealii::ConstraintMatrix&
 AmandusApplicationSparse<dim>::hanging_nodes () const
 {
   return hanging_node_constraints;
+}
+
+template <int dim>
+inline const dealii::Vector<double>&
+AmandusApplicationSparse<dim>::indicators () const
+{
+  return estimates.block(0);
 }
 
 

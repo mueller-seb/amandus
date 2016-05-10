@@ -9,14 +9,14 @@
 #ifndef __brinkman_matrix_h
 #define __brinkman_matrix_h
 
-#include <integrators/laplace.h>
-#include <integrators/elasticity.h>
-#include <integrators/divergence.h>
-#include <integrators/l2.h>
-#include <integrators/elasticity.h>
+#include <deal.II/integrators/laplace.h>
+#include <deal.II/integrators/elasticity.h>
+#include <deal.II/integrators/divergence.h>
+#include <deal.II/integrators/l2.h>
+#include <deal.II/integrators/elasticity.h>
 
-#include <integrator.h>
-#include <brinkman/parameters.h>
+#include <amandus/integrator.h>
+#include <amandus/brinkman/parameters.h>
 
 using namespace dealii;
 using namespace dealii::LocalIntegrators;
@@ -43,17 +43,17 @@ namespace Brinkman
     AssertDimension (M.n(), n_dofs);
     AssertDimension(n_comp, dim);
 	
-    Point<dim> aux1;
-    Point<dim> aux2;
+    Tensor<1,dim> aux1;
+    Tensor<1,dim> aux2;
 
     const double factor = friction_coefficient;
 	
     for (unsigned k=0;k<int_fe.n_quadrature_points;++k)
       {
 	const double dx = int_fe.JxW(k) * factor;
-	const Point<dim>& n = int_fe.normal_vector(k);
+	const Tensor<1,dim> n = int_fe.normal_vector(k);
 	if (dim==2)
-	  cross_product(aux1, n);
+	  aux1 = cross_product_2d(n);
 	    
 	for (unsigned i=0;i<n_dofs;++i)
 	  {
@@ -62,17 +62,17 @@ namespace Brinkman
 		if (dim==2)
 		  for (unsigned int d=0;d<n_comp;++d)
 		    M(i,j) += dx *
-			      aux1(d) * int_fe.shape_value_component(i,k,d) *
-			      aux1(d) * int_fe.shape_value_component(j,k,d);
+			      aux1[d] * int_fe.shape_value_component(i,k,d) *
+			      aux1[d] * int_fe.shape_value_component(j,k,d);
 		else if (dim==3)
 		  {
 		    Tensor<1,dim> u;
 		    for (unsigned int d=0;d<dim;++d)
 		      u[d] = int_fe.shape_value_component(i,k,d);
-		    cross_product(aux1, u, n);
+		    aux1 = cross_product_3d(u, n);
 		    for (unsigned int d=0;d<dim;++d)
 		      u[d] = int_fe.shape_value_component(j,k,d);
-		    cross_product(aux2, u, n);
+		    aux2 = cross_product_3d(u, n);
 		    M(i,j) += dx * (aux1*aux2);
 		  }
 		else

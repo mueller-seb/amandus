@@ -16,10 +16,10 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
-#include <apps.h>
+#include <amandus/apps.h>
 #include <elasticity/parameters.h>
-#include <elasticity/residual.h>
-#include <elasticity/matrix.h>
+#include <amandus/elasticity/residual.h>
+#include <amandus/elasticity/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 

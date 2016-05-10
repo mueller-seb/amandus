@@ -19,9 +19,9 @@
 #include <deal.II/fe/fe_nedelec.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_system.h>
-#include <apps.h>
-#include <maxwell/matrix.h>
-#include <rhs_one.h>
+#include <amandus/apps.h>
+#include <amandus/maxwell/matrix.h>
+#include <amandus/rhs_one.h>
 
 
 int main()
@@ -42,7 +42,7 @@ int main()
   MaxwellIntegrators::DivCurl::Matrix<d> matrix_integrator;
   RhsOne<d> rhs_integrator;
   
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  AmandusApplication<d> app(tr, fe);
   app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);

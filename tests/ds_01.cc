@@ -18,9 +18,9 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <apps.h>
-#include <brinkman/matrix.h>
-#include <rhs_one.h>
+#include <amandus/apps.h>
+#include <amandus/brinkman/matrix.h>
+#include <amandus/rhs_one.h>
 
 
 int main()
@@ -52,7 +52,7 @@ int main()
   Brinkman::Matrix<d> matrix_integrator(coefficients);
   RhsOne<d> rhs_integrator;
 
-  AmandusApplicationSparseMultigrid<d> app(tr, fe);
+  AmandusApplication<d> app(tr, fe);
   app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);

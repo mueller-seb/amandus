@@ -14,7 +14,7 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <elasticity/parameters.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -171,6 +171,7 @@ PolynomialError<dim>::PolynomialError(
 		potentials_1d(potentials_1d)
 {
   AssertDimension(potentials_1d.size(), (dim==2 ? 2 : dim+1));
+  this->num_errors = 3;
   this->use_boundary = false;
   this->use_face = false;
 }

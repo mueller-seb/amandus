@@ -19,11 +19,11 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <boost/scoped_ptr.hpp>
 
-#include <apps.h>
-#include <tests.h>
+#include <amandus/apps.h>
+#include <amandus/tests.h>
 
-#include <cahn_hilliard/residual.h>
-#include <cahn_hilliard/matrix.h>
+#include <amandus/cahn_hilliard/residual.h>
+#include <amandus/cahn_hilliard/matrix.h>
 
 
 using namespace dealii;
@@ -134,7 +134,7 @@ class Start : public Function<dim>
       }
     }
 
-    virtual Tensor<1, dim> gradient(const Point<2>& p,
+    virtual Tensor<1, dim> gradient(const Point<dim>& p,
                                   const unsigned int component = 0) const
     {
       dealii::Tensor<1, dim> grad;
@@ -221,7 +221,7 @@ void run(AmandusParameters& param)
   param.enter_subsection("Testing");
   if(param.get_bool("Multigrid"))
   {
-    app_init = new AmandusApplicationSparseMultigrid<d>(tr, *fe);
+    app_init = new AmandusApplication<d>(tr, *fe);
   } else {
     app_init = new AmandusApplicationSparse<d>(tr, *fe, param.get_bool("UMFPack"));
   }

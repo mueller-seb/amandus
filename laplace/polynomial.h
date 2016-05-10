@@ -14,7 +14,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -71,6 +71,19 @@ class PolynomialResidual : public AmandusIntegrator<dim>
 		      IntegrationInfo<dim>& info2) const;
   private:
     Polynomials::Polynomial<double> solution_1d;
+};
+  
+template <int dim>
+class PolynomialBoundary : public Function<dim>
+{
+public:
+ PolynomialBoundary(const Polynomials::Polynomial<double> solution_1d)
+    : Function<dim>(),solution_1d(solution_1d) {}
+
+  virtual double value (const Point<dim>   &p,
+                        const unsigned int  component = 0) const;
+private:
+  Polynomials::Polynomial<double> solution_1d;
 };
 
 
@@ -130,8 +143,8 @@ void PolynomialRHS<dim>::cell(
 
 template <int dim>
 void PolynomialRHS<dim>::boundary(
-  DoFInfo<dim>&,
-  IntegrationInfo<dim>&) const
+  DoFInfo<dim>& dinfo,
+  IntegrationInfo<dim>& info) const
 {}
 
 
@@ -195,13 +208,24 @@ void PolynomialResidual<dim>::boundary(
   DoFInfo<dim>& dinfo,
   IntegrationInfo<dim>& info) const
 {
-  std::vector<double> null(info.fe_values(0).n_quadrature_points, 0.);
+  std::vector<double> boundary_values(info.fe_values(0).n_quadrature_points, 0.);
+  std::vector<double> px(1);
+  std::vector<double> py(1);
+  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
+  {
+    const double x = info.fe_values(0).quadrature_point(k)(0);
+    const double y = info.fe_values(0).quadrature_point(k)(1);
+    solution_1d.value(x, px);
+    solution_1d.value(y, py);
+    boundary_values[k] = px[0]*py[0];
+  }
+  
   const double factor = (this->timestep == 0.) ? 1. : this->timestep;
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_residual(dinfo.vector(0).block(0), info.fe_values(0),
 			    info.values[0][0],
 			    info.gradients[0][0],
-			    null,
+			    boundary_values,
 			    Laplace::compute_penalty(dinfo, dinfo, deg, deg), factor);
 }
 
@@ -227,6 +251,23 @@ void PolynomialResidual<dim>::face(
 //----------------------------------------------------------------------//
 
 template <int dim>
+double PolynomialBoundary<dim>::value (const Point<dim> &p,
+                                   const unsigned int component) const
+{
+  Assert (component == 0, ExcNotImplemented());
+
+  std::vector<double> px(1);
+  std::vector<double> py(1);
+  solution_1d.value(p[0], px);
+  solution_1d.value(p[1], py);
+
+  return px[0]*py[0];
+  
+}
+
+//----------------------------------------------------------------------//
+
+template <int dim>
 PolynomialError<dim>::PolynomialError(
   const Polynomials::Polynomial<double> solution_1d)
 		:
@@ -234,6 +275,7 @@ PolynomialError<dim>::PolynomialError(
 {
   this->use_boundary = false;
   this->use_face = false;
+  this->num_errors = 2;
 }
 
 
@@ -265,6 +307,9 @@ void PolynomialError<dim>::cell(
       // 1. H^1(u)
       dinfo.value(1) += (Du*Du) * dx;
     }
+  
+  dinfo.value(0) = std::sqrt(dinfo.value(0));
+  dinfo.value(1) = std::sqrt(dinfo.value(1));
 }
 
 

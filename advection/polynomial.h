@@ -12,7 +12,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/advection.h>
 #include <advection/parameters.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -174,6 +174,7 @@ PolynomialError<dim>::PolynomialError(
 		parameters(&par),
 		potentials_1d(potentials_1d)
 {
+  this->num_errors = 2;
   this->use_boundary = false;
   this->use_face = false;
 }

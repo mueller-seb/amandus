@@ -37,8 +37,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <amandus.h>
-#include <integrator.h>
+#include <amandus/amandus.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 
@@ -167,6 +167,28 @@ AmandusApplicationSparse<dim>::setup_vector(Vector<double>& v) const
   v.reinit(dof_handler.n_dofs());
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::update_vector_inhom_boundary(Vector<double>& v,
+                                            const dealii::Function<dim>& inhom_boundary) const
+{
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+  for (unsigned int i=0;i<boundary_masks.size();++i)
+  {
+    if (boundary_masks[i].n_selected_components(n_comp) != 0)
+    {
+      std::map<dealii::types::global_dof_index, double> boundary_dofs;
+      dealii::VectorTools::interpolate_boundary_values(this->dof_handler, i,
+                                                       inhom_boundary, boundary_dofs,
+                                                       boundary_masks[i]);
+      for(auto bdry_dof = boundary_dofs.begin(); bdry_dof != boundary_dofs.end();++bdry_dof)
+        v(bdry_dof->first) = bdry_dof->second;
+      
+      hanging_node_constraints.distribute(v);
+    }
+  }
+}
+
 
 template <int dim>
 void
@@ -245,15 +267,19 @@ AmandusApplicationSparse<dim>::assemble_matrix(
   for (unsigned int m=0;m<matrix.size();++m)
     matrix[m] = 0.;
 
+  UpdateFlags update_flags = integrator.update_flags();
+  bool values_flag = update_flags & update_values;
+  bool gradients_flag = update_flags & update_gradients;
+  bool hessians_flag = update_flags & update_hessians;
+
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
        i != integrator.input_vector_names.end();++i)
     {
-      info_box.cell_selector.add(*i, true, true, false);
-      info_box.boundary_selector.add(*i, true, true, false);
-      info_box.face_selector.add(*i, true, true, false);
+      info_box.cell_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.boundary_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.face_selector.add(*i, values_flag, gradients_flag, hessians_flag);
     }
-  UpdateFlags update_flags = integrator.update_flags();
 
   info_box.add_update_flags_all(update_flags);
   if(integrator.cell_quadrature != 0)
@@ -311,16 +337,20 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   const AnyData &in,
   const AmandusIntegrator<dim>& integrator) const
 {
+  UpdateFlags update_flags = integrator.update_flags();
+  bool values_flag = update_flags & update_values;
+  bool gradients_flag = update_flags & update_gradients;
+  bool hessians_flag = update_flags & update_hessians;
+
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
        i != integrator.input_vector_names.end();++i)
     {
-      info_box.cell_selector.add(*i, true, true, false);
-      info_box.boundary_selector.add(*i, true, true, false);
-      info_box.face_selector.add(*i, true, true, false);
+      info_box.cell_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.boundary_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.face_selector.add(*i, values_flag, gradients_flag, hessians_flag);
     }
 
-  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients;
   info_box.add_update_flags_all(update_flags);
   // user defined quadrature rules if set
   if(integrator.cell_quadrature != 0)
@@ -360,16 +390,20 @@ AmandusApplicationSparse<dim>::verify_residual(
   const AnyData &in,
   const AmandusIntegrator<dim>& integrator) const
 {
+  UpdateFlags update_flags = integrator.update_flags();
+  bool values_flag = update_flags & update_values;
+  bool gradients_flag = update_flags & update_gradients;
+  bool hessians_flag = update_flags & update_hessians;
+
   MeshWorker::IntegrationInfoBox<dim> info_box;
   for (typename std::vector<std::string>::const_iterator i=integrator.input_vector_names.begin();
        i != integrator.input_vector_names.end();++i)
     {
-      info_box.cell_selector.add(*i, true, true, false);
-      info_box.boundary_selector.add(*i, true, true, false);
-      info_box.face_selector.add(*i, true, true, false);
+      info_box.cell_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.boundary_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.face_selector.add(*i, values_flag, gradients_flag, hessians_flag);
     }
 
-  UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, in, Vector<double>(),
 		      &dof_handler.block_info());
@@ -420,6 +454,10 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
   ArpackSolver::AdditionalData solver_data(eigenvectors.size()+2,
 					   ArpackSolver::largest_magnitude);
   ArpackSolver solver(control, solver_data);
+  
+  for (unsigned int i=0;i<matrix[1].m();++i)
+    if (constraints().is_constrained(i))
+      matrix[1].diag_element(i) = 0.;
 
   if (use_umfpack)
     solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
@@ -434,6 +472,8 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
       inv.solver.select("gmres");
       solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
     }
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    constraints().distribute(eigenvectors[i]);
 }
 
 
@@ -450,12 +490,6 @@ double AmandusApplicationSparse<dim>::estimate(
     cell->set_user_index(i);
   MeshWorker::IntegrationInfoBox<dim> info_box;
 
-  //TODO: choice of quadrature rule needs to be adjusted. E.g. the estimator for
-  //Darcy's equation integrates a postprocessed solution of higher degree
-  //than the original solution, thus we need a higher order quadrature
-  //formula to obtain correct results
-  //const unsigned int n_gauss_points= dof_handler.get_fe().tensor_degree()+4;
-  //info_box.initialize_gauss_quadrature(n_gauss_points, n_gauss_points+1, n_gauss_points) ;
   if(integrator.cell_quadrature != 0)
   {
     info_box.cell_quadrature = *(integrator.cell_quadrature);
@@ -469,10 +503,14 @@ double AmandusApplicationSparse<dim>::estimate(
     info_box.face_quadrature = *(integrator.face_quadrature);
   }
 
-  info_box.cell_selector.add("solution", true, true,true);
-  info_box.face_selector.add("solution",true,true,true);
-  info_box.boundary_selector.add("solution", true, true, false);
-  UpdateFlags update_flags = update_quadrature_points | update_values | update_gradients | update_hessians;
+  UpdateFlags update_flags = integrator.update_flags();
+  bool values_flag = update_flags & update_values;
+  bool gradients_flag = update_flags & update_gradients;
+  bool hessians_flag = update_flags & update_hessians;
+
+  info_box.cell_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+  info_box.face_selector.add("solution",values_flag, gradients_flag, hessians_flag);
+  info_box.boundary_selector.add("solution", values_flag, gradients_flag, hessians_flag);
   info_box.add_update_flags_all(update_flags);
 
   info_box.initialize(*fe, mapping, in, Vector<double>());
@@ -529,10 +567,15 @@ AmandusApplicationSparse<dim>::error(
        cell != triangulation->end(); ++cell,++i)
     cell->set_user_index(i);
 
+  UpdateFlags update_flags = integrator.update_flags();
+  bool values_flag = update_flags & update_values;
+  bool gradients_flag = update_flags & update_gradients;
+  bool hessians_flag = update_flags & update_hessians;
+
   MeshWorker::IntegrationInfoBox<dim> info_box;
-  info_box.cell_selector.add("solution", true, true, false);
-  info_box.boundary_selector.add("solution", true, false, false);
-  info_box.face_selector.add("solution", true, false, false);
+  info_box.cell_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+  info_box.boundary_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+  info_box.face_selector.add("solution", values_flag, gradients_flag, hessians_flag);
   const unsigned int degree = this->fe->tensor_degree();
   info_box.initialize_gauss_quadrature(degree+2, degree+2, degree+2);
   if(integrator.cell_quadrature != 0)
@@ -548,7 +591,6 @@ AmandusApplicationSparse<dim>::error(
     info_box.face_quadrature = *(integrator.face_quadrature);
   }
 
-  UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
   info_box.initialize(*this->fe, this->mapping, solution_data, Vector<double>(),
 		      &this->dof_handler.block_info());
@@ -622,7 +664,10 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   if (in != 0)
   {
     for (unsigned int i=0;i<in->size();++i)
-      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
+      if(in->entry<Vector<double>*>(i)->size()==triangulation->n_active_cells())
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+      else
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
 			       DataOut_DoFData<DoFHandler<dim>, dim, dim>::type_dof_data,
 			       output_data_types);
   }

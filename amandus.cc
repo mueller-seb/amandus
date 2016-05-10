@@ -15,8 +15,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <amandus.h>
-#include <amandus_arpack.h>
+#include <amandus/amandus.h>
+#include <amandus/amandus_arpack.h>
 
 using namespace dealii;
 

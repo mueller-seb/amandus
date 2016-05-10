@@ -6,10 +6,10 @@
  *
  **********************************************************************/
 
-#ifndef __amandus_arpack_h
-#define __amandus_arpack_h
+#ifndef amandus_arpack_h
+#define amandus_arpack_h
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 
 /**
@@ -19,7 +19,7 @@
  */
 template <int dim>
 class AmandusArpack
-  : public dealii::Algorithms::Operator<dealii::Vector<double> >
+  : public dealii::Algorithms::OperatorBase
 {
   public:
     /**

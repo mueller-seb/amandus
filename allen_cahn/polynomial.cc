@@ -22,11 +22,11 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 
-#include <apps.h>
-#include <tests.h>
-#include <allen_cahn/polynomial.h>
-#include <allen_cahn/residual.h>
-#include <allen_cahn/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/tests.h>
+#include <amandus/allen_cahn/polynomial.h>
+#include <amandus/allen_cahn/residual.h>
+#include <amandus/allen_cahn/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -69,7 +69,7 @@ void run(AmandusParameters& param)
   param.enter_subsection("Testing");
   if(param.get_bool("Multigrid"))
   {
-    app_init = new AmandusApplicationSparseMultigrid<d>(tr, *fe);
+    app_init = new AmandusApplication<d>(tr, *fe);
   } else {
     app_init = new AmandusApplicationSparse<d>(tr, *fe, param.get_bool("UMFPack"));
   }

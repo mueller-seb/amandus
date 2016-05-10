@@ -28,7 +28,7 @@
 #include <deal.II/numerics/fe_field_function.h>
 #include <deal.II/numerics/vector_tools.h>
 
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 namespace Darcy
 {

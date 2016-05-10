@@ -11,7 +11,7 @@
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/numerics/solution_transfer.h>
 
-#include <adaptivity.h>
+#include <amandus/adaptivity.h>
 
 namespace CahnHilliard
 {

@@ -43,12 +43,12 @@
 #include <iostream>
 #include <fstream>
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 using namespace dealii;
 
-template <int dim>
-AmandusApplication<dim>::AmandusApplication(
+template <int dim, typename RELAXATION>
+AmandusApplication<dim, RELAXATION>::AmandusApplication(
   Triangulation<dim>& triangulation,
   const FiniteElement<dim>& fe)
 		:
@@ -57,9 +57,9 @@ AmandusApplication<dim>::AmandusApplication(
 {}
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::setup_system()
+AmandusApplication<dim, RELAXATION>::setup_system()
 {
   mg_transfer.clear();
   AmandusApplicationSparse<dim>::setup_system();
@@ -81,7 +81,12 @@ AmandusApplication<dim>::setup_system()
   mg_matrix_up.clear();
   mg_matrix_down.resize(0, n_levels-1);
   mg_matrix_down.clear();
+  mg_matrix_flux_up.resize(0, n_levels-1);
+  mg_matrix_flux_up.clear();
+  mg_matrix_flux_down.resize(0, n_levels-1);
+  mg_matrix_flux_down.clear();
   mg_sparsity.resize(0, n_levels-1);
+  mg_sparsity_fluxes.resize(0, n_levels-1);
 
   for (unsigned int level=mg_sparsity.min_level();
        level<=mg_sparsity.max_level();++level)
@@ -92,12 +97,24 @@ AmandusApplication<dim>::setup_system()
       mg_matrix[level].reinit(mg_sparsity[level]);
       mg_matrix_up[level].reinit(mg_sparsity[level]);
       mg_matrix_down[level].reinit(mg_sparsity[level]);
+
+      if(level > 0)
+      {
+        DynamicSparsityPattern dg_sparsity;
+        dg_sparsity.reinit(this->dof_handler.n_dofs(level - 1),
+                           this->dof_handler.n_dofs(level));
+        MGTools::make_flux_sparsity_pattern_edge(this->dof_handler,
+                                                 dg_sparsity, level);
+        mg_sparsity_fluxes[level].copy_from(dg_sparsity);
+        mg_matrix_flux_up[level].reinit(mg_sparsity_fluxes[level]);
+        mg_matrix_flux_down[level].reinit(mg_sparsity_fluxes[level]);
+      }
     }
 }
 
 
-template <int dim>
-void AmandusApplication<dim>::setup_constraints()
+template <int dim, typename RELAXATION>
+void AmandusApplication<dim,RELAXATION>::setup_constraints()
 {
   AmandusApplicationSparse<dim>::setup_constraints();
 
@@ -106,15 +123,15 @@ void AmandusApplication<dim>::setup_constraints()
 }
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::assemble_mg_matrix(
+AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
   const dealii::AnyData &in,
   const AmandusIntegrator<dim>& integrator)
 {
   mg_matrix = 0.;
 
-  std::vector<MGLevelObject<Vector<double> > > aux(in.size());
+  std::vector<MGLevelObject<Vector<double> > > aux(integrator.input_vector_names.size());
   AnyData mg_in;
 
   MeshWorker::IntegrationInfoBox<dim> info_box;
@@ -130,7 +147,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
     aux[in_idx].resize(min_level, max_level);
     mg_transfer.copy_to_mg(this->dof_handler,
                            aux[in_idx],
-                           *(in.read_ptr<Vector<double> >(in_idx)));
+                           *(in.read_ptr<Vector<double> >(*i)));
     mg_in.add(&(aux[in_idx]), *i);
     info_box.cell_selector.add(*i, true, true, false);
     info_box.boundary_selector.add(*i, true, true, false);
@@ -148,6 +165,7 @@ AmandusApplication<dim>::assemble_mg_matrix(
   assembler.initialize(mg_constraints);
   assembler.initialize(mg_matrix);
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
+  assembler.initialize_fluxes(mg_matrix_flux_up, mg_matrix_flux_down);
 
   MeshWorker::LoopControl control;
   control.cells_first = false;
@@ -184,12 +202,12 @@ AmandusApplication<dim>::assemble_mg_matrix(
 	  DoFTools::make_cell_patches(smoother_data[l].block_list, this->dof_handler, l);
 	}
       smoother_data[l].block_list.compress();
-      smoother_data[l].relaxation = 1.;
+      smoother_data[l].relaxation = smoother_relaxation ;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
       smoother_data[l].threshold = 1.e-12;
     }
   mg_smoother.initialize(mg_matrix, smoother_data);
-  if (false)
+  if (log_smoother_statistics)
     for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
       {
 	deallog << "Level " << l << ' ';
@@ -200,12 +218,11 @@ AmandusApplication<dim>::assemble_mg_matrix(
   mg_smoother.set_variable(variable_smoothing_steps);
 }
 
-
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
+AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<double>& rhs)
 {
-  SolverGMRES<Vector<double> >::AdditionalData solver_data(40, true);
+  SolverGMRES<Vector<double> >::AdditionalData solver_data(100, right_preconditioning, use_default_residual);
   SolverGMRES<Vector<double> > solver(this->control, solver_data);
   // SolverCG<Vector<double> >::AdditionalData solver_data(false, false, true, true);
   // SolverCG<Vector<double> > solver(control, solver_data);
@@ -214,11 +231,14 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
   mg::Matrix<Vector<double> > mgup(mg_matrix_up);
+  mg::Matrix<Vector<double> > mgfluxdown(mg_matrix_flux_down);
+  mg::Matrix<Vector<double> > mgfluxup(mg_matrix_flux_up);
 
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
+  mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
   mg.set_minlevel(mg_matrix.min_level());
 
   PreconditionMG<dim, Vector<double>,
@@ -233,10 +253,10 @@ AmandusApplication<dim>::solve(Vector<double>& sol, const Vector<double>& rhs)
 }
 
 
-template <int dim>
+template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
-				      std::vector<Vector<double> >& eigenvectors)
+AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
+						  std::vector<Vector<double> >& eigenvectors)
 {
   AssertDimension(2*eigenvalues.size(), eigenvectors.size());
   ArpackSolver::AdditionalData arpack_data(eigenvectors.size()+2,
@@ -265,10 +285,19 @@ AmandusApplication<dim>::arpack_solve(std::vector<std::complex<double> >& eigenv
   inv.solver.set_control(this->control);
   inv.solver.set_data(solver_data);
   inv.solver.select("gmres");
+  
+  for (unsigned int i=0;i<this->matrix[1].m();++i)
+    if (this->constraints().is_constrained(i))
+      this->matrix[1].diag_element(i) = 0.;
+  
   solver.solve(this->matrix[0], this->matrix[1], inv,
 	       eigenvalues, eigenvectors, eigenvalues.size());
+  
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    this->constraints().distribute(eigenvectors[i]);
 }
 
-
-template class AmandusApplication<2>;
-template class AmandusApplication<3>;
+template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<3,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<2,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;
+template class AmandusApplication<3,dealii::RelaxationBlockJacobi<dealii::SparseMatrix<double> > >;

@@ -10,7 +10,7 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/tensor_function.h>
 
-#include <darcy/checkerboard/solution_parameters.h>
+#include <amandus/darcy/checkerboard/solution_parameters.h>
 
 #include <cmath>
 #include <utility>

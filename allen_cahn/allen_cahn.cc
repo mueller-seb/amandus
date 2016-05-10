@@ -24,9 +24,9 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
-#include <apps.h>
-#include <allen_cahn/residual.h>
-#include <allen_cahn/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/allen_cahn/residual.h>
+#include <amandus/allen_cahn/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -125,7 +125,7 @@ int main(int argc, const char** argv)
   Integrators::Theta<d> implicit_integrator(residual_integrator, true);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

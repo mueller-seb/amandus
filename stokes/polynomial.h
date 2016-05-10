@@ -14,7 +14,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -313,6 +313,7 @@ PolynomialError<dim>::PolynomialError(
 		curl_potential_1d(curl_potential_1d),
 		grad_potential_1d(grad_potential_1d)
 {
+  this->num_errors = 5;
   this->use_boundary = false;
   this->use_face = false;
 }

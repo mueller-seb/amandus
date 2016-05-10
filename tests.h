@@ -14,7 +14,7 @@
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
 
-#include <amandus.h>
+#include <amandus/amandus.h>
 
 /**
  * Error is not close to machine accuracy
@@ -37,8 +37,8 @@ template <int dim>
 void
 solve_and_error(dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& residual,
+		dealii::Algorithms::OperatorBase& solver,
+		dealii::Algorithms::OperatorBase& residual,
 		const AmandusIntegrator<dim>& error)
 {
   dealii::Vector<double> res;
@@ -81,7 +81,7 @@ void
 iterative_solve_and_error(
     dealii::BlockVector<double>& errors,
 		AmandusApplicationSparse<dim> &app,
-		dealii::Algorithms::Operator<dealii::Vector<double> >& solver,
+		dealii::Algorithms::OperatorBase& solver,
 		const ErrorIntegrator<dim>& error,
     const dealii::Function<dim>* initial_function = 0,
     unsigned int n_qpoints = 0)
@@ -148,12 +148,13 @@ class ExactResidual : public AmandusResidual<dim>
       quadrature(n_qpoints)
     {}
 
-    virtual void notify(const dealii::Algorithms::Event& e)
+    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
     {
-      if(e.test(dealii::Algorithms::Events::initial) |
-         e.test(dealii::Algorithms::Events::remesh))
+      dealii::LogStream::Prefix p("ExactResidual");
+
+      if(this->notifications.test(dealii::Algorithms::Events::initial) ||
+         this->notifications.test(dealii::Algorithms::Events::remesh))
       {
-        dealii::LogStream::Prefix p("ExactResidual");
         dealii::deallog << "Projecting exact solution." << std::endl;
         this->application->setup_vector(projection);
         dealii::VectorTools::project(this->application->dofs(),
@@ -161,13 +162,8 @@ class ExactResidual : public AmandusResidual<dim>
                                      quadrature,
                                      *exact_solution,
                                      projection);
+        this->notifications.clear();
       }
-      AmandusResidual<dim>::notify(e);
-    }
-		    
-    virtual void operator() (dealii::AnyData &out, const dealii::AnyData &in)
-    {
-      dealii::LogStream::Prefix p("ExactResidual");
 
       AmandusResidual<dim>::operator()(out, in);
 

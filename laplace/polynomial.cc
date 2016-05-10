@@ -20,9 +20,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <laplace/polynomial.h>
-#include <laplace/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/laplace/polynomial.h>
+#include <amandus/laplace/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -55,7 +55,7 @@ int main(int argc, const char** argv)
   LaplaceIntegrators::PolynomialRHS<d> rhs_integrator(solution1d);
   LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.set_boundary(0);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
