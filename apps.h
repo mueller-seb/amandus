@@ -53,7 +53,7 @@ global_refinement_linear_loop(unsigned int n_steps,
       app.setup_vector(res);
       app.setup_vector(sol);
 
-      if (initial_vector)
+      if (initial_vector != 0)
 			{
 				dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
 	dealii::VectorTools::project(app.dofs(),
@@ -143,7 +143,7 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       app.setup_system();
       app.setup_vector(sol);
       
-      if (initial_vector)
+      if (initial_vector != 0)
       {
         dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
         dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
@@ -270,7 +270,7 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
   unsigned int step=0;
   
   // initial setup
-  solver.notify(dealii::Algorithms::Events::remesh);
+  solver.notify(dealii::Algorithms::Events::initial);
   app.setup_system();
   app.setup_vector(sol);
   dealii::AnyData solution_data;
@@ -320,18 +320,17 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
       // output
       dealii::AnyData out_data;
       out_data.merge(solution_data);
-      /* needs pull request #45 */
-      //if (error != 0)
-      //  for (unsigned int i=0; i<errors.n_blocks(); ++i)
-      //    {
-      //      std::string  err_name {"Error("};
-      //      err_name += std::to_string( i );
-      //      err_name += ")";
-      //      out_data.add(&errors.block(i),err_name);
-      //    }
-      //dealii::Vector<double> indicators;
-      //indicators = app.indicators();
-      //out_data.add(&indicators,"estimator");
+      if (error != 0)
+        for (unsigned int i=0; i<errors.n_blocks(); ++i)
+          {
+            std::string  err_name {"Error("};
+            err_name += std::to_string( i );
+            err_name += ")";
+            out_data.add(&errors.block(i),err_name);
+          }
+      dealii::Vector<double> indicators;
+      indicators = app.indicators();
+      out_data.add(&indicators,"estimator");
       app.output_results(step, &out_data);
       std::cout << std::endl;
       convergence_table.write_text(std::cout);

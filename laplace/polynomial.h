@@ -143,8 +143,8 @@ void PolynomialRHS<dim>::cell(
 
 template <int dim>
 void PolynomialRHS<dim>::boundary(
-  DoFInfo<dim>& dinfo,
-  IntegrationInfo<dim>& info) const
+  DoFInfo<dim>&,
+  IntegrationInfo<dim>&) const
 {}
 
 
