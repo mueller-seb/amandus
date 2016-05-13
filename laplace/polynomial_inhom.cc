@@ -61,7 +61,8 @@ int main(int argc, const char **argv) {
   LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
   LaplaceIntegrators::PolynomialBoundary<d> bd_function(solution1d);
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);

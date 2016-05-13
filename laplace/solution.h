@@ -151,7 +151,7 @@ void SolutionResidual<dim>::cell(DoFInfo<dim> &dinfo,
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = -solution.laplacian(info.fe_values(0).quadrature_point(k));
+    rhs[k] = -solution->laplacian(info.fe_values(0).quadrature_point(k));
 
   double factor = 1.;
   if (this->timestep != 0) {
@@ -168,7 +168,7 @@ void SolutionResidual<dim>::boundary(DoFInfo<dim> &dinfo,
                                      IntegrationInfo<dim> &info) const {
   std::vector<double> boundary_values(info.fe_values(0).n_quadrature_points,
                                       0.);
-  solution.value_list(info.fe_values(0).get_quadrature_points(),
+  solution->value_list(info.fe_values(0).get_quadrature_points(),
                       boundary_values);
 
   const double factor = (this->timestep == 0.) ? 1. : this->timestep;

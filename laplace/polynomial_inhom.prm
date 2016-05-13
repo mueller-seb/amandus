@@ -5,12 +5,5 @@ end
 
 subsection Linear Solver
   set Tolerance = 1.e-10
-  set Reduction = 1.e-40
-  set Max steps = 1000
-end
-
-subsection Newton
-  set Tolerance = 1.e-10
-  set Reduction = 1.e-40
-  set Max steps = 1000
+  set Reduction = 1.e-20
 end
