@@ -58,6 +58,7 @@ int main(int argc, const char** argv)
   StokesIntegrators::PolynomialError<d> error_integrator(solution1d, solution1dp);
   
   AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   ComponentMask boundary_components(d+1, true);
   boundary_components.set(d, false);
   app.set_boundary(0, boundary_components);

@@ -51,7 +51,6 @@ int main(int argc, const char** argv)
   
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
-  app.control.set_reduction(1.e-10);
   
   global_refinement_eigenvalue_loop(param.get_integer("Steps"),
 				    param.get_integer("Eigenvalues"),
