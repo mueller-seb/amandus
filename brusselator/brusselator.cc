@@ -23,10 +23,10 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
-#include <apps.h>
-#include <brusselator/implicit.h>
-#include <brusselator/explicit.h>
-#include <brusselator/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/brusselator/implicit.h>
+#include <amandus/brusselator/explicit.h>
+#include <amandus/brusselator/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -96,8 +96,7 @@ int main(int argc, const char** argv)
   Brusselator::ImplicitResidual<d> implicit_integrator(parameters);
   implicit_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
-  //AmandusUMFPACK<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

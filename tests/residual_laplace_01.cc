@@ -15,9 +15,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <tests.h>
-#include <laplace/noforce.h>
-#include <laplace/matrix.h>
+#include <amandus/tests.h>
+#include <amandus/laplace/noforce.h>
+#include <amandus/laplace/matrix.h>
 
 int main(int argc, const char** argv)
 {
@@ -40,7 +40,8 @@ int main(int argc, const char** argv)
   LaplaceIntegrators::Matrix<d> matrix_integrator;
   LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   
   verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

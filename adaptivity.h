@@ -11,6 +11,7 @@
 
 #include <amandus/amandus.h>
 #include <amandus/integrator.h>
+#include <amandus/refine_strategy.h>
 #include <deal.II/base/smartpointer.h>
 #include <deal.II/algorithms/operator.h>
 #include <deal.II/numerics/solution_transfer.h>
@@ -85,6 +86,12 @@ class InterpolatingRemesher : public Remesher<VECTOR, dim>
       }
       this->transfer.interpolate(this->to_transfer, this->transferred);
       this->transfer.clear();
+      for(typename std::vector<VECTOR>::iterator result = this->transferred.begin();
+          result != this->transferred.end();
+          ++result)
+      {
+        this->app->hanging_nodes().distribute(*result);
+      }
     }
 
   protected:
@@ -212,5 +219,39 @@ class ErrorRemesher : public AllInterpolatingRemesher<VECTOR, dim>
       void(dealii::Triangulation<dim>&,
            const dealii::BlockVector<double>&)> callback;
 };
+
+/**
+ * @brief Remesher interpolating all vectors and using an estimator integrator
+ * to calculate criterion.
+ *
+ * @ingroup Postprocessing
+ **/
+template <class VECTOR, int dim>
+class EstimateRemesher : public AllInterpolatingRemesher<VECTOR, dim>
+{
+public:
+  EstimateRemesher(AmandusApplicationSparse<dim>& app,
+                   dealii::Triangulation<dim>& tria,
+                   AmandusRefineStrategy<dim> &mark,
+                   AmandusIntegrator<dim>& estimate_integrator) :
+  AllInterpolatingRemesher<VECTOR, dim>(app, tria),
+  estimate_integrator(&estimate_integrator),
+  mark(mark)
+  {}
+  
+  virtual void remesh(const dealii::AnyData& out,
+                      const dealii::AnyData& /*in*/)
+  {
+    this->app->estimate(out, *(this->estimate_integrator));
+    const dealii::Vector<double> indicators = this->app->indicators();
+    this->mark(indicators);
+    this->tria->execute_coarsening_and_refinement();
+  }
+  
+protected:
+  AmandusIntegrator<dim>* estimate_integrator;
+  AmandusRefineStrategy<dim> &mark;
+};
+
 
 #endif

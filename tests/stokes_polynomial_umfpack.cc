@@ -20,9 +20,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <stokes/polynomial.h>
-#include <stokes/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/stokes/polynomial.h>
+#include <amandus/stokes/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -59,12 +59,12 @@ int main(int argc, const char** argv)
   StokesIntegrators::PolynomialError<d> error_integrator(solution1d, solution1dp);
   
   AmandusUMFPACK<d>     app(tr, *fe);
+  app.parse_parameters(param);
   ComponentMask boundary_components(d+1, true);
   boundary_components.set(d, false);
   app.set_boundary(0, boundary_components);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d>    residual(app, rhs_integrator);
-  app.control.set_reduction(1.e-10);
   
   global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
 }

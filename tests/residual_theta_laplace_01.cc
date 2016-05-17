@@ -15,9 +15,9 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <tests.h>
-#include <laplace/noforce.h>
-#include <laplace/matrix.h>
+#include <amandus/tests.h>
+#include <amandus/laplace/noforce.h>
+#include <amandus/laplace/matrix.h>
 
 using namespace Integrators;
 
@@ -45,7 +45,8 @@ int main(int argc, const char** argv)
   Theta<d> ri(rhs_integrator, true);
   ri.input_vector_names.push_back("Newton iterate");
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   
   verify_theta_residual(5, app, mi, ri);
 }

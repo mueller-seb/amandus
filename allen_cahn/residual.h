@@ -14,7 +14,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 
 namespace AllenCahn
 {

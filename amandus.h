@@ -170,6 +170,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * DoFHandler. This requires that setup_system() is called before.
      */
     virtual void setup_vector (dealii::Vector<double>& v) const;
+
+    /**
+     * Sets degrees on the boundary to their inhomogeneous Dirichlet constraints. 
+     * This requires that setup_system() and setup_vector are called before.
+     */
+    virtual void update_vector_inhom_boundary (dealii::Vector<double>& v,
+                                               const dealii::Function<dim>& inhom_boundary) const;
   
     /**
      * Initialize the finite element system on the current mesh.  This
@@ -227,6 +234,11 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     virtual void assemble_mg_matrix (const dealii::AnyData &in,
 				     const AmandusIntegrator<dim>& integrator);
+
+    /**
+     * \brief The error indicators
+     */
+    const dealii::Vector<double>& indicators() const;
 
     /**
      * Currently disabled.
@@ -431,10 +443,13 @@ class AmandusApplication
     dealii::MGConstrainedDoFs    mg_constraints;
   
     dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity;
+    dealii::MGLevelObject<dealii::SparsityPattern> mg_sparsity_fluxes;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix;
   
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_down;
     dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_up;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_down;
+    dealii::MGLevelObject<dealii::SparseMatrix<double> > mg_matrix_flux_up;
   
     dealii::MGTransferPrebuilt<dealii::Vector<double> > mg_transfer;
     
@@ -448,9 +463,6 @@ class AmandusApplication
     bool use_default_residual = true ;
     double smoother_relaxation = 1.0 ;
 };
-
-/// Compatibility definition
-#define AmandusApplicationSparseMultigrid AmandusApplication
 
 /**
  * The same as AmandusApplicationSparse, but with multigrid constraints
@@ -562,6 +574,13 @@ inline const dealii::ConstraintMatrix&
 AmandusApplicationSparse<dim>::hanging_nodes () const
 {
   return hanging_node_constraints;
+}
+
+template <int dim>
+inline const dealii::Vector<double>&
+AmandusApplicationSparse<dim>::indicators () const
+{
+  return estimates.block(0);
 }
 
 

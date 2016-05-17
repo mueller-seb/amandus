@@ -12,7 +12,7 @@
 #include <deal.II/algorithms/any_data.h>
 #include <deal.II/base/parameter_handler.h>
 
-#include <darcy/checkerboard/constrained_newton.h>
+#include <amandus/darcy/checkerboard/constrained_newton.h>
 
 namespace Darcy
 {

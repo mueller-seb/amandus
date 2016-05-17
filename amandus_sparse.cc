@@ -167,6 +167,28 @@ AmandusApplicationSparse<dim>::setup_vector(Vector<double>& v) const
   v.reinit(dof_handler.n_dofs());
 }
 
+template <int dim>
+void
+AmandusApplicationSparse<dim>::update_vector_inhom_boundary(Vector<double>& v,
+                                            const dealii::Function<dim>& inhom_boundary) const
+{
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+  for (unsigned int i=0;i<boundary_masks.size();++i)
+  {
+    if (boundary_masks[i].n_selected_components(n_comp) != 0)
+    {
+      std::map<dealii::types::global_dof_index, double> boundary_dofs;
+      dealii::VectorTools::interpolate_boundary_values(this->dof_handler, i,
+                                                       inhom_boundary, boundary_dofs,
+                                                       boundary_masks[i]);
+      for(auto bdry_dof = boundary_dofs.begin(); bdry_dof != boundary_dofs.end();++bdry_dof)
+        v(bdry_dof->first) = bdry_dof->second;
+      
+      hanging_node_constraints.distribute(v);
+    }
+  }
+}
+
 
 template <int dim>
 void
@@ -432,6 +454,10 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
   ArpackSolver::AdditionalData solver_data(eigenvectors.size()+2,
 					   ArpackSolver::largest_magnitude);
   ArpackSolver solver(control, solver_data);
+  
+  for (unsigned int i=0;i<matrix[1].m();++i)
+    if (constraints().is_constrained(i))
+      matrix[1].diag_element(i) = 0.;
 
   if (use_umfpack)
     solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
@@ -446,6 +472,8 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
       inv.solver.select("gmres");
       solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
     }
+  for(unsigned int i=0; i<eigenvectors.size(); ++i)
+    constraints().distribute(eigenvectors[i]);
 }
 
 
@@ -636,7 +664,10 @@ void AmandusApplicationSparse<dim>::output_results (const unsigned int cycle,
   if (in != 0)
   {
     for (unsigned int i=0;i<in->size();++i)
-      data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
+      if(in->entry<Vector<double>*>(i)->size()==triangulation->n_active_cells())
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i));
+      else
+        data_out.add_data_vector(*(in->entry<Vector<double>*>(i)), in->name(i),
 			       DataOut_DoFData<DoFHandler<dim>, dim, dim>::type_dof_data,
 			       output_data_types);
   }

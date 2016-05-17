@@ -7,7 +7,7 @@
 #define BOOST_TEST_MODULE test_darcy_integrators.h
 #include <boost/test/included/unit_test.hpp>
 
-#include <darcy/integrators.h>
+#include <amandus/darcy/integrators.h>
 
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/fe/fe_q.h>

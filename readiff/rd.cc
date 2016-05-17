@@ -25,9 +25,9 @@
 #include <deal.II/numerics/dof_output_operator.templates.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/utilities.h>
-#include <apps.h>
-#include <readiff/residual.h>
-#include <readiff/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/readiff/residual.h>
+#include <amandus/readiff/matrix.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -108,7 +108,7 @@ int main(int argc, const char** argv)
   explicit_integrator.input_vector_names.push_back("Previous iterate");
 
 
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   AmandusResidual<d> expl(app, explicit_integrator);
   AmandusSolve<d>       solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, implicit_integrator);

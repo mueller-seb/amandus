@@ -17,9 +17,9 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h>
-#include <apps.h>
-#include <darcy/polynomial/polynomial.h>
-#include <darcy/integrators.h>
+#include <amandus/apps.h>
+#include <amandus/darcy/polynomial/polynomial.h>
+#include <amandus/darcy/integrators.h>
 #include <deal.II/fe/fe_tools.h>
 
 int main(int argc, const char** argv)
@@ -62,7 +62,7 @@ int main(int argc, const char** argv)
   Darcy::Polynomial::Error<d> error_integrator(
       vector_potential, scalar_potential, pressure_source);
   
-  AmandusApplicationSparseMultigrid<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);

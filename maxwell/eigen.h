@@ -8,7 +8,7 @@
 #define __matrix_curl_curl_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/maxwell.h>
@@ -89,7 +89,14 @@ Eigen<dim>::Eigen()
 template <int dim>
 void Eigen<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const
 {
-  AssertDimension (dinfo.n_matrices(), 8);
+  if (dinfo.n_matrices() > 4)
+  {
+    AssertDimension (dinfo.n_matrices(), 8);
+  }
+  else
+  {
+    AssertDimension (dinfo.n_matrices(), 4);
+  }
   const unsigned int id = dinfo.cell->material_id();
   AssertIndexRange (id, curl_coefficient.size());
   AssertIndexRange (id, mass_coefficient.size());
@@ -101,9 +108,11 @@ void Eigen<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorke
   //   L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
   Divergence::gradient_matrix(dinfo.matrix(1,false).matrix, info.fe_values(1), info.fe_values(0));
   dinfo.matrix(2,false).matrix.copy_transposed(dinfo.matrix(1,false).matrix);
-
-  L2::mass_matrix(dinfo.matrix(4,false).matrix, info.fe_values(0));
+  if (dinfo.n_matrices() > 4)
+  {
+    L2::mass_matrix(dinfo.matrix(4,false).matrix, info.fe_values(0));
 //  dinfo.matrix(0,false).matrix.add(-8., dinfo.matrix(4,false).matrix);
+  }
   
 //  L2::mass_matrix(dinfo.matrix(7,false).matrix, info.fe_values(1));
 }

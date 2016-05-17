@@ -13,8 +13,8 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/integrators/divergence.h>
 #include <advection-diffusion/parameters.h>
-#include <integrator.h>
-#include <advection-diffusion/boundary_values.h>
+#include <amandus/integrator.h>
+#include <amandus/advection-diffusion/boundary_values.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -129,7 +129,7 @@ void PolynomialBoundaryRHS<dim>::boundary(
     const unsigned int deg = fe.get_fe().tensor_degree();
     const double penalty = 2. * deg * (deg+1) * dinfo.face->measure() / dinfo.cell->measure();
     
-    const std::vector<Point<dim> > &normals = fe.get_normal_vectors ();
+    const std::vector<Tensor<1,dim> >& normals = fe.get_all_normal_vectors();
     Point<dim> dir;
     dir(0) = direction[0][0];
     dir(1) = direction[1][0];

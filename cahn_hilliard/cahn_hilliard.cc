@@ -30,41 +30,32 @@
 #include <deal.II/fe/fe_tools.h>
 #include <boost/scoped_ptr.hpp>
 
-#include <apps.h>
-#include <adaptivity.h>
+#include <amandus/apps.h>
+#include <amandus/adaptivity.h>
 
-#include <cahn_hilliard/residual.h>
-#include <cahn_hilliard/matrix.h>
-#include <cahn_hilliard/samples.h>
-#include <cahn_hilliard/massout.h>
+#include <amandus/cahn_hilliard/residual.h>
+#include <amandus/cahn_hilliard/matrix.h>
+#include <amandus/cahn_hilliard/samples.h>
+#include <amandus/cahn_hilliard/massout.h>
 
 
 using namespace dealii;
 
 
-template <int dim>
-class RefineStrategy
-{
-  public:
-    RefineStrategy(double refine_threshold,
-                   double coarsen_threshold) :
-      refine_threshold(refine_threshold),
-      coarsen_threshold(coarsen_threshold)
-  {}
+template <int dim> class RefineStrategyCahnHillard {
+public:
+  RefineStrategyCahnHillard(double refine_threshold, double coarsen_threshold)
+      : refine_threshold(refine_threshold),
+        coarsen_threshold(coarsen_threshold) {}
 
-    void operator()(Triangulation<dim>& tria,
-                    const BlockVector<double>& indicator)
-    {
-      GridRefinement::refine(tria,
-                             indicator.block(0),
-                             this->refine_threshold);
-      GridRefinement::coarsen(tria,
-                              indicator.block(0),
-                              this->coarsen_threshold);
-    }
+  void operator()(Triangulation<dim> &tria,
+                  const BlockVector<double> &indicator) {
+    GridRefinement::refine(tria, indicator.block(0), this->refine_threshold);
+    GridRefinement::coarsen(tria, indicator.block(0), this->coarsen_threshold);
+  }
 
-  protected:
-    double refine_threshold, coarsen_threshold;
+protected:
+  double refine_threshold, coarsen_threshold;
 };
 
 
@@ -146,7 +137,7 @@ int main(int argc, const char** argv)
   refine_integrator.add(&h1_error_integrator, refine_mask);
   ErrorRemesher<Vector<double>, d> remesher(
       app, tr, refine_integrator);
-  RefineStrategy<d> refine_strategy(threshold, c_threshold);
+  RefineStrategyCahnHillard<d> refine_strategy(threshold, c_threshold);
   remesher.flag_callback(refine_strategy);
 
   param.enter_subsection("Output");
@@ -167,7 +158,10 @@ int main(int argc, const char** argv)
 
   // Now we prepare for the actual timestepping
 
-  timestepping.notify(dealii::Algorithms::Events::remesh);
+  timestepping.notify(dealii::Algorithms::Events::initial);
+  tr.signals.post_refinement.connect(
+      [&timestepping]() {
+      timestepping.notify(dealii::Algorithms::Events::remesh); });
   dealii::Vector<double> solution;
   app.setup_system();
   app.setup_vector(solution);

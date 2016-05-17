@@ -10,7 +10,7 @@
  * <li> Laplace operator</li>
  * <li> Dirichlet boundary condition</li>
  * <li> Eigenvalue problem</li>
- * <li> UMFPack</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
  * @ingroup Examples
@@ -19,9 +19,9 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <apps.h>
-#include <amandus_arpack.h>
-#include <laplace/eigen.h>
+#include <amandus/apps.h>
+#include <amandus/amandus_arpack.h>
+#include <amandus/laplace/eigen.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -51,7 +51,6 @@ int main(int argc, const char** argv)
   
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
-  app.control.set_reduction(1.e-10);
   
   global_refinement_eigenvalue_loop(param.get_integer("Steps"),
 				    param.get_integer("Eigenvalues"),
