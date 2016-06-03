@@ -41,7 +41,6 @@
 #include <deal.II/multigrid/mg_coarse.h>
 #include <deal.II/multigrid/mg_smoother.h>
 
-#include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -178,11 +177,13 @@ class AmandusApplicationSparse : public dealii::Subscriptor
     virtual void setup_vector (dealii::Vector<double>& v) const;
 
     /**
-     * Sets degrees on the boundary to their inhomogeneous Dirichlet constraints. 
-     * This requires that setup_system() and setup_vector are called before.
+     * Sets degrees on the boundary to their inhomogeneous Dirichlet constraints
+     * with an option of interpolation or projection.
+     * This requires that setup_system() and setup_vector() are called before.
      */
     virtual void update_vector_inhom_boundary (dealii::Vector<double>& v,
-                                               const dealii::Function<dim>& inhom_boundary) const;
+                                               const dealii::Function<dim>& inhom_boundary,
+					       bool projection) const;
   
     /**
      * Initialize the finite element system on the current mesh.  This
@@ -343,7 +344,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * @brief The masks used to set boundary conditions, indexed by the
      * boundary indicator
      */
-    std::vector<dealii::ComponentMask> boundary_masks;
+    std::map<unsigned int, dealii::ComponentMask> boundary_masks;
 
     dealii::ComponentMask meanvalue_mask;
     
@@ -409,6 +410,14 @@ class AmandusApplication
      */
     AmandusApplication(dealii::Triangulation<dim>& triangulation,
 		       const dealii::FiniteElement<dim>& fe);
+
+    /**
+     * This function is used to set the advection directions in which 
+     * sorting of vertex patches or cell patches should be done.
+     * This is useful while applying Gauss-Seidel type smoothers in MG when @sort parameter is true.
+     * @adv_dir is vector of directions so that you can sort in more than one direction.
+     */
+    void set_advection_directions(std::vector<dealii::Tensor<1,dim> >& adv_dir);
     
     /**
      * Initialize the finite element system on the current mesh.  This
@@ -444,7 +453,7 @@ class AmandusApplication
 			       std::vector<dealii::Vector<double> >& eigenvectors);
     
     
-    //  protected:
+ protected:
 
     dealii::MGConstrainedDoFs    mg_constraints;
   
@@ -464,6 +473,10 @@ class AmandusApplication
 
     dealii::MGLevelObject<typename RELAXATION::AdditionalData> smoother_data;
     dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double> > mg_smoother;
+
+    std::vector< dealii::Tensor<1,dim> > advection_directions;
+
+  // For overlapping Jacobi please take into account the overlap for the relaxation parameter.
     bool log_smoother_statistics = false ;
     bool right_preconditioning = true ;
     bool use_default_residual = true ;
@@ -587,6 +600,12 @@ inline const dealii::Vector<double>&
 AmandusApplicationSparse<dim>::indicators () const
 {
   return estimates.block(0);
+}
+
+template <int dim, typename RELAXATION>
+  inline void AmandusApplication<dim, RELAXATION>::set_advection_directions(std::vector<dealii::Tensor<1,dim> >& adv_dir)
+{
+  advection_directions = adv_dir;
 }
 
 

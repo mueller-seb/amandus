@@ -30,23 +30,23 @@ namespace Darcy
       class ConstrainedNewton : public Newton<VECTOR>
     {
       public:
-        ConstrainedNewton(Operator<VECTOR> &residual, 
-                          Operator<VECTOR> &inverse_derivative);
+        ConstrainedNewton(OperatorBase &residual, 
+                          OperatorBase &inverse_derivative);
         virtual void operator() (AnyData &out, const AnyData &in);
 
         bool constraint_violation(const VECTOR& u);
       private:
-        SmartPointer<Operator<VECTOR>, Newton<VECTOR> > residual;
+        SmartPointer<OperatorBase, Newton<VECTOR> > residual;
 
-        SmartPointer<Operator<VECTOR>, Newton<VECTOR> > inverse_derivative;
+        SmartPointer<OperatorBase, Newton<VECTOR> > inverse_derivative;
 
         const unsigned int n_stepsize_iterations;
     };
 
     template <class VECTOR>
       ConstrainedNewton<VECTOR>::ConstrainedNewton(
-          Operator<VECTOR> &residual, 
-          Operator<VECTOR> &inverse_derivative)
+          OperatorBase &residual, 
+          OperatorBase &inverse_derivative)
       : Newton<VECTOR>(residual, inverse_derivative),
       residual(&residual), inverse_derivative(&inverse_derivative),
       n_stepsize_iterations(21)
