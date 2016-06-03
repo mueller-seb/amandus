@@ -5,6 +5,10 @@ subsection Discretization
   set Refinement = 1
 end
 
+subsection Linear Solver
+  set Reduction = 1.e-2
+end
+
 subsection Output
   set Output format = none
 end

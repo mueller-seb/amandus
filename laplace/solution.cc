@@ -106,7 +106,9 @@ Waterfall::gradient (const Point<2>   &p,
 
 //---------------------------------------------------------//
 
-int main(int argc, const char **argv) {
+int
+main(int argc, const char** argv)
+{
   const unsigned int d = 2;
 
   std::ofstream logfile("deallog");
@@ -118,8 +120,7 @@ int main(int argc, const char **argv) {
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(
-      FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_from_name<d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, 0, 1);
@@ -141,7 +142,12 @@ int main(int argc, const char **argv) {
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
 
-  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"), app, tr, solver,
-                                  residual, estimate_integrator,
-                                  refine_strategy, &error_integrator);
+  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
+                                  app,
+                                  tr,
+                                  solver,
+                                  residual,
+                                  estimate_integrator,
+                                  refine_strategy,
+                                  &error_integrator);
 }

@@ -29,7 +29,9 @@
 
 #include <boost/scoped_ptr.hpp>
 
-int main(int argc, const char **argv) {
+int
+main(int argc, const char** argv)
+{
   const unsigned int d = 2;
 
   std::ofstream logfile("deallog");
@@ -40,8 +42,7 @@ int main(int argc, const char **argv) {
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(
-      FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_from_name<d>(param.get("FE")));
 
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);
@@ -70,8 +71,11 @@ int main(int argc, const char **argv) {
   Algorithms::Newton<Vector<double>> newton(residual, solver);
   newton.parse_parameters(param);
 
-  global_refinement_nonlinear_loop(5, app, newton, &error_integrator,
-                                   static_cast<AmandusIntegrator<d> *>(nullptr),
-                                   static_cast<dealii::Function<d> *>(nullptr),
+  global_refinement_nonlinear_loop(5,
+                                   app,
+                                   newton,
+                                   &error_integrator,
+                                   static_cast<AmandusIntegrator<d>*>(nullptr),
+                                   static_cast<dealii::Function<d>*>(nullptr),
                                    &bd_function);
 }
