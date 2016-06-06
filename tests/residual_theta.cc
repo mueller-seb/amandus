@@ -66,6 +66,7 @@ int main(int argc, const char** argv)
 
   
   AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   
   verify_theta_residual(5, app, mi, ri);
 }

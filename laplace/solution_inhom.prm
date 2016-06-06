@@ -1,6 +1,12 @@
+set MaxDofs = 10000
+
 subsection Discretization
   set FE         = FE_Q(1)
   set Refinement = 1
+end
+
+subsection Linear Solver
+  set Reduction = 1.e-2
 end
 
 subsection Output

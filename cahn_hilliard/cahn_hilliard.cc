@@ -42,29 +42,20 @@
 using namespace dealii;
 
 
-template <int dim>
-class RefineStrategy
-{
-  public:
-    RefineStrategy(double refine_threshold,
-                   double coarsen_threshold) :
-      refine_threshold(refine_threshold),
-      coarsen_threshold(coarsen_threshold)
-  {}
+template <int dim> class RefineStrategyCahnHillard {
+public:
+  RefineStrategyCahnHillard(double refine_threshold, double coarsen_threshold)
+      : refine_threshold(refine_threshold),
+        coarsen_threshold(coarsen_threshold) {}
 
-    void operator()(Triangulation<dim>& tria,
-                    const BlockVector<double>& indicator)
-    {
-      GridRefinement::refine(tria,
-                             indicator.block(0),
-                             this->refine_threshold);
-      GridRefinement::coarsen(tria,
-                              indicator.block(0),
-                              this->coarsen_threshold);
-    }
+  void operator()(Triangulation<dim> &tria,
+                  const BlockVector<double> &indicator) {
+    GridRefinement::refine(tria, indicator.block(0), this->refine_threshold);
+    GridRefinement::coarsen(tria, indicator.block(0), this->coarsen_threshold);
+  }
 
-  protected:
-    double refine_threshold, coarsen_threshold;
+protected:
+  double refine_threshold, coarsen_threshold;
 };
 
 
@@ -146,7 +137,7 @@ int main(int argc, const char** argv)
   refine_integrator.add(&h1_error_integrator, refine_mask);
   ErrorRemesher<Vector<double>, d> remesher(
       app, tr, refine_integrator);
-  RefineStrategy<d> refine_strategy(threshold, c_threshold);
+  RefineStrategyCahnHillard<d> refine_strategy(threshold, c_threshold);
   remesher.flag_callback(refine_strategy);
 
   param.enter_subsection("Output");

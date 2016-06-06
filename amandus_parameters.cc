@@ -24,6 +24,7 @@ AmandusParameters::AmandusParameters ()
 
   enter_subsection("Linear Solver");
   ReductionControl::declare_parameters(*this);
+  set("Reduction","1.e-10");
   leave_subsection();
 
   enter_subsection("Multigrid");
@@ -37,6 +38,7 @@ AmandusParameters::AmandusParameters ()
   
   enter_subsection("Output");
   DataOutInterface<2>::declare_parameters(*this);
+  set("Output format","vtu");
   leave_subsection();
 }
 

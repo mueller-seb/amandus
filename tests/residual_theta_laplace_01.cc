@@ -46,6 +46,7 @@ int main(int argc, const char** argv)
   ri.input_vector_names.push_back("Newton iterate");
   
   AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
   
   verify_theta_residual(5, app, mi, ri);
 }
