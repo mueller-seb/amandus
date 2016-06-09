@@ -445,6 +445,7 @@ AmandusApplicationSparse<dim>::solve(Vector<double>& sol, const Vector<double>& 
 }
 
 
+#ifdef DEAL_II_WITH_ARPACK
 template <int dim>
 void
 AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
@@ -475,6 +476,15 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& 
   for(unsigned int i=0; i<eigenvectors.size(); ++i)
     constraints().distribute(eigenvectors[i]);
 }
+#else
+template <int dim>
+void
+AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double> >& /*eigenvalues*/,
+					    std::vector<Vector<double> >& /*eigenvectors*/)
+{
+  AssertThrow(false, ExcNeedArpack());
+}
+#endif
 
 
 ////

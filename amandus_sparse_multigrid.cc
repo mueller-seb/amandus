@@ -253,6 +253,7 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
 }
 
 
+#ifdef DEAL_II_WITH_ARPACK
 template <int dim, typename RELAXATION>
 void
 AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
@@ -296,6 +297,15 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   for(unsigned int i=0; i<eigenvectors.size(); ++i)
     this->constraints().distribute(eigenvectors[i]);
 }
+#else
+template <int dim, typename RELAXATION>
+void
+AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& /*eigenvalues*/,
+						  std::vector<Vector<double> >& /*eigenvectors*/)
+{
+  AssertThrow(false, ExcNeedArpack());
+}
+#endif
 
 template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
 template class AmandusApplication<3,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;

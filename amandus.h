@@ -55,6 +55,12 @@
 #include <iostream>
 #include <fstream>
 
+/**
+ * Exception indicating that deal.II was configured without Arpack but the
+ * requested functionality depends on it.
+ */
+DeclExceptionMsg(ExcNeedArpack,
+                 "To use this functionality, deal.II must be configured with Arpack.");
 
 /**
  * A class managing a common ParameterHandler for most applications.
