@@ -252,7 +252,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * \todo: Make sure it takes an AnyData with a vector called "solution".
      */
     double estimate(const dealii::AnyData &in,
-		    const AmandusIntegrator<dim>& integrator);
+        AmandusIntegrator<dim>& integrator);
     /**
      * Compute several error values using the integrator and return
      * them in a BlockVector.
