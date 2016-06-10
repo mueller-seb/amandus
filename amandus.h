@@ -55,6 +55,12 @@
 #include <iostream>
 #include <fstream>
 
+/**
+ * Exception indicating that deal.II was configured without Arpack but the
+ * requested functionality depends on it.
+ */
+DeclExceptionMsg(ExcNeedArpack,
+                 "To use this functionality, deal.II must be configured with Arpack.");
 
 /**
  * A class managing a common ParameterHandler for most applications.
@@ -246,7 +252,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      * \todo: Make sure it takes an AnyData with a vector called "solution".
      */
     double estimate(const dealii::AnyData &in,
-		    const AmandusIntegrator<dim>& integrator);
+        AmandusIntegrator<dim>& integrator);
     /**
      * Compute several error values using the integrator and return
      * them in a BlockVector.

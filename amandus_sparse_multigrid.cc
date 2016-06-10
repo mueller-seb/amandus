@@ -253,6 +253,7 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
 }
 
 
+#ifdef DEAL_II_WITH_ARPACK
 template <int dim, typename RELAXATION>
 void
 AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& eigenvalues,
@@ -267,11 +268,14 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   mg::Matrix<Vector<double> > mgmatrix(mg_matrix);
   mg::Matrix<Vector<double> > mgdown(mg_matrix_down);
   mg::Matrix<Vector<double> > mgup(mg_matrix_up);
+  mg::Matrix<Vector<double> > mgfluxdown(mg_matrix_flux_down);
+  mg::Matrix<Vector<double> > mgfluxup(mg_matrix_flux_up);
   
   Multigrid<Vector<double> > mg(this->dof_handler, mgmatrix,
 				mg_coarse, mg_transfer,
 				mg_smoother, mg_smoother);
   mg.set_edge_matrices(mgdown, mgup);
+  mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
   mg.set_minlevel(mg_matrix.min_level());
   
   PreconditionMG<dim, Vector<double>,
@@ -296,6 +300,15 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   for(unsigned int i=0; i<eigenvectors.size(); ++i)
     this->constraints().distribute(eigenvectors[i]);
 }
+#else
+template <int dim, typename RELAXATION>
+void
+AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double> >& /*eigenvalues*/,
+						  std::vector<Vector<double> >& /*eigenvectors*/)
+{
+  AssertThrow(false, ExcNeedArpack());
+}
+#endif
 
 template class AmandusApplication<2,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;
 template class AmandusApplication<3,dealii::RelaxationBlockSSOR<dealii::SparseMatrix<double> > >;

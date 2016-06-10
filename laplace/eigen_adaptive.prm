@@ -1,0 +1,19 @@
+set MaxDofs = 10000
+set Eigenvalue = 1
+set ExactEigenvalue = 9.6397238440219
+set Domain = L
+
+subsection Discretization
+  set FE         = FE_DGQ(1)
+  set Refinement = 1
+end
+
+subsection Linear Solver
+  set Tolerance = 1.e-10
+  set Reduction = 1.e-40
+end
+
+subsection Output
+  set Output format = none
+end
+
