@@ -268,8 +268,8 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
   if (error != 0)
     errors.reinit(error->n_errors());
   dealii::ConvergenceTable convergence_table;
-  unsigned int step=0;
-  
+  unsigned int step = 0;
+
   // initial setup
   solver.notify(dealii::Algorithms::Events::initial);
   app.setup_system();
@@ -277,72 +277,75 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
   dealii::AnyData solution_data;
   solution_data.add(&sol, "solution");
   dealii::AnyData data;
-  EstimateRemesher<dealii::Vector<double>, dim> remesh(app,tria,mark,estimator);
-  
+  EstimateRemesher<dealii::Vector<double>, dim> remesh(app, tria, mark, estimator);
+
   while (true)
+  {
+    dealii::deallog << "Step " << step++ << std::endl;
+
+    // solve
+    app.setup_vector(rhs);
+    dealii::AnyData rhs_data;
+    rhs_data.add(&rhs, "RHS");
+    right_hand_side(rhs_data, data);
+    app.constraints().set_zero(sol);
+    solver(solution_data, rhs_data);
+
+    // error
+    dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
+    convergence_table.add_value("dofs", app.dofs().n_dofs());
+    if (error != 0)
     {
-      dealii::deallog << "Step " << step++ << std::endl;
-      
-      // solve
-      app.setup_vector(rhs);
-      dealii::AnyData rhs_data;
-      rhs_data.add(&rhs, "RHS");
-      right_hand_side(rhs_data, data);
-      app.constraints().set_zero(sol);
-      solver(solution_data, rhs_data);
-
-      // error
-      dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
-      convergence_table.add_value("dofs",app.dofs().n_dofs());
-      if (error != 0)
-        {
-          app.error(errors, solution_data, *error);
-          for (unsigned int i=0; i<errors.n_blocks(); ++i)
-            {
-              dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
-            }
-          for (unsigned int i=0; i<errors.n_blocks(); ++i)
-            {
-              std::string  err_name {"Error("};
-              err_name += std::to_string( i );
-              err_name += ")";
-              convergence_table.add_value(err_name, errors.block(i).l2_norm());
-              convergence_table.evaluate_convergence_rates(err_name, "dofs",dealii::ConvergenceTable::reduction_rate_log2,1);
-              convergence_table.set_scientific(err_name, 1);
-            }
-        }
-
-      // estimator
-      const double est = app.estimate(solution_data, estimator);
-      dealii::deallog << "Estimate: " << est << std::endl;
-      convergence_table.add_value("estimate", est);
-      convergence_table.evaluate_convergence_rates("estimate", "dofs",dealii::ConvergenceTable::reduction_rate_log2,1);
-
-      // output
-      dealii::AnyData out_data;
-      out_data.merge(solution_data);
-      if (error != 0)
-        for (unsigned int i=0; i<errors.n_blocks(); ++i)
-          {
-            std::string  err_name {"Error("};
-            err_name += std::to_string( i );
-            err_name += ")";
-            out_data.add(&errors.block(i),err_name);
-          }
-      dealii::Vector<double> indicators;
-      indicators = app.indicators();
-      out_data.add(&indicators,"estimator");
-      app.output_results(step, &out_data);
-      std::cout << std::endl;
-      convergence_table.write_text(std::cout);
-
-      // stop
-      if (app.dofs().n_dofs()>=max_dofs) break;
-
-      // mark & refine using remesher
-      remesh(solution_data,data);
-      solver.notify(dealii::Algorithms::Events::remesh);
+      app.error(errors, solution_data, *error);
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
+      }
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        std::string err_name{ "Error(" };
+        err_name += std::to_string(i);
+        err_name += ")";
+        convergence_table.add_value(err_name, errors.block(i).l2_norm());
+        convergence_table.evaluate_convergence_rates(
+          err_name, "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+        convergence_table.set_scientific(err_name, 1);
+      }
     }
+
+    // estimator
+    const double est = app.estimate(solution_data, estimator);
+    dealii::deallog << "Estimate: " << est << std::endl;
+    convergence_table.add_value("estimate", est);
+    convergence_table.evaluate_convergence_rates(
+      "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+
+    // output
+    dealii::AnyData out_data;
+    out_data.merge(solution_data);
+    if (error != 0)
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        std::string err_name{ "Error(" };
+        err_name += std::to_string(i);
+        err_name += ")";
+        out_data.add(&errors.block(i), err_name);
+      }
+    dealii::Vector<double> indicators;
+    indicators = app.indicators();
+    out_data.add(&indicators, "estimator");
+    app.output_results(step, &out_data);
+    std::cout << std::endl;
+    convergence_table.write_text(std::cout);
+
+    // stop
+    if (app.dofs().n_dofs() >= max_dofs)
+      break;
+
+    // mark & refine using remesher
+    remesh(solution_data, data);
+    solver.notify(dealii::Algorithms::Events::remesh);
+  }
 }
 
 /**
@@ -352,12 +355,15 @@ adaptive_refinement_linear_loop(unsigned int max_dofs,
  * @ingroup apps_test
  */
 template <int dim>
-void adaptive_refinement_nonlinear_loop(
-    unsigned int max_dofs, AmandusApplicationSparse<dim> &app,
-    dealii::Triangulation<dim> &tria, dealii::Algorithms::OperatorBase &solver,
-    AmandusIntegrator<dim> &estimator, AmandusRefineStrategy<dim> &mark,
-    const AmandusIntegrator<dim> *error = 0,
-    const dealii::Function<dim> *inhom_boundary = 0) {
+void
+adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSparse<dim>& app,
+                                   dealii::Triangulation<dim>& tria,
+                                   dealii::Algorithms::OperatorBase& solver,
+                                   AmandusIntegrator<dim>& estimator,
+                                   AmandusRefineStrategy<dim>& mark,
+                                   const AmandusIntegrator<dim>* error = 0,
+                                   const dealii::Function<dim>* inhom_boundary = 0)
+{
   dealii::Vector<double> sol;
   dealii::BlockVector<double> errors;
   if (error != 0)
@@ -372,10 +378,10 @@ void adaptive_refinement_nonlinear_loop(
   dealii::AnyData solution_data;
   solution_data.add(&sol, "solution");
   dealii::AnyData data;
-  EstimateRemesher<dealii::Vector<double>, dim> remesh(app, tria, mark,
-                                                       estimator);
+  EstimateRemesher<dealii::Vector<double>, dim> remesh(app, tria, mark, estimator);
 
-  while (true) {
+  while (true)
+  {
     dealii::deallog << "Step " << step++ << std::endl;
 
     // solve
@@ -386,19 +392,21 @@ void adaptive_refinement_nonlinear_loop(
     // error
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
     convergence_table.add_value("dofs", app.dofs().n_dofs());
-    if (error != 0) {
+    if (error != 0)
+    {
       app.error(errors, solution_data, *error);
-      for (unsigned int i = 0; i < errors.n_blocks(); ++i) {
-        dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm()
-                        << std::endl;
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
       }
-      for (unsigned int i = 0; i < errors.n_blocks(); ++i) {
-        std::string err_name{"Error("};
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        std::string err_name{ "Error(" };
         err_name += std::to_string(i);
         err_name += ")";
         convergence_table.add_value(err_name, errors.block(i).l2_norm());
         convergence_table.evaluate_convergence_rates(
-            err_name, "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+          err_name, "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
         convergence_table.set_scientific(err_name, 1);
       }
     }
@@ -408,14 +416,15 @@ void adaptive_refinement_nonlinear_loop(
     dealii::deallog << "Estimate: " << est << std::endl;
     convergence_table.add_value("estimate", est);
     convergence_table.evaluate_convergence_rates(
-        "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+      "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
 
     // output
     dealii::AnyData out_data;
     out_data.merge(solution_data);
     if (error != 0)
-      for (unsigned int i = 0; i < errors.n_blocks(); ++i) {
-        std::string err_name{"Error("};
+      for (unsigned int i = 0; i < errors.n_blocks(); ++i)
+      {
+        std::string err_name{ "Error(" };
         err_name += std::to_string(i);
         err_name += ")";
         out_data.add(&errors.block(i), err_name);
@@ -447,12 +456,13 @@ void adaptive_refinement_nonlinear_loop(
 
 template <int dim>
 void
-adaptive_refinement_eigenvalue_loop(
-  unsigned int max_dofs, unsigned int n_eigenvalue, AmandusApplicationSparse<dim>& app,
-  dealii::Algorithms::OperatorBase& solver, AmandusIntegrator<dim>& estimator,
-  AmandusRefineStrategy<dim>& mark,
-  const double exact_eigenvalue = std::nan(NULL),
-  const unsigned int k = 0)
+adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenvalue,
+                                    AmandusApplicationSparse<dim>& app,
+                                    dealii::Algorithms::OperatorBase& solver,
+                                    AmandusIntegrator<dim>& estimator,
+                                    AmandusRefineStrategy<dim>& mark,
+                                    const double exact_eigenvalue = std::nan(NULL),
+                                    const unsigned int k = 0)
 {
   // compute n+k eigenvalues and select the n-th
   // eigenvalue after sorting
@@ -460,7 +470,7 @@ adaptive_refinement_eigenvalue_loop(
   std::vector<std::complex<double>> eigenvalues(n_vectors);
   std::vector<dealii::Vector<double>> eigenvectors(2 * n_vectors);
   dealii::ConvergenceTable convergence_table;
-  std::vector<std::pair<unsigned int, double> > sort_eigenvalues(n_vectors);
+  std::vector<std::pair<unsigned int, double>> sort_eigenvalues(n_vectors);
   solver.notify(dealii::Algorithms::Events::initial);
   dealii::AnyData solution_data;
   solution_data.add(&eigenvalues, "eigenvalues");
@@ -486,9 +496,10 @@ adaptive_refinement_eigenvalue_loop(
       sort_eigenvalues[i].first = i;
       sort_eigenvalues[i].second = eigenvalues[i].real();
     }
-    sort(sort_eigenvalues.begin(), sort_eigenvalues.end(), [](auto& left, auto& right) {
-      return left.second < right.second;
-    });
+    sort(sort_eigenvalues.begin(),
+         sort_eigenvalues.end(),
+         [](const std::pair<unsigned int, double>& left,
+            const std::pair<unsigned int, double>& right) { return left.second < right.second; });
     const unsigned eigenvalue_idx = sort_eigenvalues[n_eigenvalue - 1].first;
 
     // error for n-th (real) eigenvalue
@@ -518,8 +529,7 @@ adaptive_refinement_eigenvalue_loop(
 
     // output
     dealii::AnyData out_data;
-    out_data.add(&eigenvectors[eigenvalue_idx],
-                 std::string("ev") + std::to_string(eigenvalue_idx));
+    out_data.add(&eigenvectors[eigenvalue_idx], std::string("ev") + std::to_string(eigenvalue_idx));
     dealii::Vector<double> indicators;
     indicators = app.indicators();
     out_data.add(&indicators, "estimator");
