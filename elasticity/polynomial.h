@@ -8,6 +8,7 @@
 #ifndef __elasticity_polynomial_h
 #define __elasticity_polynomial_h
 
+#include <amandus/elasticity/residual.h>
 #include <amandus/integrator.h>
 #include <deal.II/base/polynomial.h>
 #include <deal.II/base/tensor.h>

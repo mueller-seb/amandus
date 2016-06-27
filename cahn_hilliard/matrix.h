@@ -1,3 +1,6 @@
+#include <amandus/integrator.h>
+#include <deal.II/integrators/advection.h>
+#include <deal.II/integrators/laplace.h>
 
 namespace CahnHilliard
 {

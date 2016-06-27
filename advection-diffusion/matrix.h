@@ -10,12 +10,16 @@
 #include <amandus/integrator.h>
 #include <deal.II/integrators/advection.h>
 #include <deal.II/integrators/l2.h>
+#include <deal.II/integrators/laplace.h>
+#include <deal.II/lac/full_matrix.h>
 #include <deal.II/meshworker/integration_info.h>
-
-using namespace dealii::MeshWorker;
 
 namespace AdvectionDiffusion
 {
+using namespace dealii;
+using namespace MeshWorker;
+using namespace LocalIntegrators;
+
 /**
  * Integrator for Advection-Diffusion problems.
  *

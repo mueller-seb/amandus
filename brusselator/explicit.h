@@ -9,6 +9,7 @@
 #ifndef __brusselator_explicit_h
 #define __brusselator_explicit_h
 
+#include <amandus/brusselator/implicit.h>
 #include <amandus/brusselator/parameters.h>
 #include <amandus/integrator.h>
 #include <deal.II/base/polynomial.h>
