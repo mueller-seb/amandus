@@ -183,7 +183,7 @@ class AmandusApplicationSparse : public dealii::Subscriptor
      */
     virtual void update_vector_inhom_boundary (dealii::Vector<double>& v,
                                                const dealii::Function<dim>& inhom_boundary,
-					       bool projection) const;
+                                               bool projection = false) const;
   
     /**
      * Initialize the finite element system on the current mesh.  This
