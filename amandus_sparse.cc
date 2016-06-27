@@ -431,7 +431,7 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& e
                                             std::vector<Vector<double>>& eigenvectors)
 {
   AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
-  ArpackSolver::AdditionalData solver_data(eigenvectors.size() + 2,
+  ArpackSolver::AdditionalData solver_data(std::max((unsigned long)20, 2 * eigenvectors.size() + 1),
                                            ArpackSolver::largest_magnitude);
   ArpackSolver solver(control, solver_data);
 
@@ -498,9 +498,24 @@ AmandusApplicationSparse<dim>::estimate(const AnyData& in, AmandusIntegrator<dim
   bool gradients_flag = update_flags & update_gradients;
   bool hessians_flag = update_flags & update_hessians;
 
-  info_box.cell_selector.add("solution", values_flag, gradients_flag, hessians_flag);
-  info_box.face_selector.add("solution", values_flag, gradients_flag, hessians_flag);
-  info_box.boundary_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+  if (integrator.input_vector_names.size() == 0)
+  {
+    info_box.cell_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+    info_box.face_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+    info_box.boundary_selector.add("solution", values_flag, gradients_flag, hessians_flag);
+  }
+  else
+  {
+    for (typename std::vector<std::string>::const_iterator i =
+           integrator.input_vector_names.begin();
+         i != integrator.input_vector_names.end();
+         ++i)
+    {
+      info_box.cell_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.boundary_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+      info_box.face_selector.add(*i, values_flag, gradients_flag, hessians_flag);
+    }
+  }
   info_box.add_update_flags_all(update_flags);
 
   info_box.initialize(*fe, mapping, in, Vector<double>());

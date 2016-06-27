@@ -302,7 +302,7 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
                                                   std::vector<Vector<double>>& eigenvectors)
 {
   AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
-  ArpackSolver::AdditionalData arpack_data(eigenvectors.size() + 2,
+  ArpackSolver::AdditionalData arpack_data(std::max((unsigned long)20, 2 * eigenvectors.size() + 1),
                                            ArpackSolver::largest_magnitude);
   ArpackSolver solver(this->control, arpack_data);
 
