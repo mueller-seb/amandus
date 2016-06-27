@@ -22,47 +22,47 @@ using namespace LocalIntegrators;
 template <int dim>
 class RhsOne : public AmandusIntegrator<dim>
 {
-  public:
+public:
   RhsOne();
-    virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-    virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-    virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-		     MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
+                        MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+                    MeshWorker::IntegrationInfo<dim>& info1,
+                    MeshWorker::IntegrationInfo<dim>& info2) const;
 };
-
 
 template <int dim>
 RhsOne<dim>::RhsOne()
-{}
-
+{
+}
 
 template <int dim>
-void RhsOne<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void
+RhsOne<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values(0);
   const unsigned int n_dofs = fe.dofs_per_cell;
   Vector<double>& result = dinfo.vector(0).block(0);
-  for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
-    for (unsigned int i=0; i<n_dofs; ++i)
-      for (unsigned int d=0; d<dim; ++d)
-	result(i) += fe.JxW(k) * fe.shape_value_component(i,k,d);
+  for (unsigned int k = 0; k < fe.n_quadrature_points; ++k)
+    for (unsigned int i = 0; i < n_dofs; ++i)
+      for (unsigned int d = 0; d < dim; ++d)
+        result(i) += fe.JxW(k) * fe.shape_value_component(i, k, d);
 }
 
+template <int dim>
+void
+RhsOne<dim>::boundary(MeshWorker::DoFInfo<dim>& /*dinfo*/,
+                      typename MeshWorker::IntegrationInfo<dim>& /*info*/) const
+{
+}
 
 template <int dim>
-void RhsOne<dim>::boundary(MeshWorker::DoFInfo<dim>& /*dinfo*/,
-			   typename MeshWorker::IntegrationInfo<dim>& /*info*/) const
-{}
-
-
-template <int dim>
-void RhsOne<dim>::face(MeshWorker::DoFInfo<dim>& /*dinfo1*/,
-		       MeshWorker::DoFInfo<dim>& /*dinfo2*/,
-		       MeshWorker::IntegrationInfo<dim>& /*info1*/,
-		       MeshWorker::IntegrationInfo<dim>& /*info2*/) const
-{}
-
-
-
+void
+RhsOne<dim>::face(MeshWorker::DoFInfo<dim>& /*dinfo1*/, MeshWorker::DoFInfo<dim>& /*dinfo2*/,
+                  MeshWorker::IntegrationInfo<dim>& /*info1*/,
+                  MeshWorker::IntegrationInfo<dim>& /*info2*/) const
+{
+}
 
 #endif
