@@ -19,8 +19,10 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
 #include <deal.II/grid/grid_refinement.h>
+#include <deal.II/grid/tria.h>
 
 #include <deal.II/dofs/dof_tools.h>
+#include <deal.II/dofs/dof_renumbering.h>
 
 #include <deal.II/meshworker/dof_info.h>
 #include <deal.II/meshworker/integration_info.h>
@@ -177,12 +179,14 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
   coarse_matrix.copy_from (mg_matrix[mg_matrix.min_level()]);
   mg_coarse.initialize(coarse_matrix, 1.e-15);
 
+  bool sort = false;
   bool interior_dofs_only = true;
   unsigned int smoothing_steps = 1;
   bool variable_smoothing_steps = false;
   if(this->param != 0)
   {
     this->param->enter_subsection("Multigrid");
+    sort = this->param->get_bool("Sort");
     interior_dofs_only = this->param->get_bool("Interior smoothing");
     smoothing_steps = this->param->get_integer("Smoothing steps on leaves");
     variable_smoothing_steps = this->param->get_bool("Variable smoothing steps");
@@ -191,16 +195,55 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(
 
   for (unsigned int l=smoother_data.min_level()+1;l<=smoother_data.max_level();++l)
     {
+      std::vector<unsigned int > vertex_mapping;
       if (this->vertex_patches)
-        {
-	  DoFTools::make_vertex_patches(
-          smoother_data[l].block_list, this->dof_handler, l, interior_dofs_only);
-	}
+	  vertex_mapping = DoFTools::make_vertex_patches(smoother_data[l].block_list, 
+							 this->dof_handler,
+							 l, interior_dofs_only, 
+							 false, false, false, true);
       else
         {
           smoother_data[l].block_list.reinit(this->triangulation->n_cells(l), this->dof_handler.n_dofs(l), this->fe->dofs_per_cell);
 	  DoFTools::make_cell_patches(smoother_data[l].block_list, this->dof_handler, l);
 	}
+      // Here we sort the blocks made from vertex patches or from cell patches in a given direction
+      // which is usefull in case of advection dominated problems.
+      if(sort)
+	{
+	  const unsigned int ndir = advection_directions.size();
+	  smoother_data[l].order.resize(ndir);
+	  for (unsigned int i=0;i<ndir;++i)
+	    {
+	      smoother_data[l].order[i].resize(smoother_data[l].block_list.n_rows());
+	      std::vector<std::pair<Point<dim>, types::global_dof_index> >
+		aux(smoother_data[l].order[i].size());
+	      if(this->vertex_patches)
+		{
+		  for(unsigned int j=0; j < vertex_mapping.size(); ++j)
+		    {
+		      aux[j].first = this->triangulation->get_vertices()[vertex_mapping[j]];
+		      aux[j].second =  j;
+		    }
+		}
+	      else
+		{
+		  auto cell = this->triangulation->begin(l),
+		    endc = this->triangulation->end(l);
+		  unsigned int j=0;
+		  for (; cell!=endc; ++cell, ++j)
+		    {
+		      aux[j].first = cell->center();
+		      aux[j].second =  j;
+		    }
+		}
+	      DoFRenumbering::ComparePointwiseDownstream<dim> comp(advection_directions[i]);
+	      std::sort(aux.begin(), aux.end(), comp);
+	      smoother_data[l].order[i].resize(aux.size());
+	      for (unsigned int j=0; j < smoother_data[l].order[i].size(); ++j)
+		smoother_data[l].order[i][j] = aux[j].second;
+	    }
+	}
+
       smoother_data[l].block_list.compress();
       smoother_data[l].relaxation = smoother_relaxation ;
       smoother_data[l].inversion = PreconditionBlockBase<double>::svd;
@@ -240,6 +283,7 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
   mg.set_edge_matrices(mgdown, mgup);
   mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
   mg.set_minlevel(mg_matrix.min_level());
+  mg.set_debug(0);
 
   PreconditionMG<dim, Vector<double>,
     MGTransferPrebuilt<Vector<double> > >

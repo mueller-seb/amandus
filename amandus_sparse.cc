@@ -170,23 +170,32 @@ AmandusApplicationSparse<dim>::setup_vector(Vector<double>& v) const
 template <int dim>
 void
 AmandusApplicationSparse<dim>::update_vector_inhom_boundary(Vector<double>& v,
-                                            const dealii::Function<dim>& inhom_boundary) const
+							    const dealii::Function<dim>& inhom_boundary,
+							    bool projection) const
 {
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
-  for (unsigned int i=0;i<boundary_masks.size();++i)
-  {
-    if (boundary_masks[i].n_selected_components(n_comp) != 0)
-    {
-      std::map<dealii::types::global_dof_index, double> boundary_dofs;
-      dealii::VectorTools::interpolate_boundary_values(this->dof_handler, i,
-                                                       inhom_boundary, boundary_dofs,
-                                                       boundary_masks[i]);
-      for(auto bdry_dof = boundary_dofs.begin(); bdry_dof != boundary_dofs.end();++bdry_dof)
-        v(bdry_dof->first) = bdry_dof->second;
+  dealii::QGauss<dim-1> q_boundary(this->dof_handler.get_fe().tensor_degree()+1);
+  typename dealii::FunctionMap<dim>::type boundary_functions;
+  boundary_functions[0] = &inhom_boundary;
+  std::map<dealii::types::global_dof_index, double> boundary_dofs;
+  if(projection)
+    dealii::VectorTools::project_boundary_values (this->dof_handler,
+						  boundary_functions,
+						  q_boundary,
+						  boundary_dofs);
+  else
+    for (std::map<unsigned int, dealii::ComponentMask>::const_iterator
+	   p = boundary_masks.begin();
+	 p != boundary_masks.end(); ++p)
+      if(p->second.n_selected_components(n_comp) != 0)
+	dealii::VectorTools::interpolate_boundary_values(this->dof_handler, p->first,
+							 inhom_boundary, boundary_dofs,
+							 p->second);
+  for(auto bdry_dof = boundary_dofs.begin(); bdry_dof != boundary_dofs.end();++bdry_dof)
+    v(bdry_dof->first) = bdry_dof->second;
       
-      hanging_node_constraints.distribute(v);
-    }
-  }
+  hanging_node_constraints.distribute(v);
+
 }
 
 
@@ -216,9 +225,7 @@ template <int dim>
 void
 AmandusApplicationSparse<dim>::set_boundary(unsigned int index, dealii::ComponentMask mask)
 {
-  if (boundary_masks.size() <= index)
-    boundary_masks.resize(index+1);
-  boundary_masks[index] = mask;
+  boundary_masks.insert(std::pair<unsigned int, dealii::ComponentMask>(index, mask));
 }
 
 template <int dim>
@@ -238,15 +245,13 @@ void AmandusApplicationSparse<dim>::setup_constraints()
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
 
   constraint_matrix.clear();
-  for (unsigned int i=0;i<boundary_masks.size();++i)
-  {
-    if (boundary_masks[i].n_selected_components(n_comp) != 0)
-    {
-      DoFTools::make_zero_boundary_constraints(this->dof_handler, i,
-                                               this->constraint_matrix,
-                                               boundary_masks[i]);
-    }
-  }
+  for (std::map<unsigned int, dealii::ComponentMask>::const_iterator
+	 p = boundary_masks.begin();
+       p != boundary_masks.end(); ++p)
+    if(p->second.n_selected_components(n_comp) != 0)
+      DoFTools::make_zero_boundary_constraints(this->dof_handler, p->first,
+					       this->constraint_matrix,
+					       p->second);
   make_meanvalue_constraints(this->dof_handler,
                              this->mapping,
                              this->hanging_node_constraints,

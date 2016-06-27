@@ -558,12 +558,12 @@ class MeanIntegrator : public dealii::MeshWorker::LocalIntegrator<dim>
     virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
                       dealii::MeshWorker::IntegrationInfo<dim>& info) const
     {
+      // this only works for scalars fe values
       const std::vector<double> one(info.fe_values(0).n_quadrature_points, 1.0);
       for(unsigned int i = 0; i < dinfo.vector(0).n_blocks(); ++i)
-      {
-        dealii::LocalIntegrators::L2::L2(dinfo.vector(0).block(i),
-                                         info.fe_values(i), one);
-      }
+	if(info.fe_values(i).get_fe().n_components() == 1)
+	  dealii::LocalIntegrators::L2::L2(dinfo.vector(0).block(i),
+					   info.fe_values(i), one);
     }
 };
 

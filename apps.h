@@ -36,7 +36,8 @@ global_refinement_linear_loop(unsigned int n_steps,
 			      dealii::Algorithms::OperatorBase& residual,
 			      const AmandusIntegrator<dim>* error = 0,
 			      AmandusIntegrator<dim>* estimator = 0,
-			      const dealii::Function<dim>* initial_vector = 0)
+			      const dealii::Function<dim>* initial_vector = 0,
+			      const bool boundary_projection = false)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -55,12 +56,19 @@ global_refinement_linear_loop(unsigned int n_steps,
       app.setup_vector(sol);
 
       if (initial_vector != 0)
-			{
-				dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
-	dealii::VectorTools::project(app.dofs(),
-	 			app.hanging_nodes(), quadrature, *initial_vector, sol);
-			}
-//	dealii::VectorTools::interpolate(app.dofs(), *initial_vector, sol);
+	{
+	  if(boundary_projection)
+	    {
+	      app.update_vector_inhom_boundary(sol, *initial_vector, boundary_projection);	      
+	    }
+	  else
+	    {
+	      dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
+	      dealii::VectorTools::project(app.dofs(),
+					   app.hanging_nodes(), quadrature, *initial_vector, sol);
+	      /* dealii::VectorTools::interpolate(app.dofs(), *initial_vector, sol); */
+	    }
+	}
 
       dealii::AnyData solution_data;
       dealii::Vector<double>* p = &sol;
@@ -127,7 +135,8 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
                                  const AmandusIntegrator<dim> *error = 0,
                                  AmandusIntegrator<dim> *estimator = 0,
                                  const dealii::Function<dim> *initial_vector = 0,
-                                 const dealii::Function<dim> *inhom_boundary = 0)
+                                 const dealii::Function<dim> *inhom_boundary = 0,
+				 const bool boundary_projection = false)
 {
   dealii::Vector<double> res;
   dealii::Vector<double> sol;
@@ -143,14 +152,16 @@ global_refinement_nonlinear_loop(unsigned int n_steps,
       solve.notify(dealii::Algorithms::Events::remesh);
       app.setup_system();
       app.setup_vector(sol);
-      
+
       if (initial_vector != 0)
-      {
-        dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
-        dealii::VectorTools::project(app.dofs(), app.hanging_nodes(), quadrature, *initial_vector, sol);
-      }
+	{
+	  dealii::QGauss<dim> quadrature(app.dofs().get_fe().tensor_degree()+2);
+	  dealii::VectorTools::project(app.dofs(),
+				       app.hanging_nodes(), quadrature, *initial_vector, sol);
+	}
+
       if(inhom_boundary != 0)
-        app.update_vector_inhom_boundary(sol, *inhom_boundary);
+        app.update_vector_inhom_boundary(sol, *inhom_boundary, boundary_projection);
 
       dealii::AnyData solution_data;
       solution_data.add(&sol, "solution");

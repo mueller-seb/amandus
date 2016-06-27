@@ -183,7 +183,7 @@ namespace Darcy
      * Newton's method.
      */
     template<int dim, typename VECTOR>
-      class NewtonResidual : public Algorithms::Operator<VECTOR> 
+      class NewtonResidual : public Algorithms::OperatorBase 
     {
       public:
         NewtonResidual(const Function<dim>* f);
@@ -215,7 +215,7 @@ namespace Darcy
      * method with the inverse Jacobian.
      */
     template<int dim, typename VECTOR>
-      class NewtonInvJ : public Algorithms::Operator<VECTOR>
+      class NewtonInvJ : public Algorithms::OperatorBase
     {
       public:
         typedef typename VECTOR::value_type number;
