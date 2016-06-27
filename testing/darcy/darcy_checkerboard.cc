@@ -17,8 +17,8 @@
 #include <darcy/checkerboard/solution.h>
 #include <darcy/integrators.h>
 
-#include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/fe/fe_tools.h>
 
@@ -26,7 +26,8 @@
 
 #include <amandus/darcy/estimator.h>
 
-int main(int argc, const char** argv)
+int
+main(int argc, const char** argv)
 {
   using namespace dealii;
 
@@ -34,7 +35,7 @@ int main(int argc, const char** argv)
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
-  
+
   AmandusParameters param;
 
   param.enter_subsection("CheckerboardPattern");
@@ -68,8 +69,7 @@ int main(int argc, const char** argv)
   param.leave_subsection();
 
   // a diffusion tensor that is piecewise constant in the quadrants
-  Darcy::Checkerboard::CheckerboardTensorFunction
-    d_tensor(coefficient_parameters);
+  Darcy::Checkerboard::CheckerboardTensorFunction d_tensor(coefficient_parameters);
   // divergence free mixed solution corresponding to the diffusion tensor
   Darcy::Checkerboard::MixedSolution mixed_solution(coefficient_parameters);
 
@@ -88,12 +88,14 @@ int main(int argc, const char** argv)
   // construct both, otherwise we run into problems with subscriptions...
   AmandusApplication<d> amandus_mg(tr, *fe);
   AmandusApplicationSparse<d> amandus_umf(tr, *fe, true);
-  if(param.get_bool("Multigrid"))
+  if (param.get_bool("Multigrid"))
   {
-    //app = new AmandusApplication<d>(tr, *fe);
+    // app = new AmandusApplication<d>(tr, *fe);
     app = &amandus_mg;
-  } else {
-    //app = new AmandusApplicationSparse<d>(tr, *fe, true);
+  }
+  else
+  {
+    // app = new AmandusApplicationSparse<d>(tr, *fe, true);
     app = &amandus_umf;
   }
   param.leave_subsection();
@@ -112,16 +114,15 @@ int main(int argc, const char** argv)
   dealii::DoFHandler<d> pp_dofh;
   pp_dofh.initialize(tr, pp_fe);
 
-  Darcy::Estimator<d>::Parameters estimator_parameters(
-      pp_dofh,
-      app->dofs(),
-      d_tensor,
-      d_tensor.inverse(),
-      pp_fe.tensor_degree(),
-      &(mixed_solution.scalar_solution));
+  Darcy::Estimator<d>::Parameters estimator_parameters(pp_dofh,
+                                                       app->dofs(),
+                                                       d_tensor,
+                                                       d_tensor.inverse(),
+                                                       pp_fe.tensor_degree(),
+                                                       &(mixed_solution.scalar_solution));
   Darcy::Estimator<d> estimator(estimator_parameters);
 
-  for(unsigned int i = 0; i < steps; ++i)
+  for (unsigned int i = 0; i < steps; ++i)
   {
     dealii::deallog << "Step " << i << std::endl;
     app->refine_mesh(true);
@@ -144,21 +145,15 @@ int main(int argc, const char** argv)
 
     app->output_results(i, &solution_data);
 
-    estimator.reinit(*(
-            solution_data.read_ptr<dealii::Vector<double> >("solution")));
-    deallog << "Estimate: "
-			  << app->estimate(solution_data, estimator)
-			  << std::endl;
+    estimator.reinit(*(solution_data.read_ptr<dealii::Vector<double>>("solution")));
+    deallog << "Estimate: " << app->estimate(solution_data, estimator) << std::endl;
     app->error(solution_data, error, 2);
   }
 
   // output of exact mixed solution for comparison
   param.enter_subsection("Output");
   QGauss<d> quadrature(fe->tensor_degree() + 2);
-  debug::output_solution(mixed_solution,
-                         app->dofs(),
-                         quadrature,
-                         param);
+  debug::output_solution(mixed_solution, app->dofs(), quadrature, param);
   param.leave_subsection();
 
   return 0;

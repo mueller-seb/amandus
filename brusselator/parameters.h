@@ -11,13 +11,13 @@
 
 namespace Brusselator
 {
-  struct Parameters : public dealii::Subscriptor
-  {
-      double A;
-      double B;
-      double alpha0;
-      double alpha1;
-  };
+struct Parameters : public dealii::Subscriptor
+{
+  double A;
+  double B;
+  double alpha0;
+  double alpha1;
+};
 }
 
 #endif

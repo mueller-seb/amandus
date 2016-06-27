@@ -88,7 +88,7 @@ public:
 
 private:
   virtual void extract_data(const dealii::AnyData& data);
-    double ev;
+  double ev;
 };
 
 template <int dim>
