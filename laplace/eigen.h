@@ -88,13 +88,13 @@ public:
 
 private:
   virtual void extract_data(const dealii::AnyData& data);
-  double ev;
+  std::vector<double> ev;
 };
 
 template <int dim>
 EigenEstimate<dim>::EigenEstimate()
-  : ev(0.)
 {
+  ev.clear();
   this->use_boundary = true;
   this->use_face = true;
   this->add_flags(update_hessians);
@@ -102,12 +102,17 @@ EigenEstimate<dim>::EigenEstimate()
 
 template <int dim>
 inline void
-EigenEstimate<dim>::extract_data(const dealii::AnyData& data)
+EigenEstimate<dim>::extract_data(const AnyData& data)
 {
-  const double* tmp = data.try_read_ptr<double>("ev");
-  if (tmp != 0)
+  const unsigned int k = MeshWorker::LocalIntegrator<dim>::input_vector_names.size();
+  ev.resize(k);
+  for (unsigned int i = 0; i < k; ++i)
   {
-    ev = *tmp;
+    const double* tmp = data.try_read_ptr<double>(std::string("ev") + std::to_string(i));
+    if (tmp != 0)
+    {
+      ev[i] = *tmp;
+    }
   }
 }
 
@@ -118,13 +123,16 @@ EigenEstimate<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
 {
   const FEValuesBase<dim>& fe = info.fe_values();
 
-  const std::vector<double>& uh = info.values[0][0];
-  const std::vector<Tensor<2, dim>>& DDuh = info.hessians[0][0];
-
-  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+  for (unsigned int i = 0; i < ev.size(); ++i)
   {
-    const double t = dinfo.cell->diameter() * (trace(DDuh[k]) + ev * uh[k]);
-    dinfo.value(0) += t * t * fe.JxW(k);
+    const std::vector<double>& uh = info.values[i][0];
+    const std::vector<Tensor<2, dim>>& DDuh = info.hessians[i][0];
+
+    for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+    {
+      const double t = dinfo.cell->diameter() * (trace(DDuh[k]) + ev[i] * uh[k]);
+      dinfo.value(0) += t * t * fe.JxW(k);
+    }
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
@@ -135,13 +143,16 @@ EigenEstimate<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                              MeshWorker::IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
-  const std::vector<double>& uh = info.values[0][0];
-
   const unsigned int deg = fe.get_fe().tensor_degree();
   const double penalty = Laplace::compute_penalty(dinfo, dinfo, deg, deg);
 
-  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
-    dinfo.value(0) += penalty * uh[k] * uh[k] * fe.JxW(k);
+  for (unsigned int i = 0; i < ev.size(); ++i)
+  {
+    const std::vector<double>& uh = info.values[i][0];
+
+    for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+      dinfo.value(0) += penalty * uh[k] * uh[k] * fe.JxW(k);
+  }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
 
@@ -152,26 +163,28 @@ EigenEstimate<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<d
                          MeshWorker::IntegrationInfo<dim>& info2) const
 {
   const FEValuesBase<dim>& fe = info1.fe_values();
-  const std::vector<double>& uh1 = info1.values[0][0];
-  const std::vector<double>& uh2 = info2.values[0][0];
-  const std::vector<Tensor<1, dim>>& Duh1 = info1.gradients[0][0];
-  const std::vector<Tensor<1, dim>>& Duh2 = info2.gradients[0][0];
-
   const unsigned int deg1 = info1.fe_values().get_fe().tensor_degree();
   const unsigned int deg2 = info2.fe_values().get_fe().tensor_degree();
   const double penalty = 2. * Laplace::compute_penalty(dinfo1, dinfo2, deg1, deg2);
-
   double h;
   if (dim == 3)
     h = std::sqrt(dinfo1.face->measure());
   else
     h = dinfo1.face->measure();
 
-  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+  for (unsigned int i = 0; i < ev.size(); ++i)
   {
-    double diff1 = uh1[k] - uh2[k];
-    double diff2 = fe.normal_vector(k) * Duh1[k] - fe.normal_vector(k) * Duh2[k];
-    dinfo1.value(0) += (penalty * diff1 * diff1 + h * diff2 * diff2) * fe.JxW(k);
+    const std::vector<double>& uh1 = info1.values[i][0];
+    const std::vector<double>& uh2 = info2.values[i][0];
+    const std::vector<Tensor<1, dim>>& Duh1 = info1.gradients[i][0];
+    const std::vector<Tensor<1, dim>>& Duh2 = info2.gradients[i][0];
+
+    for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+    {
+      double diff1 = uh1[k] - uh2[k];
+      double diff2 = fe.normal_vector(k) * Duh1[k] - fe.normal_vector(k) * Duh2[k];
+      dinfo1.value(0) += (penalty * diff1 * diff1 + h * diff2 * diff2) * fe.JxW(k);
+    }
   }
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);

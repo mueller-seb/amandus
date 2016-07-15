@@ -9,7 +9,7 @@
  * <ul>
  * <li> Laplace operator</li>
  * <li> Dirichlet boundary condition</li>
- * <li> Adaptive eigenvalue solver</li>
+ * <li> Adaptive eigenvalue solver for double eigenvalue</li>
  * <li> UMFPACK</li>
  * </ul>
  *
@@ -18,17 +18,16 @@
  * @ingroup Examples
  */
 
-#include <amandus/adaptivity.h>
-#include <amandus/amandus_arpack.h>
-#include <amandus/apps.h>
-#include <amandus/laplace/eigen.h>
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 
+#include <amandus/adaptivity.h>
+#include <amandus/amandus_arpack.h>
+#include <amandus/apps.h>
+#include <amandus/laplace/eigen.h>
+
 #include <boost/scoped_ptr.hpp>
-#include <math.h>
-#include <strings.h>
 
 int
 main(int argc, const char** argv)
@@ -40,9 +39,9 @@ main(int argc, const char** argv)
 
   AmandusParameters param;
   param.declare_entry("MaxDofs", "1000", Patterns::Integer());
-  param.declare_entry("Eigenvalue", "1", Patterns::Integer());
-  param.declare_entry("ExactEigenvalue", "9.6397238440219", Patterns::Double());
-  param.declare_entry("Domain", "L");
+  param.declare_entry("Eigenvalue", "2", Patterns::Integer());
+  param.declare_entry("Multiplicity", "2", Patterns::Integer());
+  param.declare_entry("ExactEigenvalue", "9.39083794", Patterns::Double());
   param.read(argc, argv);
   param.log_parameters(deallog);
 
@@ -51,15 +50,7 @@ main(int argc, const char** argv)
   param.leave_subsection();
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
-  if (strcasecmp(param.get("Domain").c_str(), "L") == 0)
-    GridGenerator::hyper_L(tr, -1, 1);
-  else
-  {
-    if (strcasecmp(param.get("Domain").c_str(), "slit") == 0)
-      GridGenerator::hyper_cube_slit(tr, -1, 1);
-    else
-      GridGenerator::hyper_cube(tr, 0, 1);
-  }
+  GridGenerator::cheese(tr, std::vector<unsigned int>(d, 1));
   param.enter_subsection("Discretization");
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
@@ -81,5 +72,7 @@ main(int argc, const char** argv)
                                       solver,
                                       estimate_integrator,
                                       refine_strategy,
-                                      param.get_double("ExactEigenvalue"));
+                                      param.get_double("ExactEigenvalue"),
+                                      param.get_integer("Multiplicity"),
+                                      3);
 }

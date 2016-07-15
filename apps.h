@@ -454,7 +454,7 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
  * @file
  * @brief Adaptive refinement eigenvalue loop for symmetric problems with real eigenvalues.
  *        Shows convergence table on console and refines for the n-th real eigenvalue
- *        (only supports the computation of one single simple eigenvalue).
+ *        with given multiplicity>=1.
  * @ingroup apps_test
  */
 
@@ -466,11 +466,9 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
                                     AmandusIntegrator<dim>& estimator,
                                     AmandusRefineStrategy<dim>& mark,
                                     const double exact_eigenvalue = std::nan(NULL),
-                                    const unsigned int k = 0)
+                                    const unsigned int multiplicity = 1, const unsigned int k = 0)
 {
-  // compute n+k eigenvalues and select the n-th
-  // eigenvalue after sorting
-  const unsigned int n_vectors = n_eigenvalue + k;
+  const unsigned int n_vectors = n_eigenvalue + multiplicity - 1 + k;
   std::vector<std::complex<double>> eigenvalues(n_vectors);
   std::vector<dealii::Vector<double>> eigenvectors(2 * n_vectors);
   dealii::ConvergenceTable convergence_table;
@@ -480,6 +478,9 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
   solution_data.add(&eigenvalues, "eigenvalues");
   solution_data.add(&eigenvectors, "eigenvectors");
   unsigned int step = 0;
+
+  for (unsigned int i = 0; i < multiplicity; ++i)
+    estimator.input_vector_names.push_back(std::string("eigenvector") + std::to_string(i));
 
   while (true)
   {
@@ -504,28 +505,37 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
          sort_eigenvalues.end(),
          [](const std::pair<unsigned int, double>& left,
             const std::pair<unsigned int, double>& right) { return left.second < right.second; });
-    const unsigned eigenvalue_idx = sort_eigenvalues[n_eigenvalue - 1].first;
 
-    // error for n-th (real) eigenvalue
+    // eigenvalue errors
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
     convergence_table.add_value("dofs", app.dofs().n_dofs());
     if (std::isfinite(exact_eigenvalue))
     {
-      const double error = std::abs(exact_eigenvalue - eigenvalues[eigenvalue_idx].real());
-      dealii::deallog << "EV-Error: " << error << std::endl;
-      convergence_table.add_value("EV-Error", error);
-      convergence_table.evaluate_convergence_rates(
-        "EV-Error", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
-      convergence_table.set_scientific("EV-Error", 1);
+      for (unsigned int i = 0; i < multiplicity; ++i)
+      {
+        const double error =
+          std::abs(exact_eigenvalue - sort_eigenvalues[n_eigenvalue + i - 1].second);
+        dealii::deallog << "ev-error-" << i << ": " << error << std::endl;
+        convergence_table.add_value(std::string("ev-error-") + std::to_string(i), error);
+        convergence_table.evaluate_convergence_rates(std::string("ev-error-") + std::to_string(i),
+                                                     "dofs",
+                                                     dealii::ConvergenceTable::reduction_rate_log2,
+                                                     1);
+        convergence_table.set_scientific(std::string("ev-error-") + std::to_string(i), 1);
+      }
     }
 
-    // estimator for n-th (real) eigenvalue
-    dealii::AnyData last_sol_data;
-    dealii::Vector<double> solution = eigenvectors[eigenvalue_idx];
-    last_sol_data.add(&solution, "solution");
-    const double ev = eigenvalues[eigenvalue_idx].real();
-    last_sol_data.add(&ev, "ev");
-    const double est = std::pow(app.estimate(last_sol_data, estimator), 2);
+    // estimator for n,n+1,...,n+m (real) eigenvalues
+    dealii::AnyData estimator_data;
+    for (unsigned int i = 0; i < multiplicity; ++i)
+    {
+      const unsigned int eigenvalue_idx = sort_eigenvalues[n_eigenvalue + i - 1].first;
+      estimator_data.add(&eigenvectors[eigenvalue_idx],
+                         std::string("eigenvector") + std::to_string(i));
+      estimator_data.add(&sort_eigenvalues[n_eigenvalue + i - 1].second,
+                         std::string("ev") + std::to_string(i));
+    }
+    const double est = std::pow(app.estimate(estimator_data, estimator), 2);
     dealii::deallog << "Estimate: " << est << std::endl;
     convergence_table.add_value("estimate", est);
     convergence_table.evaluate_convergence_rates(
@@ -533,14 +543,17 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
 
     // output
     dealii::AnyData out_data;
-    out_data.add(&eigenvectors[eigenvalue_idx], std::string("ev") + std::to_string(eigenvalue_idx));
+    for (unsigned int i = 0; i < multiplicity; ++i)
+    {
+      const unsigned int eigenvalue_idx = sort_eigenvalues[n_eigenvalue + i - 1].first;
+      out_data.add(&eigenvectors[eigenvalue_idx], std::string("ev") + std::to_string(i + 1));
+    }
     dealii::Vector<double> indicators;
     indicators = app.indicators();
     out_data.add(&indicators, "estimator");
     for (unsigned int i = 0; i < n_vectors; ++i)
       dealii::deallog << "Eigenvalue " << '\t' << std::setprecision(15)
                       << sort_eigenvalues[i].second << std::endl;
-    convergence_table.add_value("ev", eigenvalues[eigenvalue_idx].real());
     app.output_results(step, &out_data);
     std::cout << std::endl;
     convergence_table.write_text(std::cout);
