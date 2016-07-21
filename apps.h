@@ -219,7 +219,18 @@ global_refinement_eigenvalue_loop(unsigned int n_steps, unsigned int n_values,
                                   dealii::Algorithms::OperatorBase& solve)
 {
   std::vector<std::complex<double>> eigenvalues(n_values);
-  std::vector<dealii::Vector<double>> eigenvectors(2 * n_values);
+  bool symmetric = false;
+  if (app.param != 0)
+  {
+    app.param->enter_subsection("Arpack");
+    symmetric = app.param->get_bool("Symmetric");
+    app.param->leave_subsection();
+  }
+
+  unsigned int n_vectors = n_values;
+  if (!symmetric)
+    n_vectors = 2 * n_values;
+  std::vector<dealii::Vector<double>> eigenvectors(n_vectors);
 
   for (unsigned int s = 0; s < n_steps; ++s)
   {
@@ -240,11 +251,20 @@ global_refinement_eigenvalue_loop(unsigned int n_steps, unsigned int n_values,
     dealii::AnyData out_data;
     for (unsigned int i = 0; i < n_values; ++i)
     {
-      out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i) + std::string("re"));
-      out_data.add(&eigenvectors[n_values + i],
-                   std::string("ev") + std::to_string(i) + std::string("im"));
-      dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15) << eigenvalues[i]
-                      << std::endl;
+      if (symmetric)
+      {
+        out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i));
+        dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15)
+                        << eigenvalues[i].real() << std::endl;
+      }
+      else
+      {
+        out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i) + std::string("re"));
+        out_data.add(&eigenvectors[n_values + i],
+                     std::string("ev") + std::to_string(i) + std::string("im"));
+        dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15) << eigenvalues[i]
+                        << std::endl;
+      }
     }
 
     app.output_results(s, &out_data);
@@ -470,7 +490,7 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
 {
   const unsigned int n_vectors = n_eigenvalue + multiplicity - 1 + k;
   std::vector<std::complex<double>> eigenvalues(n_vectors);
-  std::vector<dealii::Vector<double>> eigenvectors(2 * n_vectors);
+  std::vector<dealii::Vector<double>> eigenvectors(n_vectors);
   dealii::ConvergenceTable convergence_table;
   std::vector<std::pair<unsigned int, double>> sort_eigenvalues(n_vectors);
   solver.notify(dealii::Algorithms::Events::initial);
@@ -568,4 +588,5 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
     solver.notify(dealii::Algorithms::Events::remesh);
   }
 }
+
 #endif

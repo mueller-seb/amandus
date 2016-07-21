@@ -36,6 +36,9 @@ main(int argc, const char** argv)
 
   AmandusParameters param;
   param.declare_entry("Eigenvalues", "12", Patterns::Integer());
+  param.enter_subsection("Arpack");
+  param.set("Symmetric", "true");
+  param.leave_subsection();
   param.read(argc, argv);
   param.log_parameters(deallog);
 

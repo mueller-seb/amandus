@@ -45,6 +45,13 @@ AmandusParameters::AmandusParameters()
   DataOutInterface<2>::declare_parameters(*this);
   set("Output format", "vtu");
   leave_subsection();
+
+  enter_subsection("Arpack");
+  declare_entry("Min Arnoldi vectors", "20", Patterns::Integer(0));
+  declare_entry("Symmetric", "false", Patterns::Bool());
+  declare_entry("Max steps", "100", Patterns::Integer(1));
+  declare_entry("Tolerance", "1.e-10", Patterns::Double());
+  leave_subsection();
 }
 
 void
