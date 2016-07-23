@@ -117,6 +117,17 @@ AmandusApplication<dim, RELAXATION>::setup_constraints()
 
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+  for (std::map<unsigned int, dealii::ComponentMask>::const_iterator p = this->boundary_masks.begin();
+       p != this->boundary_masks.end();
+       ++p)
+    if (p->second.n_selected_components(n_comp) != 0)
+    {
+      std::set<dealii::types::boundary_id> boundary_ids;
+      boundary_ids.insert(p->first);
+      this->mg_constraints.make_zero_boundary_constraints(
+        this->dof_handler, boundary_ids, p->second);
+    }
 }
 
 template <int dim, typename RELAXATION>
