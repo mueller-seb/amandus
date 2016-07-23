@@ -159,7 +159,7 @@ public:
    * @param mask the object selecting the blocks of an dealii::FESystem
    * to which the constraints are to be applied.
    */
-  void set_boundary(unsigned int index, dealii::ComponentMask mask = dealii::ComponentMask());
+  void set_boundary(dealii::types::boundary_id index, dealii::ComponentMask mask = dealii::ComponentMask());
 
   /**
    * Constrain solution to be mean value free.
@@ -335,7 +335,7 @@ protected:
    * @brief The masks used to set boundary conditions, indexed by the
    * boundary indicator
    */
-  std::map<unsigned int, dealii::ComponentMask> boundary_masks;
+  std::map<dealii::types::boundary_id, dealii::ComponentMask> boundary_masks;
 
   dealii::ComponentMask meanvalue_mask;
 
