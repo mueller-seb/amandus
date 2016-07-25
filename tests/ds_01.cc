@@ -29,6 +29,7 @@ main()
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+  deallog.depth_console(10);
 
   Triangulation<d> tr;
   std::vector<unsigned int> sub(d, 3);

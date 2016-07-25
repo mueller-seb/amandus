@@ -36,6 +36,7 @@ main()
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+  deallog.depth_console(10);
 
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);

@@ -113,6 +113,7 @@ main(int argc, const char** argv)
 {
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+  deallog.depth_console(10);
 
   AmandusParameters param;
 
