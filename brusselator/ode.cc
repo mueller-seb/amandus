@@ -30,7 +30,7 @@ main()
 {
   std::ofstream logfile("deallog");
   dealii::deallog.attach(logfile);
-  dealii::deallog.depth_console(2);
+  dealii::deallog.depth_console(10);
 
   Brusselator::Parameters parameters;
   parameters.alpha0 = .002;
