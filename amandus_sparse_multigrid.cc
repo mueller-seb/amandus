@@ -36,6 +36,7 @@
 #include <deal.II/multigrid/mg_tools.h>
 #include <deal.II/multigrid/multigrid.h>
 
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -118,7 +119,8 @@ AmandusApplication<dim, RELAXATION>::setup_constraints()
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
-  for (std::map<dealii::types::boundary_id, dealii::ComponentMask>::const_iterator p = this->boundary_masks.begin();
+  for (std::map<dealii::types::boundary_id, dealii::ComponentMask>::const_iterator p =
+         this->boundary_masks.begin();
        p != this->boundary_masks.end();
        ++p)
     if (p->second.n_selected_components(n_comp) != 0)
@@ -184,17 +186,43 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
   coarse_matrix.copy_from(mg_matrix[mg_matrix.min_level()]);
   mg_coarse.initialize(coarse_matrix, 1.e-15);
 
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+
   bool sort = false;
   bool interior_dofs_only = true;
   unsigned int smoothing_steps = 1;
   bool variable_smoothing_steps = false;
+  BlockMask exclude_boundary_dofs(n_comp, true);
   if (this->param != 0)
   {
     this->param->enter_subsection("Multigrid");
     sort = this->param->get_bool("Sort");
     interior_dofs_only = this->param->get_bool("Interior smoothing");
+    const std::string included_blocks_string =
+      this->param->get("Include exterior smoothing on blocks");
     smoothing_steps = this->param->get_integer("Smoothing steps on leaves");
     variable_smoothing_steps = this->param->get_bool("Variable smoothing steps");
+    if (interior_dofs_only == false)
+    {
+      std::vector<bool> exclude_block(n_comp, false);
+      exclude_boundary_dofs = dealii::BlockMask(exclude_block);
+    }
+    else if (included_blocks_string != "")
+    {
+      // if not for all the blocks the boundary dofs on each cell are neglected,
+      // assume first that all boundary dofs are taken into account
+      std::vector<bool> exclude_block(n_comp, true);
+      const std::vector<std::string> included_blocks_strings =
+        dealii::Utilities::split_string_list(included_blocks_string, ',');
+      const std::vector<int> included_blocks =
+        dealii::Utilities::string_to_int(included_blocks_strings);
+      for (unsigned int i = 0; i < included_blocks.size(); ++i)
+      {
+        AssertIndexRange(included_blocks[i], n_comp);
+        exclude_block[included_blocks[i]] = false;
+      }
+      exclude_boundary_dofs = dealii::BlockMask(exclude_block);
+    }
     this->param->leave_subsection();
   }
 
@@ -205,7 +233,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
       vertex_mapping = DoFTools::make_vertex_patches(smoother_data[l].block_list,
                                                      this->dof_handler,
                                                      l,
-                                                     interior_dofs_only,
+                                                     exclude_boundary_dofs,
                                                      false,
                                                      false,
                                                      false,
