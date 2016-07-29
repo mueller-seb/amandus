@@ -134,7 +134,7 @@ public:
   /**
    * Parse the paramaters from a handler
    */
-  void parse_parameters(dealii::ParameterHandler& param);
+  virtual void parse_parameters(dealii::ParameterHandler& param);
 
   /**
    * Change the number of matrices assembled. Default is one, but
@@ -400,6 +400,8 @@ public:
   AmandusApplication(dealii::Triangulation<dim>& triangulation,
                      const dealii::FiniteElement<dim>& fe);
 
+  virtual void parse_parameters(dealii::ParameterHandler& param);
+
   /**
    * This function is used to set the advection directions in which
    * sorting of vertex patches or cell patches should be done.
@@ -460,12 +462,17 @@ protected:
   dealii::MGLevelObject<typename RELAXATION::AdditionalData> smoother_data;
   dealii::mg::SmootherRelaxation<RELAXATION, dealii::Vector<double>> mg_smoother;
 
+  /// used for gauss seidel like smoothers for determining the order in
+  /// which the subproblems are solved (if parameter Sort is true)
   std::vector<dealii::Tensor<1, dim>> advection_directions;
 
-  // For overlapping Jacobi please take into account the overlap for the relaxation parameter.
+  /// call dealii::PreconditionBlockBase::log_statistics on each level
   bool log_smoother_statistics = false;
+  /// refers to dealii::SolverGMRES::AdditionalData::right_preconditioning
   bool right_preconditioning = true;
+  /// refers to dealii::SolverGMRES::AdditionalData::use_default_residual
   bool use_default_residual = true;
+  /// relaxation parameter for multigrid smoother
   double smoother_relaxation = 1.0;
 };
 

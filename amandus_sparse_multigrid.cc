@@ -57,6 +57,25 @@ AmandusApplication<dim, RELAXATION>::AmandusApplication(Triangulation<dim>& tria
 {
 }
 
+
+template <int dim, typename RELAXATION>
+void
+AmandusApplication<dim, RELAXATION>::parse_parameters(dealii::ParameterHandler& param)
+{
+  AmandusApplicationSparse<dim>::parse_parameters(param);
+
+  param.enter_subsection("Linear Solver");
+  this->right_preconditioning = param.get_bool("Use Right Preconditioning");
+  this->use_default_residual = param.get_bool("Use Default Residual");
+  param.leave_subsection();
+
+  param.enter_subsection("Multigrid");
+  this->smoother_relaxation = param.get_double("Smoother Relaxation");
+  this->log_smoother_statistics = param.get_bool("Log Smoother Statistics");
+  param.leave_subsection();
+}
+
+
 template <int dim, typename RELAXATION>
 void
 AmandusApplication<dim, RELAXATION>::setup_system()

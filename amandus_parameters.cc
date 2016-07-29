@@ -25,6 +25,8 @@ AmandusParameters::AmandusParameters()
   enter_subsection("Linear Solver");
   ReductionControl::declare_parameters(*this);
   set("Reduction", "1.e-10");
+  declare_entry("Use Right Preconditioning", "true", Patterns::Bool());
+  declare_entry("Use Default Residual", "true", Patterns::Bool());
   leave_subsection();
 
   enter_subsection("Multigrid");
@@ -32,6 +34,8 @@ AmandusParameters::AmandusParameters()
   declare_entry("Interior smoothing", "true", Patterns::Bool());
   declare_entry("Smoothing steps on leaves", "1", Patterns::Integer(0));
   declare_entry("Variable smoothing steps", "false", Patterns::Bool());
+  declare_entry("Smoother Relaxation", "1.0", Patterns::Double());
+  declare_entry("Log Smoother Statistics", "false", Patterns::Bool());
   leave_subsection();
 
   Algorithms::Newton<Vector<double>>::declare_parameters(*this);
