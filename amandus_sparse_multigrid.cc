@@ -57,7 +57,6 @@ AmandusApplication<dim, RELAXATION>::AmandusApplication(Triangulation<dim>& tria
 {
 }
 
-
 template <int dim, typename RELAXATION>
 void
 AmandusApplication<dim, RELAXATION>::parse_parameters(dealii::ParameterHandler& param)
@@ -74,7 +73,6 @@ AmandusApplication<dim, RELAXATION>::parse_parameters(dealii::ParameterHandler& 
   this->log_smoother_statistics = param.get_bool("Log Smoother Statistics");
   param.leave_subsection();
 }
-
 
 template <int dim, typename RELAXATION>
 void
@@ -137,7 +135,8 @@ AmandusApplication<dim, RELAXATION>::setup_constraints()
   this->mg_constraints.clear();
   this->mg_constraints.initialize(this->dof_handler);
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
-  for (std::map<dealii::types::boundary_id, dealii::ComponentMask>::const_iterator p = this->boundary_masks.begin();
+  for (std::map<dealii::types::boundary_id, dealii::ComponentMask>::const_iterator p =
+         this->boundary_masks.begin();
        p != this->boundary_masks.end();
        ++p)
     if (p->second.n_selected_components(n_comp) != 0)
