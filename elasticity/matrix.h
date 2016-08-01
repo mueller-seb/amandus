@@ -1,5 +1,3 @@
-// $Id$
-
 #ifndef __elasticity_matrix_h
 #define __elasticity_matrix_h
 
@@ -11,6 +9,7 @@
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/meshworker/integration_info.h>
 #include <elasticity/parameters.h>
+#include <amandus/elasticity/matrix_integrators.h>
 
 #include <set>
 
@@ -57,11 +56,22 @@ template <int dim>
 void
 Matrix<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  AssertDimension(dinfo.n_matrices(), 1);
-  dealii::LocalIntegrators::Elasticity::cell_matrix(
-    dinfo.matrix(0, false).matrix, info.fe_values(0), 2. * parameters->mu);
-  dealii::LocalIntegrators::Divergence::grad_div_matrix(
-    dinfo.matrix(0, false).matrix, info.fe_values(0), parameters->lambda);
+  if (parameters->linear)
+  {
+    AssertDimension(dinfo.n_matrices(), 1);
+    dealii::LocalIntegrators::Elasticity::cell_matrix(
+      dinfo.matrix(0, false).matrix, info.fe_values(0), 2. * parameters->mu);
+    dealii::LocalIntegrators::Divergence::grad_div_matrix(
+      dinfo.matrix(0, false).matrix, info.fe_values(0), parameters->lambda);
+  }
+  else
+  {
+    Elasticity::StVenantKirchhoff::cell_matrix(dinfo.matrix(0, false).matrix,
+                                               info.fe_values(0),
+                                               dealii::make_slice(info.gradients[0], 0, dim),
+                                               parameters->lambda,
+                                               parameters->mu);
+  }
 }
 
 template <int dim>

@@ -9,6 +9,15 @@ namespace Elasticity
  */
 namespace StVenantKirchhoff
 {
+/**
+ * The residual for nonlinear Elasticity problem.
+ *
+ * \f[
+ * \int_\Omega \bigl((I+F) \Sigma\bigr) \colon \nabla v \,dx
+ * \f]
+ *
+ * @author Guido Kanschat
+ */
 template <int dim, typename number>
 inline void
 cell_residual(

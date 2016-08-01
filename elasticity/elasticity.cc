@@ -1,5 +1,10 @@
 /**
  * @file
+ *
+ * @brief Stationay Elasicity model with homogeneous Dirichlet boundary conditions.
+ * @ingroup Elasticitygroup
+ *
+ * The code has the follows the features:
  * <ul>
  * <li> Stationary Elasticity equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
@@ -8,20 +13,32 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ *
+ * <h3> Boundary conditions </h3>
+ *
+ * We impose the displacement on the left and on the
+ * right edge of the square domain.
+ * In particular:
+ *
+ * \f{align*}
+ * u_x &=-1 \qquad\qquad & \text{on}\ x=0,
+ * \\
+ * u_x &= 1 \qquad\qquad & \text{on}\ x=1,
+ * \f}
+ *
  */
 
-#include <amandus/apps.h>
-#include <amandus/elasticity/matrix.h>
-#include <amandus/elasticity/residual.h>
-#include <deal.II/algorithms/newton.h>
-#include <deal.II/base/function.h>
 #include <deal.II/fe/fe_tools.h>
+#include <deal.II/algorithms/newton.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
+#include <deal.II/base/function.h>
+#include <amandus/apps.h>
 #include <elasticity/parameters.h>
+#include <amandus/elasticity/residual.h>
+#include <amandus/elasticity/matrix.h>
 
-#include <boost/scoped_ptr.hpp>
+#include<boost/scoped_ptr.hpp>
 
 using namespace dealii;
 
@@ -85,7 +102,7 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d,d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1, true);
@@ -119,5 +136,5 @@ main(int argc, const char** argv)
   newton.initialize(newout);
   newton.debug_vectors = true;
 
-  global_refinement_nonlinear_loop<d>(1, app, newton, 0, 0, &startup);
+  global_refinement_nonlinear_loop<d>(3, app, newton, 0, 0, &startup);
 }
