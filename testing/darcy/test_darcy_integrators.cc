@@ -7,15 +7,15 @@
 #define BOOST_TEST_MODULE test_darcy_integrators.h
 #include <boost/test/included/unit_test.hpp>
 
-#include <darcy/integrators.h>
+#include <amandus/darcy/integrators.h>
 
-#include <deal.II/fe/fe_system.h>
+#include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
+#include <deal.II/fe/fe_system.h>
 #include <deal.II/fe/mapping_q1.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/meshworker/simple.h>
 #include <deal.II/meshworker/loop.h>
-#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/meshworker/simple.h>
 
 using namespace dealii;
 using namespace MeshWorker;
@@ -25,19 +25,19 @@ using namespace MeshWorker;
 template <int dim>
 class IdentityTensorFunction : public TensorFunction<2, dim>
 {
-  public:
-    typedef typename TensorFunction<2, dim>::value_type value_type;
-    IdentityTensorFunction();
+public:
+  typedef typename TensorFunction<2, dim>::value_type value_type;
+  IdentityTensorFunction();
 
-    virtual value_type value(const Point<dim>& p) const;
+  virtual value_type value(const Point<dim>& p) const;
 
-    Tensor<2, dim> identity;
+  Tensor<2, dim> identity;
 };
 
 template <int dim>
 IdentityTensorFunction<dim>::IdentityTensorFunction()
 {
-  for(unsigned int i = 0; i < dim; ++i)
+  for (unsigned int i = 0; i < dim; ++i)
   {
     identity[i][i] = 1.0;
   }
@@ -50,23 +50,19 @@ IdentityTensorFunction<dim>::value(const Point<dim>& /*p*/) const
   return identity;
 }
 
-
 template <int dim>
 class CoefficientIntegrator : public LocalIntegrator<dim>
 {
-  public:
-    CoefficientIntegrator();
+public:
+  CoefficientIntegrator();
 
-    virtual void cell(DoFInfo<dim>& dinfo,
-                      IntegrationInfo<dim>& info) const;
-    virtual void boundary(DoFInfo<dim>& dinfo,
-                          IntegrationInfo<dim>& info) const;
-    virtual void face(DoFInfo<dim>& dinfo1,
-                      DoFInfo<dim>& dinfo2,
-                      IntegrationInfo<dim>& info1,
-                      IntegrationInfo<dim>& info2) const;
-  private:
-    IdentityTensorFunction<dim> identity;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+                    IntegrationInfo<dim>& info2) const;
+
+private:
+  IdentityTensorFunction<dim> identity;
 };
 
 template <int dim>
@@ -77,45 +73,39 @@ CoefficientIntegrator<dim>::CoefficientIntegrator()
 }
 
 template <int dim>
-void CoefficientIntegrator<dim>::cell(
-    DoFInfo<dim>& dinfo,
-    IntegrationInfo<dim>& info) const 
+void
+CoefficientIntegrator<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  Darcy::weighted_mass_matrix(
-      dinfo.matrix(0).matrix, info.fe_values(0),
-      identity);
+  Darcy::weighted_mass_matrix(dinfo.matrix(0).matrix, info.fe_values(0), identity);
 }
 
 template <int dim>
-void CoefficientIntegrator<dim>::boundary(
-    DoFInfo<dim>& /*dinfo*/,
-    IntegrationInfo<dim>& /*info*/) const
-{}
+void
+CoefficientIntegrator<dim>::boundary(DoFInfo<dim>& /*dinfo*/, IntegrationInfo<dim>& /*info*/) const
+{
+}
 
 template <int dim>
-void CoefficientIntegrator<dim>::face(
-    DoFInfo<dim>& /*dinfo1*/,
-    DoFInfo<dim>& /*dinfo2*/,
-    IntegrationInfo<dim>& /*info1*/,
-    IntegrationInfo<dim>& /*info2*/) const
-{}
-  
+void
+CoefficientIntegrator<dim>::face(DoFInfo<dim>& /*dinfo1*/, DoFInfo<dim>& /*dinfo2*/,
+                                 IntegrationInfo<dim>& /*info1*/,
+                                 IntegrationInfo<dim>& /*info2*/) const
+{
+}
+
 template <int dim>
 class ReferenceIntegrator : public LocalIntegrator<dim>
 {
-  public:
-    ReferenceIntegrator();
+public:
+  ReferenceIntegrator();
 
-    virtual void cell(DoFInfo<dim>& dinfo,
-                      IntegrationInfo<dim>& info) const;
-    virtual void boundary(DoFInfo<dim>& dinfo,
-                          IntegrationInfo<dim>& info) const;
-    virtual void face(DoFInfo<dim>& dinfo1,
-                      DoFInfo<dim>& dinfo2,
-                      IntegrationInfo<dim>& info1,
-                      IntegrationInfo<dim>& info2) const;
-  private:
-    IdentityTensorFunction<dim> identity;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+                    IntegrationInfo<dim>& info2) const;
+
+private:
+  IdentityTensorFunction<dim> identity;
 };
 
 template <int dim>
@@ -126,27 +116,25 @@ ReferenceIntegrator<dim>::ReferenceIntegrator()
 }
 
 template <int dim>
-void ReferenceIntegrator<dim>::cell(
-    DoFInfo<dim>& dinfo,
-    IntegrationInfo<dim>& info) const 
+void
+ReferenceIntegrator<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  LocalIntegrators::L2::mass_matrix(
-      dinfo.matrix(0).matrix, info.fe_values(0));
+  LocalIntegrators::L2::mass_matrix(dinfo.matrix(0).matrix, info.fe_values(0));
 }
 
 template <int dim>
-void ReferenceIntegrator<dim>::boundary(
-    DoFInfo<dim>& /*dinfo*/,
-    IntegrationInfo<dim>& /*info*/) const
-{}
+void
+ReferenceIntegrator<dim>::boundary(DoFInfo<dim>& /*dinfo*/, IntegrationInfo<dim>& /*info*/) const
+{
+}
 
 template <int dim>
-void ReferenceIntegrator<dim>::face(
-    DoFInfo<dim>& /*dinfo1*/,
-    DoFInfo<dim>& /*dinfo2*/,
-    IntegrationInfo<dim>& /*info1*/,
-    IntegrationInfo<dim>& /*info2*/) const
-{}
+void
+ReferenceIntegrator<dim>::face(DoFInfo<dim>& /*dinfo1*/, DoFInfo<dim>& /*dinfo2*/,
+                               IntegrationInfo<dim>& /*info1*/,
+                               IntegrationInfo<dim>& /*info2*/) const
+{
+}
 
 BOOST_AUTO_TEST_CASE(coefficient_parameters)
 {
@@ -183,7 +171,7 @@ BOOST_AUTO_TEST_CASE(coefficient_parameters)
   // matrix to assemble
   FullMatrix<double> matrix(dof_handler.n_dofs());
 
-  Assembler::MatrixSimple<FullMatrix<double> > assembler;
+  Assembler::MatrixSimple<FullMatrix<double>> assembler;
   assembler.initialize(matrix);
 
   // integrators
@@ -202,24 +190,17 @@ BOOST_AUTO_TEST_CASE(coefficient_parameters)
   matrix = 0;
 
   // start assembly
-  integration_loop<dim, dim>(dof_handler.begin_active(),
-                             dof_handler.end(),
-                             dof_info,
-                             info_box,
-                             integrator,
-                             assembler);
+  integration_loop<dim, dim>(
+    dof_handler.begin_active(), dof_handler.end(), dof_info, info_box, integrator, assembler);
 
   // compare results
-  BOOST_CHECK_EQUAL(coefficient_result.m(),
-                    matrix.m());
-  BOOST_CHECK_EQUAL(coefficient_result.n(),
-                    matrix.n());
-  for(unsigned int m = 0; m < coefficient_result.m(); ++m)
+  BOOST_CHECK_EQUAL(coefficient_result.m(), matrix.m());
+  BOOST_CHECK_EQUAL(coefficient_result.n(), matrix.n());
+  for (unsigned int m = 0; m < coefficient_result.m(); ++m)
   {
-    for(unsigned int n = 0; n < coefficient_result.n(); ++n)
+    for (unsigned int n = 0; n < coefficient_result.n(); ++n)
     {
-      BOOST_CHECK_CLOSE(coefficient_result[m][n],
-                        matrix[m][n], TOL);
+      BOOST_CHECK_CLOSE(coefficient_result[m][n], matrix[m][n], TOL);
     }
   }
 }

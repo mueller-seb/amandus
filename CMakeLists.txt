@@ -11,6 +11,7 @@ SET(EXAMPLES laplace advection advection-diffusion
   stokes maxwell
   allen_cahn cahn_hilliard
   brusselator readiff
+  elasticity
   )
 # To be added after fixing: darcy brinkman lotkavolterra
 
@@ -27,8 +28,7 @@ EXECUTE_PROCESS(
   COMMAND
   ln -nsf ${PROJECT_SOURCE_DIR} ${CMAKE_BINARY_DIR}/include/amandus)
 # include headers found in src directory via symbolic link
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include
-  ${CMAKE_BINARY_DIR}/include/amandus)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include)
 # include headers generated during build with scripts/make_parameters.pl
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
@@ -42,6 +42,18 @@ SET_PROPERTY(TARGET amandus PROPERTY VERSION ${amandus_VERSION})
 SET_PROPERTY(TARGET amandus APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include>
+  )
+
+ADD_CUSTOM_TARGET(debug
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
+  )
+
+ADD_CUSTOM_TARGET(release
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
 
 DEAL_II_SETUP_TARGET(amandus)

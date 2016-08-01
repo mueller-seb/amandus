@@ -8,13 +8,14 @@
 #ifndef __elasticity_polynomial_h
 #define __elasticity_polynomial_h
 
+#include <amandus/elasticity/residual.h>
+#include <amandus/integrator.h>
 #include <deal.II/base/polynomial.h>
 #include <deal.II/base/tensor.h>
+#include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
-#include <deal.II/integrators/divergence.h>
 #include <elasticity/parameters.h>
-#include <integrator.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -28,7 +29,7 @@ namespace Elasticity
  * PolynomialError which operates on the same polynomial
  * solutions. The solution obtained is described in
  * PolynomialError.
- * 
+ *
  * @author Guido Kanschat
  * @date 2014
  *
@@ -37,20 +38,17 @@ namespace Elasticity
 template <int dim>
 class PolynomialRHS : public AmandusIntegrator<dim>
 {
-  public:
-    PolynomialRHS(const Parameters& par,
-			    const std::vector<Polynomials::Polynomial<double> > potentials_1d);
-    
-    virtual void cell(DoFInfo<dim>& dinfo,
-		      IntegrationInfo<dim>& info) const;
-    virtual void boundary(DoFInfo<dim>& dinfo,
-			  IntegrationInfo<dim>& info) const;
-  private:
-    dealii::SmartPointer<const Parameters, class Residual<dim> > parameters;
-    std::vector<Polynomials::Polynomial<double> > potentials_1d;
+public:
+  PolynomialRHS(const Parameters& par,
+                const std::vector<Polynomials::Polynomial<double>> potentials_1d);
+
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+
+private:
+  dealii::SmartPointer<const Parameters, class Residual<dim>> parameters;
+  std::vector<Polynomials::Polynomial<double>> potentials_1d;
 };
-
-
 
 /**
  * Computes the error between a numerical solution and a known exact
@@ -80,186 +78,169 @@ class PolynomialRHS : public AmandusIntegrator<dim>
 template <int dim>
 class PolynomialError : public AmandusIntegrator<dim>
 {
-  public:
-    PolynomialError(const Parameters& par,
-			      const std::vector<Polynomials::Polynomial<double> > potentials_1d);
-    
-    virtual void cell(DoFInfo<dim>& dinfo,
-		      IntegrationInfo<dim>& info) const;
-    virtual void boundary(DoFInfo<dim>& dinfo,
-			  IntegrationInfo<dim>& info) const;
-    virtual void face(DoFInfo<dim>& dinfo1,
-		      DoFInfo<dim>& dinfo2,
-		      IntegrationInfo<dim>& info1,
-		      IntegrationInfo<dim>& info2) const;
-  private:
-    dealii::SmartPointer<const Parameters, class Residual<dim> > parameters;
-    std::vector<Polynomials::Polynomial<double> > potentials_1d;
+public:
+  PolynomialError(const Parameters& par,
+                  const std::vector<Polynomials::Polynomial<double>> potentials_1d);
+
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+                    IntegrationInfo<dim>& info2) const;
+
+private:
+  dealii::SmartPointer<const Parameters, class Residual<dim>> parameters;
+  std::vector<Polynomials::Polynomial<double>> potentials_1d;
 };
 
 //----------------------------------------------------------------------//
 
 template <int dim>
-PolynomialRHS<dim>::PolynomialRHS(
-  const Parameters& par,
-  const std::vector<Polynomials::Polynomial<double> > potentials_1d)
-		:
-		parameters(&par),
-		potentials_1d(potentials_1d)
+PolynomialRHS<dim>::PolynomialRHS(const Parameters& par,
+                                  const std::vector<Polynomials::Polynomial<double>> potentials_1d)
+  : parameters(&par)
+  , potentials_1d(potentials_1d)
 {
-  AssertDimension(potentials_1d.size(), (dim==2 ? 2 : dim+1));
+  AssertDimension(potentials_1d.size(), (dim == 2 ? 2 : dim + 1));
   this->use_boundary = false;
   this->use_face = false;
 }
 
-
 template <int dim>
-void PolynomialRHS<dim>::cell(
-  DoFInfo<dim>& dinfo, 
-  IntegrationInfo<dim>& info) const
+void
+PolynomialRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  std::vector<std::vector<double> > rhs (dim,
-					 std::vector<double>(info.fe_values(0).n_quadrature_points));
-  std::vector<std::vector<double> > phi(dim, std::vector<double>(4));
-  
-  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
-    {
-      const Point<dim>& x = info.fe_values(0).quadrature_point(k);
-      Tensor<1,dim> DivDu;
-      Tensor<1,dim> DDivu;
-      
-      if (dim == 2)
-	{
-	  // The gradient potential
-	  potentials_1d[0].value(x(0), phi[0]);
-	  potentials_1d[0].value(x(1), phi[1]);
-	  DivDu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
-	  DivDu[1] -= phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1];
-	  DDivu[0] -= phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2];
-	  DDivu[1] -= phi[0][2]*phi[1][1] + phi[0][0]*phi[1][3];
-	  // The curl potential
-	  potentials_1d[1].value(x(0), phi[0]);
-	  potentials_1d[1].value(x(1), phi[1]);
-	  // div epsilon(curl) = Delta?
-	  DivDu[0] += 0.5 * (phi[0][0]*phi[1][3] + phi[0][2]*phi[1][1]);
-	  DivDu[1] -= 0.5 * (phi[0][3]*phi[1][0] + phi[0][1]*phi[1][2]);
-	  // div curl = 0
-	}
+  std::vector<std::vector<double>> rhs(dim,
+                                       std::vector<double>(info.fe_values(0).n_quadrature_points));
+  std::vector<std::vector<double>> phi(dim, std::vector<double>(4));
 
-      for (unsigned int d=0;d<dim;++d)
-	rhs[d][k] = 2. * parameters->mu * DivDu[d] + parameters->lambda * DDivu[d];
+  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
+  {
+    const Point<dim>& x = info.fe_values(0).quadrature_point(k);
+    Tensor<1, dim> DivDu;
+    Tensor<1, dim> DDivu;
+
+    if (dim == 2)
+    {
+      // The gradient potential
+      potentials_1d[0].value(x(0), phi[0]);
+      potentials_1d[0].value(x(1), phi[1]);
+      DivDu[0] -= phi[0][3] * phi[1][0] + phi[0][1] * phi[1][2];
+      DivDu[1] -= phi[0][0] * phi[1][3] + phi[0][2] * phi[1][1];
+      DDivu[0] -= phi[0][3] * phi[1][0] + phi[0][1] * phi[1][2];
+      DDivu[1] -= phi[0][2] * phi[1][1] + phi[0][0] * phi[1][3];
+      // The curl potential
+      potentials_1d[1].value(x(0), phi[0]);
+      potentials_1d[1].value(x(1), phi[1]);
+      // div epsilon(curl) = Delta?
+      DivDu[0] += 0.5 * (phi[0][0] * phi[1][3] + phi[0][2] * phi[1][1]);
+      DivDu[1] -= 0.5 * (phi[0][3] * phi[1][0] + phi[0][1] * phi[1][2]);
+      // div curl = 0
     }
-  
+
+    for (unsigned int d = 0; d < dim; ++d)
+      rhs[d][k] = 2. * parameters->mu * DivDu[d] + parameters->lambda * DDivu[d];
+  }
+
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
 
-
 template <int dim>
-void PolynomialRHS<dim>::boundary(
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&) const
-{}
+void
+PolynomialRHS<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
+{
+}
 
 //----------------------------------------------------------------------//
 
 template <int dim>
 PolynomialError<dim>::PolynomialError(
-  const Parameters& par,
-  const std::vector<Polynomials::Polynomial<double> > potentials_1d)
-		:
-		parameters(&par),
-		potentials_1d(potentials_1d)
+  const Parameters& par, const std::vector<Polynomials::Polynomial<double>> potentials_1d)
+  : parameters(&par)
+  , potentials_1d(potentials_1d)
 {
-  AssertDimension(potentials_1d.size(), (dim==2 ? 2 : dim+1));
+  AssertDimension(potentials_1d.size(), (dim == 2 ? 2 : dim + 1));
   this->num_errors = 3;
   this->use_boundary = false;
   this->use_face = false;
 }
 
-
 template <int dim>
-void PolynomialError<dim>::cell(
-  DoFInfo<dim>& dinfo, 
-  IntegrationInfo<dim>& info) const
+void
+PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-//  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
-  
-  std::vector<std::vector<double> > phi(dim, std::vector<double>(3));
-  for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
+  //  Assert(dinfo.n_values() >= 4, ExcDimensionMismatch(dinfo.n_values(), 4));
+
+  std::vector<std::vector<double>> phi(dim, std::vector<double>(3));
+  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
+  {
+    const Point<dim>& x = info.fe_values(0).quadrature_point(k);
+
+    double u[dim];
+    Tensor<1, dim> Du[dim];
+    const double dx = info.fe_values(0).JxW(k);
+
+    for (unsigned int d = 0; d < dim; ++d)
     {
-      const Point<dim>& x = info.fe_values(0).quadrature_point(k);
-      
-      double u[dim];
-      Tensor<1,dim> Du[dim];
-      const double dx = info.fe_values(0).JxW(k);
-
-      for (unsigned int d=0;d<dim;++d)
-	{
-	  u[d] = info.values[0][d][k];
-	  Du[d] = info.gradients[0][d][k];
-	}
-
-      // The gradient potential
-      potentials_1d[0].value(x(0), phi[0]);
-      potentials_1d[0].value(x(1), phi[1]);
-      u[0] -= phi[0][1]*phi[1][0];
-      u[1] -= phi[0][0]*phi[1][1];
-      Du[0][0] -= phi[0][2]*phi[1][0];
-      Du[0][1] -= phi[0][1]*phi[1][1];
-      Du[1][0] -= phi[0][1]*phi[1][1];
-      Du[1][1] -= phi[0][0]*phi[1][2];
-
-      // The curl potential
-      if (dim == 2)
-	{
-	  potentials_1d[1].value(x(0), phi[0]);
-	  potentials_1d[1].value(x(1), phi[1]);
-	  
-	  u[0] += phi[0][0]*phi[1][1];
-	  u[1] -= phi[0][1]*phi[1][0];
-	  Du[0][0] += phi[0][1]*phi[1][1];
-	  Du[0][1] += phi[0][0]*phi[1][2];
-	  Du[1][0] -= phi[0][2]*phi[1][0];
-	  Du[1][1] -= phi[0][1]*phi[1][1];
-	}
-
-      double uu = 0., Duu= 0., div = 0.;
-      for (unsigned int d=0;d<dim;++d)
-	{
-	  uu += u[d]*u[d];
-	  Duu += Du[d]*Du[d];
-	  div += Du[d][d]*Du[d][d];
-	}
-      
-      // 0. L^2(u)
-      dinfo.value(0) += uu * dx;
-      // 1. H^1(u)
-      dinfo.value(1) += Duu * dx;
-      // 2. div u
-      dinfo.value(2) = div * dx;
+      u[d] = info.values[0][d][k];
+      Du[d] = info.gradients[0][d][k];
     }
-  
-  for (unsigned int i=0;i<=2;++i)
+
+    // The gradient potential
+    potentials_1d[0].value(x(0), phi[0]);
+    potentials_1d[0].value(x(1), phi[1]);
+    u[0] -= phi[0][1] * phi[1][0];
+    u[1] -= phi[0][0] * phi[1][1];
+    Du[0][0] -= phi[0][2] * phi[1][0];
+    Du[0][1] -= phi[0][1] * phi[1][1];
+    Du[1][0] -= phi[0][1] * phi[1][1];
+    Du[1][1] -= phi[0][0] * phi[1][2];
+
+    // The curl potential
+    if (dim == 2)
+    {
+      potentials_1d[1].value(x(0), phi[0]);
+      potentials_1d[1].value(x(1), phi[1]);
+
+      u[0] += phi[0][0] * phi[1][1];
+      u[1] -= phi[0][1] * phi[1][0];
+      Du[0][0] += phi[0][1] * phi[1][1];
+      Du[0][1] += phi[0][0] * phi[1][2];
+      Du[1][0] -= phi[0][2] * phi[1][0];
+      Du[1][1] -= phi[0][1] * phi[1][1];
+    }
+
+    double uu = 0., Duu = 0., div = 0.;
+    for (unsigned int d = 0; d < dim; ++d)
+    {
+      uu += u[d] * u[d];
+      Duu += Du[d] * Du[d];
+      div += Du[d][d] * Du[d][d];
+    }
+
+    // 0. L^2(u)
+    dinfo.value(0) += uu * dx;
+    // 1. H^1(u)
+    dinfo.value(1) += Duu * dx;
+    // 2. div u
+    dinfo.value(2) = div * dx;
+  }
+
+  for (unsigned int i = 0; i <= 2; ++i)
     dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
 
+template <int dim>
+void
+PolynomialError<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
+{
+}
 
 template <int dim>
-void PolynomialError<dim>::boundary(
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&) const
-{}
-
-
-template <int dim>
-void PolynomialError<dim>::face(
-  DoFInfo<dim>&, 
-  DoFInfo<dim>&, 
-  IntegrationInfo<dim>&, 
-  IntegrationInfo<dim>&) const
-{}
-
+void
+PolynomialError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
+                           IntegrationInfo<dim>&) const
+{
+}
 }
 
 #endif
-  

@@ -7,11 +7,11 @@
 #ifndef __matrixfaktor_laplace_h
 #define __matrixfaktor_laplace_h
 
-#include <deal.II/meshworker/integration_info.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
+#include <deal.II/meshworker/integration_info.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -36,54 +36,59 @@ public:
   MatrixFaktor(double faktor);
 
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
+                        MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-		    MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const;
-private: 
+                    MeshWorker::IntegrationInfo<dim>& info1,
+                    MeshWorker::IntegrationInfo<dim>& info2) const;
+
+private:
   double faktor;
-
 };
-
 
 template <int dim>
 MatrixFaktor<dim>::MatrixFaktor(double faktor)
-		:
-		faktor(faktor)
+  : faktor(faktor)
 {
 }
 
-
 template <int dim>
-void MatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void
+MatrixFaktor<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
+                        MeshWorker::IntegrationInfo<dim>& info) const
 {
-  AssertDimension (dinfo.n_matrices(), 1);
-  Laplace::cell_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),faktor);
+  AssertDimension(dinfo.n_matrices(), 1);
+  Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), faktor);
 }
 
-
 template <int dim>
-void MatrixFaktor<dim>::boundary(
-  MeshWorker::DoFInfo<dim>& dinfo,
-  typename MeshWorker::IntegrationInfo<dim>& info) const
+void
+MatrixFaktor<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
+                            typename MeshWorker::IntegrationInfo<dim>& info) const
 {
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  Laplace::nitsche_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0),
-  			  Laplace::compute_penalty(dinfo, dinfo, deg, deg), faktor);
+  Laplace::nitsche_matrix(dinfo.matrix(0, false).matrix,
+                          info.fe_values(0),
+                          Laplace::compute_penalty(dinfo, dinfo, deg, deg),
+                          faktor);
 }
-
 
 template <int dim>
-void MatrixFaktor<dim>::face(
-  MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-  MeshWorker::IntegrationInfo<dim>& info1, MeshWorker::IntegrationInfo<dim>& info2) const
+void
+MatrixFaktor<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+                        MeshWorker::IntegrationInfo<dim>& info1,
+                        MeshWorker::IntegrationInfo<dim>& info2) const
 {
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-  Laplace::ip_matrix(dinfo1.matrix(0,false).matrix, dinfo1.matrix(0,true).matrix, 
-  		     dinfo2.matrix(0,true).matrix, dinfo2.matrix(0,false).matrix,
-  		     info1.fe_values(0), info2.fe_values(0),
-  		     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg), faktor);
+  Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,
+                     dinfo1.matrix(0, true).matrix,
+                     dinfo2.matrix(0, true).matrix,
+                     dinfo2.matrix(0, false).matrix,
+                     info1.fe_values(0),
+                     info2.fe_values(0),
+                     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
+                     faktor);
 }
 }
-
 
 #endif

@@ -7,11 +7,11 @@
 #ifndef __matrix_curl_curl_h
 #define __matrix_curl_curl_h
 
-#include <deal.II/meshworker/integration_info.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/maxwell.h>
+#include <deal.II/meshworker/integration_info.h>
 
 using namespace dealii;
 using namespace LocalIntegrators;
@@ -40,7 +40,8 @@ namespace MaxwellIntegrators
  * curl conforming element in first position and an H<sup>1</sup>-conforming
  * scalar element in second.
  *
- * We are building a single matrix in the end, but the cell matrices come in a two-by-two block structure in the order
+ * We are building a single matrix in the end, but the cell matrices come in a two-by-two block
+ * structure in the order
  * <ol>
  * <li> The curl-elliptic operator</li>
  * <li> The gradient operator</li>
@@ -65,58 +66,62 @@ public:
    * one into #curl_coefficient and zero into #mass_coefficient, respectively.
    */
   Matrix();
-    virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>& dinfo2,
-		    dealii::MeshWorker::IntegrationInfo<dim>& info1, dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
-  
+  virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                    dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
+                    dealii::MeshWorker::DoFInfo<dim>& dinfo2,
+                    dealii::MeshWorker::IntegrationInfo<dim>& info1,
+                    dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+
   std::vector<double> curl_coefficient;
   std::vector<double> mass_coefficient;
 };
 
-
 template <int dim>
 Matrix<dim>::Matrix()
-		:
-		curl_coefficient(1, 1.),
-		mass_coefficient(1, 0.)
+  : curl_coefficient(1, 1.)
+  , mass_coefficient(1, 0.)
 {
   this->use_boundary = false;
   this->use_face = false;
 }
 
-
 template <int dim>
-void Matrix<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo, dealii::MeshWorker::IntegrationInfo<dim>& info) const
+void
+Matrix<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
+                  dealii::MeshWorker::IntegrationInfo<dim>& info) const
 {
-  AssertDimension (dinfo.n_matrices(), 4);
+  AssertDimension(dinfo.n_matrices(), 4);
   const unsigned int id = dinfo.cell->material_id();
-  AssertIndexRange (id, curl_coefficient.size());
-  AssertIndexRange (id, mass_coefficient.size());
+  AssertIndexRange(id, curl_coefficient.size());
+  AssertIndexRange(id, mass_coefficient.size());
   const double mu = curl_coefficient[id];
   const double sigma = mass_coefficient[id];
-  
-  Maxwell::curl_curl_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), mu);
+
+  Maxwell::curl_curl_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), mu);
   if (sigma != 0.)
-    L2::mass_matrix(dinfo.matrix(0,false).matrix, info.fe_values(0), sigma);
-  Divergence::gradient_matrix(dinfo.matrix(1,false).matrix, info.fe_values(1), info.fe_values(0));
-  dinfo.matrix(2,false).matrix.copy_transposed(dinfo.matrix(1,false).matrix);
+    L2::mass_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), sigma);
+  Divergence::gradient_matrix(dinfo.matrix(1, false).matrix, info.fe_values(1), info.fe_values(0));
+  dinfo.matrix(2, false).matrix.copy_transposed(dinfo.matrix(1, false).matrix);
 }
 
+template <int dim>
+void
+Matrix<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& /*dinfo*/,
+                      typename dealii::MeshWorker::IntegrationInfo<dim>& /*info*/) const
+{
+}
 
 template <int dim>
-void Matrix<dim>::boundary(dealii::MeshWorker::DoFInfo<dim>& /*dinfo*/,
-			   typename dealii::MeshWorker::IntegrationInfo<dim>& /*info*/) const
-{}
-
-
-template <int dim>
-void Matrix<dim>::face(dealii::MeshWorker::DoFInfo<dim>& /*dinfo1*/,
-		       dealii::MeshWorker::DoFInfo<dim>& /*dinfo2*/,
-		       dealii::MeshWorker::IntegrationInfo<dim>& /*info1*/,
-		       dealii::MeshWorker::IntegrationInfo<dim>& /*info2*/) const
-{}
-
+void
+Matrix<dim>::face(dealii::MeshWorker::DoFInfo<dim>& /*dinfo1*/,
+                  dealii::MeshWorker::DoFInfo<dim>& /*dinfo2*/,
+                  dealii::MeshWorker::IntegrationInfo<dim>& /*info1*/,
+                  dealii::MeshWorker::IntegrationInfo<dim>& /*info2*/) const
+{
+}
 }
 }
 

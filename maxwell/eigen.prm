@@ -1,5 +1,5 @@
 set Steps = 3
-set Eigenvalues = 16
+set Eigenvalues = 8
 
 subsection Discretization
   set FE         = FESystem[FE_Nedelec(1)-FE_Q(2)]
