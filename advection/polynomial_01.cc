@@ -14,7 +14,7 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Advectiongroup
  */
 
 #include <advection/parameters.h>

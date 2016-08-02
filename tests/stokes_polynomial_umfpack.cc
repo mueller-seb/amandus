@@ -14,7 +14,7 @@
  * <li> UMFPack</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Stokesgroup
  */
 
 #include <amandus/apps.h>

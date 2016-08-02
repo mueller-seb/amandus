@@ -16,7 +16,7 @@
  * problem</a> published by Monique Dauge
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Maxwellgroup
  */
 
 #include <amandus/amandus_arpack.h>

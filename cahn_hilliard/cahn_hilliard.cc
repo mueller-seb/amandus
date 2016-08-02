@@ -2,7 +2,7 @@
  * @file
  *
  * @brief Instationary Cahn-Hilliard model.
- * @ingroup Examples
+ * @ingroup Cahn_Hilliardgroup
  * 
  * The Cahn-Hilliard model, which in strong form reads
  * \f[
