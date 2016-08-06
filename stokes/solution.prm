@@ -1,0 +1,9 @@
+subsection Discretization
+  set FE         = FESystem[FE_RaviartThomas(1)-FE_DGQ(1)]
+  set Refinement = 0
+end
+
+subsection Linear Solver
+  set Reduction = 1e-12
+  set Tolerance = 1e-12
+end
