@@ -38,14 +38,15 @@ main(int argc, const char** argv)
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+  deallog.depth_console(10);
 
   AmandusParameters param;
   param.declare_entry("MaxDofs", "1000", Patterns::Integer());
-  param.read_input("solution_inhom.prm", true);
+  param.read(argc, argv);
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d,d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_L(tr, -1, 1);

@@ -11,26 +11,28 @@
  * @ingroup Verification
  */
 
-#include <deal.II/fe/fe_raviart_thomas.h>
-#include <deal.II/fe/fe_dgq.h>
-#include <deal.II/fe/fe_system.h>
+#include <amandus/darcy/integrators.h>
+#include <amandus/darcy/polynomial/noforce.h>
+#include <amandus/tests.h>
 #include <deal.II/algorithms/newton.h>
+#include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_raviart_thomas.h>
+#include <deal.II/fe/fe_system.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <amandus/tests.h>
-#include <amandus/darcy/polynomial/noforce.h>
-#include <amandus/darcy/integrators.h>
 
-int main()
+int
+main()
 {
-  const unsigned int d=2;
-  
+  const unsigned int d = 2;
+
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
-  
+  deallog.depth_console(10);
+
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -1, 1);
-  
+  GridGenerator::hyper_cube(tr, -1, 1);
+
   const unsigned int degree = 1;
   FE_RaviartThomas<d> vec(degree);
   FE_DGQ<d> scal(degree);
@@ -38,8 +40,8 @@ int main()
 
   Darcy::SystemIntegrator<d> matrix_integrator;
   DarcyNoForceResidual<d> rhs_integrator;
-  
+
   AmandusApplicationSparse<d> app(tr, fe);
-  
+
   verify_residual(5, app, matrix_integrator, rhs_integrator);
 }

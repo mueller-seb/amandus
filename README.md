@@ -22,9 +22,10 @@ cd dealii_build
 cmake -DDEAL_II_WITH_ARPACK=ON -DDEAL_II_WITH_UMFPACK=ON ../dealii_src
 make -j <number_of_cores>
 ```
-Notice that UMFPACK is not strictly required to build amandus, but
-nevertheless it is very useful and used by many examples of Amandus. The
-deal.II website provides [more information about installing
+Notice that neither Arpack nor UMFPACK are required to build amandus, but
+nevertheless UMFPACK is very useful and used by many examples of Amandus and
+Arpack is required for the eigenvalue examples. The deal.II website provides
+[more information about installing
 Arpack](https://dealii.org/developer/external-libs/arpack.html).
 
 ### Preparing Amandus

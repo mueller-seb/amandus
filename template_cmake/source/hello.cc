@@ -5,19 +5,21 @@
 
 namespace Salutation
 {
-void Hello::deutsch_hello()
+void
+Hello::deutsch_hello()
 {
-  std::cout<<"Hallo! ich bin hier :)"<<std::endl;
+  std::cout << "Hallo! ich bin hier :)" << std::endl;
 }
 
-void Hello::english_hello()
+void
+Hello::english_hello()
 {
-  std::cout<<"Hello! I am here :)"<<std::endl;
+  std::cout << "Hello! I am here :)" << std::endl;
 }
 
-void Hello::italian_hello()
+void
+Hello::italian_hello()
 {
-  std::cout<<"Bon giorno! Ciao! Io sono qui :)"<<std::endl;
+  std::cout << "Bon giorno! Ciao! Io sono qui :)" << std::endl;
 }
-
 }
