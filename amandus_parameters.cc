@@ -32,6 +32,7 @@ AmandusParameters::AmandusParameters()
   enter_subsection("Multigrid");
   declare_entry("Sort", "false", Patterns::Bool());
   declare_entry("Interior smoothing", "true", Patterns::Bool());
+  declare_entry("Include exterior smoothing on blocks", "", Patterns::List(Patterns::Integer(0)));
   declare_entry("Smoothing steps on leaves", "1", Patterns::Integer(0));
   declare_entry("Variable smoothing steps", "false", Patterns::Bool());
   declare_entry("Smoother Relaxation", "1.0", Patterns::Double());
