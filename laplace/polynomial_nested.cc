@@ -1,36 +1,33 @@
 /**********************************************************************
- *  Copyright (C) 2014 by the authors
+ *  Copyright (C) 2011 - 2014 by the authors
  *  Distributed under the MIT License
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
 /**
  * @file
- *
- * @brief Laplace
  * <ul>
- * <li> Stationary laplace equation</li>
+ * <li> Stationary Poisson equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
+ * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
- *
- * @author Anja Bettendorf
  *
  * @ingroup Examples
  */
 
 #include <amandus/apps.h>
 #include <amandus/laplace/matrix.h>
-#include <amandus/laplace/matrix_factor.h>
-#include <amandus/laplace/noforce.h>
 #include <amandus/laplace/polynomial.h>
-#include <deal.II/fe/fe_dgq.h>
+#include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 
+#include <boost/scoped_ptr.hpp>
+
 int
-main()
+main(int argc, const char** argv)
 {
   const unsigned int d = 2;
 
@@ -38,12 +35,17 @@ main()
   deallog.attach(logfile);
   deallog.depth_console(10);
 
+  AmandusParameters param;
+  param.read(argc, argv);
+  param.log_parameters(deallog);
+
+  param.enter_subsection("Discretization");
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);
-  tr.refine_global(3);
-
-  const unsigned int degree = 2;
-  FE_DGQ<d> fe(degree);
+  tr.refine_global(param.get_integer("Refinement"));
+  param.leave_subsection();
 
   Polynomials::Polynomial<double> solution1d;
   solution1d += Polynomials::Monomial<double>(4, 1.);
@@ -51,19 +53,15 @@ main()
   solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
 
-  // without factor
-  // LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::PolynomialRHS<d> rhs_integrator(solution1d);
+  LaplaceIntegrators::PolynomialError<d> error_integrator(solution1d);
 
-  // with factor
-  double fakt = 1.;
-  LaplaceIntegrators::MatrixFaktor<d> matrix_integrator(fakt);
-
-  LaplaceIntegrators::PolynomialRHS<d> rhs(solution1d);
-  LaplaceIntegrators::PolynomialError<d> error(solution1d);
-
-  AmandusUMFPACK<d> app(tr, fe);
+  AmandusApplication<d> app(tr, *fe);
+  app.parse_parameters(param);
+  app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
-  AmandusResidual<d> residual(app, rhs);
+  AmandusResidual<d> residual(app, rhs_integrator);
 
-  global_refinement_linear_loop(3, app, solver, residual, &error);
+  global_refinement_nested_linear_loop(5, app, tr, solver, residual, &error_integrator);
 }
