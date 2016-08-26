@@ -44,6 +44,9 @@ main(int argc, const char** argv)
   param.declare_entry("Eigenvalue", "1", Patterns::Integer());
   param.declare_entry("ExactEigenvalue", "9.6397238440219", Patterns::Double());
   param.declare_entry("Domain", "L");
+  param.enter_subsection("Arpack");
+  param.set("Symmetric", "true");
+  param.leave_subsection();
   param.read(argc, argv);
   param.log_parameters(deallog);
 

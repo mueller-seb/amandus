@@ -43,6 +43,9 @@ main(int argc, const char** argv)
   param.declare_entry("Eigenvalue", "2", Patterns::Integer());
   param.declare_entry("Multiplicity", "2", Patterns::Integer());
   param.declare_entry("ExactEigenvalue", "9.39083794", Patterns::Double());
+  param.enter_subsection("Arpack");
+  param.set("Symmetric", "true");
+  param.leave_subsection();
   param.read(argc, argv);
   param.log_parameters(deallog);
 
