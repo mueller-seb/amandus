@@ -433,17 +433,47 @@ void
 AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& eigenvalues,
                                             std::vector<Vector<double>>& eigenvectors)
 {
-  AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
-  ArpackSolver::AdditionalData solver_data(std::max((unsigned long)20, 2 * eigenvectors.size() + 1),
-                                           ArpackSolver::largest_magnitude);
-  ArpackSolver solver(control, solver_data);
+  unsigned long min_Arnoldi_vectors = 20;
+  bool symmetric = false;
+  unsigned int max_steps = 100;
+  double tolerance = 1e-10;
+  if (this->param != 0)
+  {
+    this->param->enter_subsection("Arpack");
+    min_Arnoldi_vectors = this->param->get_integer("Min Arnoldi vectors");
+    symmetric = this->param->get_bool("Symmetric");
+    max_steps = this->param->get_integer("Max steps");
+    tolerance = this->param->get_double("Tolerance");
+    this->param->leave_subsection();
+  }
+
+  if (symmetric)
+  {
+    AssertDimension(eigenvalues.size(), eigenvectors.size());
+  }
+  else
+    AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
+
+  ArpackSolver::AdditionalData arpack_data(
+    std::max(min_Arnoldi_vectors, 2 * eigenvalues.size() + 2),
+    ArpackSolver::largest_magnitude,
+    symmetric);
+  dealii::SolverControl arpack_control(max_steps, tolerance);
+  ArpackSolver solver(arpack_control, arpack_data);
+
+  std::vector<dealii::Vector<double>> arpack_vectors(eigenvalues.size() + 1);
+  for (unsigned int i = 0; i < arpack_vectors.size(); ++i)
+    setup_vector(arpack_vectors[i]);
+
+  if (eigenvectors[0].l2_norm() != 0.)
+    solver.set_initial_vector(eigenvectors[0]);
 
   for (unsigned int i = 0; i < matrix[1].m(); ++i)
     if (constraints().is_constrained(i))
       matrix[1].diag_element(i) = 0.;
 
   if (use_umfpack)
-    solver.solve(matrix[0], matrix[1], inverse, eigenvalues, eigenvectors, eigenvalues.size());
+    solver.solve(matrix[0], matrix[1], inverse, eigenvalues, arpack_vectors, eigenvalues.size());
   else
   {
     SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
@@ -453,10 +483,26 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& e
     inv.solver.set_control(control);
     inv.solver.set_data(solver_data);
     inv.solver.select("gmres");
-    solver.solve(matrix[0], matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
+    solver.solve(matrix[0], matrix[1], inv, eigenvalues, arpack_vectors, eigenvalues.size());
   }
-  for (unsigned int i = 0; i < eigenvectors.size(); ++i)
-    constraints().distribute(eigenvectors[i]);
+  for (unsigned int i = 0; i < arpack_vectors.size(); ++i)
+    constraints().distribute(arpack_vectors[i]);
+
+  for (unsigned int i = 0; i < eigenvalues.size(); ++i)
+  {
+    eigenvectors[i] = arpack_vectors[i];
+    if (eigenvalues[i].imag() != 0.)
+    {
+      eigenvectors[i + eigenvalues.size()] = arpack_vectors[i + 1];
+      if (i + 1 < eigenvalues.size())
+      {
+        eigenvectors[i + 1] = arpack_vectors[i];
+        eigenvectors[i + 1 + eigenvalues.size()] = arpack_vectors[i + 1];
+        eigenvectors[i + 1 + eigenvalues.size()] *= -1;
+        ++i;
+      }
+    }
+  }
 }
 #else
 template <int dim>

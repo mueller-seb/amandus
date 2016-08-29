@@ -36,6 +36,7 @@
 #include <deal.II/multigrid/mg_tools.h>
 #include <deal.II/multigrid/multigrid.h>
 
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/flow_function.h>
 #include <deal.II/base/function_lib.h>
 #include <deal.II/base/quadrature_lib.h>
@@ -202,17 +203,43 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
   coarse_matrix.copy_from(mg_matrix[mg_matrix.min_level()]);
   mg_coarse.initialize(coarse_matrix, 1.e-15);
 
+  const unsigned int n_comp = this->dof_handler.get_fe().n_components();
+
   bool sort = false;
   bool interior_dofs_only = true;
   unsigned int smoothing_steps = 1;
   bool variable_smoothing_steps = false;
+  BlockMask exclude_boundary_dofs(n_comp, true);
   if (this->param != 0)
   {
     this->param->enter_subsection("Multigrid");
     sort = this->param->get_bool("Sort");
     interior_dofs_only = this->param->get_bool("Interior smoothing");
+    const std::string included_blocks_string =
+      this->param->get("Include exterior smoothing on blocks");
     smoothing_steps = this->param->get_integer("Smoothing steps on leaves");
     variable_smoothing_steps = this->param->get_bool("Variable smoothing steps");
+    if (interior_dofs_only == false)
+    {
+      std::vector<bool> exclude_block(n_comp, false);
+      exclude_boundary_dofs = dealii::BlockMask(exclude_block);
+    }
+    else if (included_blocks_string != "")
+    {
+      // if not for all the blocks the boundary dofs on each cell are neglected,
+      // assume first that all boundary dofs are taken into account
+      std::vector<bool> exclude_block(n_comp, true);
+      const std::vector<std::string> included_blocks_strings =
+        dealii::Utilities::split_string_list(included_blocks_string, ',');
+      const std::vector<int> included_blocks =
+        dealii::Utilities::string_to_int(included_blocks_strings);
+      for (unsigned int i = 0; i < included_blocks.size(); ++i)
+      {
+        AssertIndexRange(included_blocks[i], n_comp);
+        exclude_block[included_blocks[i]] = false;
+      }
+      exclude_boundary_dofs = dealii::BlockMask(exclude_block);
+    }
     this->param->leave_subsection();
   }
 
@@ -223,7 +250,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
       vertex_mapping = DoFTools::make_vertex_patches(smoother_data[l].block_list,
                                                      this->dof_handler,
                                                      l,
-                                                     interior_dofs_only,
+                                                     exclude_boundary_dofs,
                                                      false,
                                                      false,
                                                      false,
@@ -330,10 +357,40 @@ void
 AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double>>& eigenvalues,
                                                   std::vector<Vector<double>>& eigenvectors)
 {
-  AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
-  ArpackSolver::AdditionalData arpack_data(std::max((unsigned long)20, 2 * eigenvectors.size() + 1),
-                                           ArpackSolver::largest_magnitude);
-  ArpackSolver solver(this->control, arpack_data);
+  unsigned long min_Arnoldi_vectors = 20;
+  bool symmetric = false;
+  unsigned int max_steps = 100;
+  double tolerance = 1e-10;
+  if (this->param != 0)
+  {
+    this->param->enter_subsection("Arpack");
+    min_Arnoldi_vectors = this->param->get_integer("Min Arnoldi vectors");
+    symmetric = this->param->get_bool("Symmetric");
+    max_steps = this->param->get_integer("Max steps");
+    tolerance = this->param->get_double("Tolerance");
+    this->param->leave_subsection();
+  }
+
+  if (symmetric)
+  {
+    AssertDimension(eigenvalues.size(), eigenvectors.size());
+  }
+  else
+    AssertDimension(2 * eigenvalues.size(), eigenvectors.size());
+
+  ArpackSolver::AdditionalData arpack_data(
+    std::max(min_Arnoldi_vectors, 2 * eigenvalues.size() + 2),
+    ArpackSolver::largest_magnitude,
+    symmetric);
+  dealii::SolverControl arpack_control(max_steps, tolerance);
+  ArpackSolver solver(arpack_control, arpack_data);
+
+  std::vector<dealii::Vector<double>> arpack_vectors(eigenvalues.size() + 1);
+  for (unsigned int i = 0; i < arpack_vectors.size(); ++i)
+    AmandusApplicationSparse<dim>::setup_vector(arpack_vectors[i]);
+
+  if (eigenvectors[0].l2_norm() != 0.)
+    solver.set_initial_vector(eigenvectors[0]);
 
   SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
   mg::Matrix<Vector<double>> mgmatrix(mg_matrix);
@@ -364,10 +421,26 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
       this->matrix[1].diag_element(i) = 0.;
 
   solver.solve(
-    this->matrix[0], this->matrix[1], inv, eigenvalues, eigenvectors, eigenvalues.size());
+    this->matrix[0], this->matrix[1], inv, eigenvalues, arpack_vectors, eigenvalues.size());
 
-  for (unsigned int i = 0; i < eigenvectors.size(); ++i)
-    this->constraints().distribute(eigenvectors[i]);
+  for (unsigned int i = 0; i < arpack_vectors.size(); ++i)
+    this->constraints().distribute(arpack_vectors[i]);
+
+  for (unsigned int i = 0; i < eigenvalues.size(); ++i)
+  {
+    eigenvectors[i] = arpack_vectors[i];
+    if (eigenvalues[i].imag() != 0.)
+    {
+      eigenvectors[i + eigenvalues.size()] = arpack_vectors[i + 1];
+      if (i + 1 < eigenvalues.size())
+      {
+        eigenvectors[i + 1] = arpack_vectors[i];
+        eigenvectors[i + 1 + eigenvalues.size()] = arpack_vectors[i + 1];
+        eigenvectors[i + 1 + eigenvalues.size()] *= -1;
+        ++i;
+      }
+    }
+  }
 }
 #else
 template <int dim, typename RELAXATION>

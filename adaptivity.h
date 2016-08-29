@@ -164,6 +164,29 @@ protected:
 };
 
 /**
+ * @brief Remesher interpolating all vectors for uniform refinement.
+ * Refines the mesh and interpolates all the vectors it received.
+ *
+ * @ingroup Postprocessing
+ **/
+template <class VECTOR, int dim>
+class UniformRemesher : public AllInterpolatingRemesher<VECTOR, dim>
+{
+public:
+  UniformRemesher(AmandusApplicationSparse<dim>& app, dealii::Triangulation<dim>& tria)
+    : AllInterpolatingRemesher<VECTOR, dim>(app, tria)
+  {
+  }
+
+  virtual void
+  remesh(const dealii::AnyData& /*out*/, const dealii::AnyData& /*in*/)
+  {
+    this->tria->set_all_refine_flags();
+    this->tria->execute_coarsening_and_refinement();
+  }
+};
+
+/**
  * @brief Remesher interpolating all vectors and using an ErrorIntegrator
  * to calculate criterion.
  *

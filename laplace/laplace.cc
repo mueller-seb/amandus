@@ -46,8 +46,9 @@ main()
   FE_DGQ<d> fe(degree);
 
   Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(3, -1.);
-  solution1d += Polynomials::Monomial<double>(1, 3.);
+  solution1d += Polynomials::Monomial<double>(4, 1.);
+  solution1d += Polynomials::Monomial<double>(2, -2.);
+  solution1d += Polynomials::Monomial<double>(0, 1.);
   solution1d.print(std::cout);
 
   // without factor

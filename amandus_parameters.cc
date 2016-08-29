@@ -32,6 +32,7 @@ AmandusParameters::AmandusParameters()
   enter_subsection("Multigrid");
   declare_entry("Sort", "false", Patterns::Bool());
   declare_entry("Interior smoothing", "true", Patterns::Bool());
+  declare_entry("Include exterior smoothing on blocks", "", Patterns::List(Patterns::Integer(0)));
   declare_entry("Smoothing steps on leaves", "1", Patterns::Integer(0));
   declare_entry("Variable smoothing steps", "false", Patterns::Bool());
   declare_entry("Smoother Relaxation", "1.0", Patterns::Double());
@@ -44,6 +45,13 @@ AmandusParameters::AmandusParameters()
   enter_subsection("Output");
   DataOutInterface<2>::declare_parameters(*this);
   set("Output format", "vtu");
+  leave_subsection();
+
+  enter_subsection("Arpack");
+  declare_entry("Min Arnoldi vectors", "20", Patterns::Integer(0));
+  declare_entry("Symmetric", "false", Patterns::Bool());
+  declare_entry("Max steps", "100", Patterns::Integer(1));
+  declare_entry("Tolerance", "1.e-10", Patterns::Double());
   leave_subsection();
 }
 
