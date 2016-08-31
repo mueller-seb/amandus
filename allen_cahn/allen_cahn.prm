@@ -1,6 +1,6 @@
 subsection Discretization
   set FE         = FE_DGQ(2)
-  set Refinement = 3
+  set Refinement = 4
 end
 subsection Linear Solver
   set Log frequency = 1
@@ -28,14 +28,8 @@ subsection Newton
   set Tolerance           = 1.e-10
 end
 subsection Output
-  set Output format = vtk
+  set Output format = vtu
   set Subdivisions  = 2
-  subsection DX output parameters
-    set Coordinates format = ascii
-    set Data format        = ascii
-    set Integer format     = ascii
-    set Write neighbors    = true
-  end
   subsection Eps output parameters
     set Azimut angle                        = 60
     set Color function                      = default
@@ -50,28 +44,15 @@ subsection Output
     set Size (width or height) in eps units = 300
     set Turn angle                          = 30
   end
-  subsection Gmv output parameters
-  end
-  subsection Gnuplot output parameters
-  end
   subsection Povray output parameters
     set Include external file = true
     set Use bicubic patches   = false
     set Use smooth triangles  = false
   end
-  subsection Tecplot output parameters
-  end
-  subsection UCD output parameters
-    set Write preamble = true
-  end
-  subsection Vtk output parameters
-  end
-  subsection deal.II intermediate output parameters
-  end
 end
 subsection ThetaTimestepping
   set Adaptive   = false
-  set Final      = 2.5
+  set Final      = 30
   set First step = .1
   set Max step   = 1.
   set Print step = -1.
