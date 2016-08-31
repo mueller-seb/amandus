@@ -1,5 +1,4 @@
 /**********************************************************************
- * $Id$
  *
  * Copyright Guido Kanschat, 2010, 2012, 2013
  *
@@ -11,6 +10,7 @@
 #include <amandus/elasticity/integrators.h>
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
+#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/elasticity.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -144,7 +144,7 @@ Residual<dim, force_type>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info)
       info.fe_values(0),
       dealii::make_slice(info.gradients[0], 0, dim),
       2. * mu);
-    dealii::LocalIntegrators::Divergence::grad_div_residual(
+    dealii::LocalIntegrators::GradDiv::cell_residual(
       dinfo.vector(0).block(0),
       info.fe_values(0),
       dealii::make_slice(info.gradients[0], 0, dim),
