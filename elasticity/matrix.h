@@ -5,7 +5,7 @@
 
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
-#include <deal.II/integrators/divergence.h>
+#include <deal.II/integrators/grad_div.h>
 #include <deal.II/integrators/elasticity.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -60,7 +60,7 @@ Matrix<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   AssertDimension(dinfo.n_matrices(), 1);
   dealii::LocalIntegrators::Elasticity::cell_matrix(
     dinfo.matrix(0, false).matrix, info.fe_values(0), 2. * parameters->mu);
-  dealii::LocalIntegrators::Divergence::grad_div_matrix(
+  dealii::LocalIntegrators::GradDiv::cell_matrix(
     dinfo.matrix(0, false).matrix, info.fe_values(0), parameters->lambda);
 }
 

@@ -465,7 +465,7 @@ global_refinement_nested_nonlinear_loop(
  * @file
  * @brief Adaptive refinement linear loop shows convergence table on console
  *
- * @ingroup apps_test
+ * @ingroup apps
  */
 template <int dim>
 void
@@ -566,7 +566,7 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
  * @file
  * @brief Adaptive refinement non linear loop shows convergence table on console
  *
- * @ingroup apps_test
+ * @ingroup apps
  */
 template <int dim>
 void
@@ -665,7 +665,7 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
  * @brief Adaptive refinement eigenvalue loop for symmetric problems with real eigenvalues.
  *        Shows convergence table on console and refines for the n-th real eigenvalue
  *        with given multiplicity>=1.
- * @ingroup apps_test
+ * @ingroup apps
  */
 
 template <int dim>
