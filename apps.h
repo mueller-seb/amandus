@@ -576,7 +576,8 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
                                    AmandusIntegrator<dim>& estimator,
                                    AmandusRefineStrategy<dim>& mark,
                                    const AmandusIntegrator<dim>* error = 0,
-                                   const dealii::Function<dim>* inhom_boundary = 0)
+                                   const dealii::Function<dim>* inhom_boundary = 0,
+                                   const bool boundary_projection = false)
 {
   dealii::Vector<double> sol;
   dealii::BlockVector<double> errors;
@@ -600,7 +601,7 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
 
     // solve
     if (inhom_boundary != 0)
-      app.update_vector_inhom_boundary(sol, *inhom_boundary);
+      app.update_vector_inhom_boundary(sol, *inhom_boundary, boundary_projection);
     solver(solution_data, data);
 
     // error
