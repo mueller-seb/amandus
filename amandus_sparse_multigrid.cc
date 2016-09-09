@@ -91,18 +91,18 @@ AmandusApplication<dim, RELAXATION>::setup_system()
   mg_transfer.build_matrices(this->dof_handler);
 
   const unsigned int n_levels = this->triangulation->n_levels();
-  mg_smoother.clear();
+  mg_smoother.clear_elements();
   smoother_data.resize(0, n_levels - 1);
   mg_matrix.resize(0, n_levels - 1);
-  mg_matrix.clear();
+  mg_matrix.clear_elements();
   mg_matrix_up.resize(0, n_levels - 1);
-  mg_matrix_up.clear();
+  mg_matrix_up.clear_elements();
   mg_matrix_down.resize(0, n_levels - 1);
-  mg_matrix_down.clear();
+  mg_matrix_down.clear_elements();
   mg_matrix_flux_up.resize(0, n_levels - 1);
-  mg_matrix_flux_up.clear();
+  mg_matrix_flux_up.clear_elements();
   mg_matrix_flux_down.resize(0, n_levels - 1);
-  mg_matrix_flux_down.clear();
+  mg_matrix_flux_down.clear_elements();
   mg_sparsity.resize(0, n_levels - 1);
   mg_sparsity_fluxes.resize(0, n_levels - 1);
 
