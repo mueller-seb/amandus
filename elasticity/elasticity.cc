@@ -38,7 +38,7 @@
 #include <amandus/elasticity/residual.h>
 #include <amandus/elasticity/matrix.h>
 
-#include<boost/scoped_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 
 using namespace dealii;
 

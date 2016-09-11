@@ -51,17 +51,9 @@ public:
   {
   }
 
-  void
-  operator()(const dealii::Vector<double>& indicator)
-  {
-    this->tria->set_all_refine_flags();
-  }
+  void operator()(const dealii::Vector<double>& indicator) { this->tria->set_all_refine_flags(); }
 
-  void
-  operator()()
-  {
-    this->tria->set_all_refine_flags();
-  }
+  void operator()() { this->tria->set_all_refine_flags(); }
 };
 
 /**
@@ -79,8 +71,7 @@ public:
   {
   }
 
-  void
-  operator()(const dealii::Vector<double>& indicator)
+  void operator()(const dealii::Vector<double>& indicator)
   {
     double threshold = this->refine_threshold * indicator.linfty_norm();
     dealii::GridRefinement::refine(*(this->tria), indicator, threshold);
@@ -106,8 +97,7 @@ public:
   {
   }
 
-  void
-  operator()(const dealii::Vector<double>& indicator)
+  void operator()(const dealii::Vector<double>& indicator)
   {
     dealii::Vector<double> square_indicators(indicator);
     square_indicators.scale(indicator);
@@ -134,8 +124,7 @@ public:
   {
   }
 
-  void
-  operator()(const dealii::Vector<double>& indicator)
+  void operator()(const dealii::Vector<double>& indicator)
   {
     dealii::GridRefinement::refine_and_coarsen_optimize(*(this->tria), indicator, this->order);
   }

@@ -30,8 +30,7 @@ Explicit::Explicit(const Brusselator::Parameters& par)
 {
 }
 
-void
-Explicit::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void Explicit::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   const double ts = *in.read_ptr<double>("Timestep");
   dealii::Vector<double>& r = *out.entry<dealii::Vector<double>*>(0);
@@ -57,8 +56,7 @@ ImplicitResidual::ImplicitResidual(const Brusselator::Parameters& par)
 {
 }
 
-void
-ImplicitResidual::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void ImplicitResidual::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   const double ts = *in.read_ptr<double>("Timestep");
   dealii::Vector<double>& r = *out.entry<dealii::Vector<double>*>(0);
@@ -86,8 +84,7 @@ ImplicitSolve::ImplicitSolve(const Brusselator::Parameters& par)
 {
 }
 
-void
-ImplicitSolve::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void ImplicitSolve::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   const double ts = *in.read_ptr<double>("Timestep");
   dealii::Vector<double>& s = *out.entry<dealii::Vector<double>*>(0);

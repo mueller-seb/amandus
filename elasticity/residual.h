@@ -144,11 +144,10 @@ Residual<dim, force_type>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info)
       info.fe_values(0),
       dealii::make_slice(info.gradients[0], 0, dim),
       2. * mu);
-    dealii::LocalIntegrators::GradDiv::cell_residual(
-      dinfo.vector(0).block(0),
-      info.fe_values(0),
-      dealii::make_slice(info.gradients[0], 0, dim),
-      lambda);
+    dealii::LocalIntegrators::GradDiv::cell_residual(dinfo.vector(0).block(0),
+                                                     info.fe_values(0),
+                                                     dealii::make_slice(info.gradients[0], 0, dim),
+                                                     lambda);
   }
   else
   {

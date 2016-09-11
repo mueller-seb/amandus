@@ -50,8 +50,7 @@ public:
   {
   }
 
-  void
-  operator()(Triangulation<dim>& tria, const BlockVector<double>& indicator)
+  void operator()(Triangulation<dim>& tria, const BlockVector<double>& indicator)
   {
     GridRefinement::refine(tria, indicator.block(0), this->refine_threshold);
     GridRefinement::coarsen(tria, indicator.block(0), this->coarsen_threshold);
@@ -157,8 +156,10 @@ main(int argc, const char** argv)
   // Now we prepare for the actual timestepping
 
   timestepping.notify(dealii::Algorithms::Events::initial);
-  tr.signals.post_refinement.connect(
-    [&timestepping]() { timestepping.notify(dealii::Algorithms::Events::remesh); });
+  tr.signals.post_refinement.connect([&timestepping]()
+                                     {
+                                       timestepping.notify(dealii::Algorithms::Events::remesh);
+                                     });
   dealii::Vector<double> solution;
   app.setup_system();
   app.setup_vector(solution);

@@ -124,8 +124,7 @@ public:
   {
   }
 
-  virtual void
-  operator()(dealii::AnyData& out, const dealii::AnyData& in)
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in)
   {
     this->extract_vectors(out);
     this->remesh(out, in);
@@ -211,8 +210,7 @@ public:
   /// Set callback for flagging
   void
   flag_callback(dealii::std_cxx11::function<void(dealii::Triangulation<dim>&,
-                                                 const dealii::BlockVector<double>&)>
-                  callback)
+                                                 const dealii::BlockVector<double>&)> callback)
   {
     this->callback = callback;
   }

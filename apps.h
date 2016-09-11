@@ -711,10 +711,13 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
       sort_eigenvalues[i].first = i;
       sort_eigenvalues[i].second = eigenvalues[i].real();
     }
-    sort(sort_eigenvalues.begin(),
-         sort_eigenvalues.end(),
-         [](const std::pair<unsigned int, double>& left,
-            const std::pair<unsigned int, double>& right) { return left.second < right.second; });
+    sort(
+      sort_eigenvalues.begin(),
+      sort_eigenvalues.end(),
+      [](const std::pair<unsigned int, double>& left, const std::pair<unsigned int, double>& right)
+      {
+        return left.second < right.second;
+      });
 
     // eigenvalue errors
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;

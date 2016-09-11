@@ -37,8 +37,7 @@ AmandusResidual<dim>::AmandusResidual(const AmandusApplicationSparse<dim>& appli
 }
 
 template <int dim>
-void
-AmandusResidual<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void AmandusResidual<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   integrator->extract_data(in);
   application->setup_vector(*out.entry<Vector<double>*>(0));
@@ -63,8 +62,7 @@ AmandusSolve<dim>::AmandusSolve(AmandusApplicationSparse<dim>& application,
 }
 
 template <int dim>
-void
-AmandusSolve<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void AmandusSolve<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   integrator->extract_data(in);
   if (this->notifications.test(Algorithms::Events::initial) ||
@@ -94,8 +92,7 @@ AmandusArpack<dim>::AmandusArpack(AmandusApplicationSparse<dim>& application,
 }
 
 template <int dim>
-void
-AmandusArpack<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
+void AmandusArpack<dim>::operator()(dealii::AnyData& out, const dealii::AnyData& in)
 {
   integrator->extract_data(in);
   if (this->notifications.test(Algorithms::Events::initial) ||

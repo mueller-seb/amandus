@@ -141,8 +141,7 @@ public:
   {
   }
 
-  virtual void
-  operator()(dealii::AnyData& out, const dealii::AnyData& in)
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in)
   {
     dealii::LogStream::Prefix p("ExactResidual");
 

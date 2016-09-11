@@ -8,15 +8,15 @@
  * @file
  *
  *  * <h3> About this example</h3>
- * 
+ *
  * This example is the easiest program you can write in Amandus.
  * It shows how Amandus work in practice and it gives a brief description
- * of the functions used. It doesn't discuss in detail any individual function 
+ * of the functions used. It doesn't discuss in detail any individual function
  * but it wants to give a big picture of how things work together.
  * If you wants to learn deeply how a single function work, you can search inside
- * the manual. For informations about deal.II functions and classes, use 
- * <a href="https://www.dealii.org/8.4.0/doxygen/deal.II/"> deal.II 
- * manual </a>. As concerns the Amandus manual, it is not complete and it is still 
+ * the manual. For informations about deal.II functions and classes, use
+ * <a href="https://www.dealii.org/8.4.0/doxygen/deal.II/"> deal.II
+ * manual </a>. As concerns the Amandus manual, it is not complete and it is still
  * in development.
  *
  *
@@ -32,7 +32,7 @@
  * @code
  * ./laplace
  * @endcode
- * 
+ *
  *
  * <h3> Introduction </h3>
  *
@@ -40,7 +40,7 @@
  *
  * \f{align*}
  * - \Delta u & = f \qquad\qquad & \text{in}\ \Omega
- * \f} 
+ * \f}
  *
  * We solve this equation on the unit square, \f$\Omega=[0,1]^2\f$, for which
  * we already know how to generate a mesh from dealii documentation. In
@@ -56,10 +56,10 @@
  * u &= 0 \qquad\qquad &  otherwise.
  * \f}
  *
- * From the basics of the finite element method, you remember the steps we need 
+ * From the basics of the finite element method, you remember the steps we need
  * to take to approximate the solution \f$u\f$ by a finite dimensional approximation.
  * Multiplying from the left by the test function \f$\varphi \f$, integrating over
- * the domain \f$\Omega\f$ and integrating by parts, we get the following weak 
+ * the domain \f$\Omega\f$ and integrating by parts, we get the following weak
  * formulation:
  *
  *
@@ -98,16 +98,15 @@
  *  \\
  *  F_i &= (\varphi_i, f).
  * @f}
- * If you need more details about how to construct a linear system starting from the Poisson's 
- * equation, you might be interested in  
- * <a href="http://www.dealii.org/developer/doxygen/deal.II/step_3.html"> step-3 </a> 
+ * If you need more details about how to construct a linear system starting from the Poisson's
+ * equation, you might be interested in
+ * <a href="http://www.dealii.org/developer/doxygen/deal.II/step_3.html"> step-3 </a>
  * of the deal.II tutorial.
  *
- * Now we can go forward and describe how this quantities can be 
- * computed with Amandus. 
+ * Now we can go forward and describe how this quantities can be
+ * computed with Amandus.
  * @ingroup Laplacegroup
   */
-
 
 #include <amandus/apps.h>
 #include <amandus/laplace/matrix.h>
@@ -120,62 +119,58 @@
 #include <deal.II/base/function.h>
 #include <deal.II/algorithms/newton.h>
 
-
-
 template <int dim>
-class Startup : public dealii::Function <dim>
+class Startup : public dealii::Function<dim>
 {
 public:
   Startup();
-  virtual double value (const Point<dim> & p, const unsigned int component)const;
+  virtual double value(const Point<dim>& p, const unsigned int component) const;
 
-
-  virtual void value_list (const std::vector<Point<dim> > &points,
-			   std::vector<double>   &values, const unsigned int component) const;
+  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                          const unsigned int component) const;
 };
 
-//constructor defould one component
+// constructor defould one component
 template <int dim>
-Startup<dim>::Startup ()
-  :
-  Function<dim> ()
-{}
-
-template <int dim> 
-double 
-Startup<dim>:: value (const Point<dim> & p, const unsigned int) const 
+Startup<dim>::Startup()
+  : Function<dim>()
 {
-  double result = 1.*p(0);
+}
+
+template <int dim>
+double
+Startup<dim>::value(const Point<dim>& p, const unsigned int) const
+{
+  double result = 1. * p(0);
   return result;
 }
 
 template <int dim>
 void
-Startup<dim>::value_list (
- const std::vector<Point<dim> > &points,
- std::vector<double>   &values, const unsigned int) const
+Startup<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int) const
 {
- AssertDimension(points.size(), values.size());
-  
- for (unsigned int k=0;k<points.size();++k)
-   {
-     const Point<dim>& p = points[k];
-     values[k] = 1.*p(0);	
-   }
+  AssertDimension(points.size(), values.size());
+
+  for (unsigned int k = 0; k < points.size(); ++k)
+  {
+    const Point<dim>& p = points[k];
+    values[k] = 1. * p(0);
+  }
 }
 
 /**
  * We fix the dimension of the domain
- * @code 
+ * @code
  * const unsigned int d=2;
  * @endcode
- * Construction of a <code>ofstream</code> and the attachment of 
- * the stream to the open file <code>deallog</code> 
+ * Construction of a <code>ofstream</code> and the attachment of
+ * the stream to the open file <code>deallog</code>
  * @code
  * std::ofstream logfile("deallog");
  * deallog.attach(logfile);
  * @endcode
- * Now we define an object for a triangulation and we fill 
+ * Now we define an object for a triangulation and we fill
  * it with a single cell of a square domain. The triangulation is
  * refined 3 times, to yield \f$4^3=64\f$ cells in total.
  * @code
@@ -189,10 +184,10 @@ Startup<dim>::value_list (
  * const unsigned int degree = 2;
  * FE_Q<d> fe(degree);
  * @endcode
- * Creation of a Matrix object. The Matrix class permits to construct the 
+ * Creation of a Matrix object. The Matrix class permits to construct the
  * matrix A using LocalIntegrators functions. It is essential to implement
- * a class matrix for every kind of problem you want to solve. For more 
- * details, read the documentation for the matrix class of the Laplace 
+ * a class matrix for every kind of problem you want to solve. For more
+ * details, read the documentation for the matrix class of the Laplace
  * problem.
  * @code
  * LaplaceIntegrators::Matrix<d> matrix_integrator;
@@ -200,31 +195,31 @@ Startup<dim>::value_list (
  *
  * @todo The code does't compile. Correct it and finish the code description.
  */
-int main()
+int
+main()
 {
-  const unsigned int d=2;
+  const unsigned int d = 2;
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
 
   Triangulation<d> tr;
-  GridGenerator::hyper_cube (tr, -1, 1);
+  GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(3);
 
   const unsigned int degree = 2;
   FE_Q<d> fe(degree);
 
   Startup<d> startup;
-  //std::set<unsigned int> boundaries;
+  // std::set<unsigned int> boundaries;
   // boundraies.insert(0);
   // boundaries.insert(1);
- 
-  LaplaceIntegrators::Matrix<d> matrix_integrator;
 
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
 
   LaplaceIntegrators::NoForceRHS<d> rhs_integrator;
 
-  AmandusUMFPACK<d>  app(tr, fe);
+  AmandusUMFPACK<d> app(tr, fe);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
 
@@ -232,14 +227,11 @@ int main()
   newout.initialize(app.dofs());
 
   Algorithms::Newton<Vector<double>> newton(residual, solver);
-  //newton.parse_parameters(param);
+  // newton.parse_parameters(param);
 
   newton.initialize(newout);
   newton.debug_vectors = true;
 
-
-
-  const AmandusIntegrator< d > *   AmandInt = 0; 
+  const AmandusIntegrator<d>* AmandInt = 0;
   global_refinement_nonlinear_loop(2, app, newton, AmandInt, AmandInt, &startup);
-
 }

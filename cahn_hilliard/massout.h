@@ -151,8 +151,7 @@ MassOutputOperator<VECTOR, dim, spacedim>::write_output(const AnyData& data)
 }
 
 template <class VECTOR, int dim, int spacedim>
-OutputOperator<VECTOR>&
-MassOutputOperator<VECTOR, dim, spacedim>::operator<<(const AnyData& data)
+OutputOperator<VECTOR>& MassOutputOperator<VECTOR, dim, spacedim>::operator<<(const AnyData& data)
 {
   timer.stop();
   deallog << "Time(" << this->step << "): " << timer.wall_time() << std::endl;
