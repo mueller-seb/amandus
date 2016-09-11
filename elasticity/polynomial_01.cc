@@ -1,5 +1,3 @@
-// $Id$
-
 /**
  * @file
  * <ul>
@@ -9,7 +7,7 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Elasticitygroup
  */
 
 #include <amandus/apps.h>
@@ -42,7 +40,7 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d,d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
   Triangulation<d> tr;
   GridGenerator::hyper_cube(tr, -1, 1);

@@ -13,7 +13,7 @@
  * <li> Linear solver</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Maxwellgroup
  */
 
 #include <amandus/apps.h>

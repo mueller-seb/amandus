@@ -15,7 +15,7 @@
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Brusselatorgroup
  */
 #include <amandus/brusselator/ode.h>
 #include <deal.II/algorithms/newton.h>

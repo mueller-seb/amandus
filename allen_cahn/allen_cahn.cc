@@ -15,7 +15,7 @@
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Allen_Cahngroup
  */
 
 #include <amandus/allen_cahn/matrix.h>

@@ -14,7 +14,7 @@
  * <li> UMFPack</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Laplacegroup
  */
 
 #include <amandus/apps.h>

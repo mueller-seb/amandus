@@ -15,7 +15,7 @@
  * <li>Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Allen_Cahngroup
  */
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/fe/fe.h>

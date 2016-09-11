@@ -14,7 +14,7 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Laplacegroup
  */
 
 #include <amandus/apps.h>

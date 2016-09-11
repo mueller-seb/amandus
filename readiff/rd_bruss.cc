@@ -14,7 +14,9 @@
  * Hairer, Norsett, Wanner: Solving Ordinary Differential
  * Equations I, 2000.
  *
- * @ingroup Examples
+ * @ingroup ReaDiffgroup
+ * @ingroup Brusselatorgroup
+ * 
  */
 
 #include <amandus/apps.h>

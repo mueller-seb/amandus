@@ -15,7 +15,7 @@
  * <li>Linear solver</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Darcygroup
  */
 #include <amandus/apps.h>
 #include <amandus/darcy/integrators.h>

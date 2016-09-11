@@ -15,7 +15,7 @@
  *
  * @author Joscha Gedicke
  *
- * @ingroup Examples
+ * @ingroup Laplacegroup
  */
 
 #include <amandus/adaptivity.h>

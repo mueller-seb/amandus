@@ -13,7 +13,7 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @ingroup Examples
+ * @ingroup Stokesgroup
  */
 
 #include <amandus/amandus_arpack.h>
