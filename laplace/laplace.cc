@@ -46,14 +46,10 @@
  * we already know how to generate a mesh from dealii documentation. In
  * this program, we also only consider the particular case \f$f(\mathbf x)=1\f$.
  *
- * We choose the following Cauchy boundary conditions:
+ * We choose the following Dirichlet boundary conditions:
  *
  * \f{align*}
- * u &=-1 \qquad\qquad & \text{on}\ x=0,
- * \\
- * u &= 1 \qquad\qquad & \text{on}\ x=1,
- * \\
- * u &= 0 \qquad\qquad &  otherwise.
+ * u(x) &= x \qquad\qquad & \text{on}\ \partial\Omega.
  * \f}
  *
  * From the basics of the finite element method, you remember the steps we need
@@ -202,8 +198,9 @@ main()
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
+  deallog.depth_console(10);
 
-  Triangulation<d> tr;
+  Triangulation<d> tr(dealii::Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(3);
 
@@ -212,12 +209,11 @@ main()
 
   Startup<d> startup;
   // std::set<unsigned int> boundaries;
-  // boundraies.insert(0);
+  // boundaries.insert(0);
   // boundaries.insert(1);
 
   LaplaceIntegrators::Matrix<d> matrix_integrator;
-
-  LaplaceIntegrators::NoForceRHS<d> rhs_integrator;
+  LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
 
   AmandusUMFPACK<d> app(tr, fe);
   AmandusSolve<d> solver(app, matrix_integrator);
