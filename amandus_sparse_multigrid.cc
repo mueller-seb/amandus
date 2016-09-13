@@ -235,7 +235,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
         dealii::Utilities::string_to_int(included_blocks_strings);
       for (unsigned int i = 0; i < included_blocks.size(); ++i)
       {
-        AssertIndexRange(included_blocks[i], n_comp);
+        AssertIndexRange(included_blocks[i], static_cast<int>(n_comp));
         exclude_block[included_blocks[i]] = false;
       }
       exclude_boundary_dofs = dealii::BlockMask(exclude_block);
