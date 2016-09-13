@@ -135,12 +135,21 @@ main()
   newton.initialize(newout);
   newton.debug_vectors = true;
 
-  AmandusIntegrator<d>* null_int = 0;
   Functions::LSingularityFunction exact;
+  LaplaceIntegrators::SolutionEstimate<d> estimator(exact);
   LaplaceIntegrators::SolutionError<d> error_integrator(exact);
-  const Function<d>* null_func = 0;
+
+  RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
   
-  global_refinement_nonlinear_loop(5, app, newton,
-				   &error_integrator,
-				   null_int, &exact);
+  if (false)
+    global_refinement_nonlinear_loop(5, app, newton,
+				     &error_integrator,
+				     &estimator, &exact);
+  else
+    adaptive_refinement_nonlinear_loop(1000000, app, tr,
+				       newton,
+				       estimator,
+				       refine_strategy,
+				       &error_integrator,
+				       &exact);
 }
