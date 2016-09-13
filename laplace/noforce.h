@@ -67,7 +67,7 @@ NoForceRHS<dim>::NoForceRHS()
 
 template <int dim>
 void
-NoForceRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+NoForceRHS<dim>::cell(DoFInfo<dim>&, IntegrationInfo<dim>&) const
 {
 }
 
