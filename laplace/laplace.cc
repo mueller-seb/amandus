@@ -232,6 +232,6 @@ main()
   newton.initialize(newout);
   newton.debug_vectors = true;
 
-  const AmandusIntegrator<d>* AmandInt = 0;
+  AmandusIntegrator<d>* AmandInt = 0;
   global_refinement_nonlinear_loop(2, app, newton, AmandInt, AmandInt, &startup);
 }
