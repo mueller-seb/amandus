@@ -269,27 +269,27 @@ template <int dim>
 class SolutionEstimate : public AmandusIntegrator<dim>
 {
 public:
-    SolutionEstimate(FlowFunction<dim>& solution);
-    virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-    virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                          MeshWorker::IntegrationInfo<dim>& info) const;
-    virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-                      MeshWorker::IntegrationInfo<dim>& info1,
-                      MeshWorker::IntegrationInfo<dim>& info2) const;
+  SolutionEstimate(FlowFunction<dim>& solution);
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
+                        MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+                    MeshWorker::IntegrationInfo<dim>& info1,
+                    MeshWorker::IntegrationInfo<dim>& info2) const;
 
 private:
-    SmartPointer<FlowFunction<dim>, SolutionEstimate<dim>> solution;
+  SmartPointer<FlowFunction<dim>, SolutionEstimate<dim>> solution;
 };
 
 template <int dim>
 SolutionEstimate<dim>::SolutionEstimate(FlowFunction<dim>& solution)
-    : solution(&solution)
+  : solution(&solution)
 
 {
-    this->use_boundary = true;
-    this->use_face = true;
-    this->add_flags(update_hessians);
-    this->add_flags(update_gradients);
+  this->use_boundary = true;
+  this->use_face = true;
+  this->add_flags(update_hessians);
+  this->add_flags(update_gradients);
 }
 
 template <int dim>
@@ -297,28 +297,26 @@ void
 SolutionEstimate<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
                             MeshWorker::IntegrationInfo<dim>& info) const
 {
-    std::vector<std::vector<double>> rhs(
-                                         dim + 1, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+  std::vector<std::vector<double>> rhs(
+    dim + 1, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
 
-    solution->vector_laplacians(info.fe_values(0).get_quadrature_points(), rhs);
+  solution->vector_laplacians(info.fe_values(0).get_quadrature_points(), rhs);
 
+  const std::vector<Tensor<2, dim>>& h0 = info.hessians[0][0];
+  const std::vector<Tensor<2, dim>>& h1 = info.hessians[0][1];
+  const std::vector<Tensor<1, dim>>& p1 = info.gradients[0][dim];
 
-    const std::vector<Tensor<2, dim>>&  h0 = info.hessians[0][0] ;
-    const std::vector<Tensor<2, dim>>&  h1 = info.hessians[0][1] ;
-    const std::vector<Tensor<1, dim>>& p1 = info.gradients[0][dim];
+  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
+  {
+    Tensor<1, dim> r;
 
-    for (unsigned int k=0;k<info.fe_values(0).n_quadrature_points;++k)
-    {
-        Tensor<1,dim> r;
+    r[0] += dinfo.cell->diameter() * (trace(h0[k]) + p1[k][0] - rhs[0][k]);
+    r[1] += dinfo.cell->diameter() * (trace(h1[k]) + p1[k][1] - rhs[1][k]);
 
-        r[0] += dinfo.cell->diameter()*(trace(h0[k])+p1[k][0]-rhs[0][k]);
-        r[1] += dinfo.cell->diameter()*(trace(h1[k])+p1[k][1]-rhs[1][k]);
+    dinfo.value(0) += (r * r) * info.fe_values(0).JxW(k);
+  }
 
-        dinfo.value(0) += (r*r) * info.fe_values(0).JxW(k);
-    }
-
-    dinfo.value(0) = std::sqrt(dinfo.value(0));
-
+  dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
 
 template <int dim>
@@ -326,25 +324,24 @@ void
 SolutionEstimate<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                                 MeshWorker::IntegrationInfo<dim>& info) const
 {
-    const FEValuesBase<dim>& fe = info.fe_values();
-    std::vector<std::vector<double>> values(
-                                         dim + 1, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
-    solution->vector_values(info.fe_values(0).get_quadrature_points(), values);
+  const FEValuesBase<dim>& fe = info.fe_values();
+  std::vector<std::vector<double>> values(
+    dim + 1, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
+  solution->vector_values(info.fe_values(0).get_quadrature_points(), values);
 
-    const unsigned int deg = fe.get_fe().tensor_degree();
-    const double penalty = Laplace::compute_penalty(dinfo, dinfo, deg, deg);
+  const unsigned int deg = fe.get_fe().tensor_degree();
+  const double penalty = Laplace::compute_penalty(dinfo, dinfo, deg, deg);
 
-    for (unsigned int k=0; k<fe.n_quadrature_points;++k)
+  for (unsigned int k = 0; k < fe.n_quadrature_points; ++k)
+  {
+    Tensor<1, dim> diff;
+    for (unsigned int d = 0; d < dim; ++d)
     {
-        Tensor<1,dim> diff;
-        for (unsigned int d= 0; d < dim ; ++d)
-        {
-            diff[d] += (info.values[0][d][k]-values[d][k]);
-
-        }
-        dinfo.value(0) += penalty * (diff*diff) * fe.JxW(k);
+      diff[d] += (info.values[0][d][k] - values[d][k]);
     }
-    dinfo.value(0) = std::sqrt(dinfo.value(0));
+    dinfo.value(0) += penalty * (diff * diff) * fe.JxW(k);
+  }
+  dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
 
 template <int dim>
@@ -353,33 +350,32 @@ SolutionEstimate<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInf
                             MeshWorker::IntegrationInfo<dim>& info1,
                             MeshWorker::IntegrationInfo<dim>& info2) const
 {
-    const FEValuesBase<dim>& fe = info1.fe_values();
-    double h;
-    if (dim == 3)
-        h = std::sqrt(dinfo1.face->measure());
-    else
-        h = dinfo1.face->measure();
+  const FEValuesBase<dim>& fe = info1.fe_values();
+  double h;
+  if (dim == 3)
+    h = std::sqrt(dinfo1.face->measure());
+  else
+    h = dinfo1.face->measure();
 
-    const unsigned int deg1 = info1.fe_values().get_fe().tensor_degree();
-    const unsigned int deg2 = info2.fe_values().get_fe().tensor_degree();
-    const double penalty = 2.*Laplace::compute_penalty(dinfo1, dinfo2, deg1, deg2);
-    for (unsigned int k=0; k<fe.n_quadrature_points;++k)
+  const unsigned int deg1 = info1.fe_values().get_fe().tensor_degree();
+  const unsigned int deg2 = info2.fe_values().get_fe().tensor_degree();
+  const double penalty = 2. * Laplace::compute_penalty(dinfo1, dinfo2, deg1, deg2);
+  for (unsigned int k = 0; k < fe.n_quadrature_points; ++k)
+  {
+    Tensor<1, dim> diff;
+    Tensor<1, dim> diff1;
+    for (unsigned int d = 0; d < dim; ++d)
     {
-        Tensor<1,dim> diff ;
-        Tensor<1,dim> diff1 ;
-        for (unsigned int d= 0; d < dim ; ++d)
-        {
-            diff += (info1.gradients[0][d][k] -info2.gradients[0][d][k])*fe.normal_vector(k)[d];
+      diff += (info1.gradients[0][d][k] - info2.gradients[0][d][k]) * fe.normal_vector(k)[d];
 
-            diff[d] -= (info1.values[0][dim][k] - info2.values[0][dim][k])*fe.normal_vector(k)[d];
+      diff[d] -= (info1.values[0][dim][k] - info2.values[0][dim][k]) * fe.normal_vector(k)[d];
 
-            diff1[d] +=  info1.values[0][d][k]- info2.values[0][d][k];
-        }
-        dinfo1.value(0) += (penalty* (diff1*diff1)+h * (diff*diff) )* fe.JxW(k);
-
+      diff1[d] += info1.values[0][d][k] - info2.values[0][d][k];
     }
-    dinfo1.value(0) = std::sqrt(dinfo1.value(0));
-    dinfo2.value(0) = dinfo1.value(0);
+    dinfo1.value(0) += (penalty * (diff1 * diff1) + h * (diff * diff)) * fe.JxW(k);
+  }
+  dinfo1.value(0) = std::sqrt(dinfo1.value(0));
+  dinfo2.value(0) = dinfo1.value(0);
 }
 }
 

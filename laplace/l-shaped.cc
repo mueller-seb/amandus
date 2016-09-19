@@ -62,7 +62,6 @@ public:
                           const unsigned int component) const;
 };
 
-
 /**
  * We fix the dimension of the domain
  * @code
@@ -107,7 +106,7 @@ main()
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
   deallog.depth_console(10);
-  
+
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_L(tr);
   tr.refine_global(1);
@@ -119,10 +118,10 @@ main()
   matrix_integrator.use_boundary = false;
   LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   rhs_integrator.use_boundary = false;
-  
+
   AmandusUMFPACK<d> app(tr, fe);
   app.set_boundary(0);
-  
+
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
 
@@ -140,16 +139,10 @@ main()
   LaplaceIntegrators::SolutionError<d> error_integrator(exact);
 
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
-  
+
   if (false)
-    global_refinement_nonlinear_loop(5, app, newton,
-				     &error_integrator,
-				     &estimator, &exact);
+    global_refinement_nonlinear_loop(5, app, newton, &error_integrator, &estimator, &exact);
   else
-    adaptive_refinement_nonlinear_loop(1000000, app, tr,
-				       newton,
-				       estimator,
-				       refine_strategy,
-				       &error_integrator,
-				       &exact);
+    adaptive_refinement_nonlinear_loop(
+      1000000, app, tr, newton, estimator, refine_strategy, &error_integrator, &exact);
 }
