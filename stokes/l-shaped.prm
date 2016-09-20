@@ -1,0 +1,11 @@
+set MaxDofs = 100000
+subsection Discretization
+  set FE         = FESystem[FE_RaviartThomas(1)-FE_DGQ(1)]
+  set Refinement = 1
+end
+
+subsection Linear Solver
+  set Reduction = 0.
+  set Tolerance = 1e-12
+end
+
