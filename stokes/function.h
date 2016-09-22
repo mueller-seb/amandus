@@ -104,9 +104,9 @@ StokesPolynomial<dim>::vector_laplacians(const std::vector<Point<dim>>& points,
 
   for (unsigned int k = 0; k < n; ++k)
   {
-    const Point<dim>& p = points[k];
+    /*const Point<dim>& p = points[k];
     const double x = p(0);
-    const double y = p(1);
+    const double y = p(1);*/
 
     if (dim == 2)
     {
