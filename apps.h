@@ -507,6 +507,7 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
 
     // error
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
+    convergence_table.add_value("cells", app.dofs().get_triangulation().n_active_cells());
     convergence_table.add_value("dofs", app.dofs().n_dofs());
     if (error != 0)
     {
@@ -522,7 +523,7 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
         err_name += ")";
         convergence_table.add_value(err_name, errors.block(i).l2_norm());
         convergence_table.evaluate_convergence_rates(
-          err_name, "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+          err_name, "cells", dealii::ConvergenceTable::reduction_rate_log2, dim);
         convergence_table.set_scientific(err_name, 1);
       }
     }
@@ -532,7 +533,8 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
     dealii::deallog << "Estimate: " << est << std::endl;
     convergence_table.add_value("estimate", est);
     convergence_table.evaluate_convergence_rates(
-      "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+      "estimate", "cells", dealii::ConvergenceTable::reduction_rate_log2, dim);
+    convergence_table.set_scientific("estimate", 1);
 
     // output
     dealii::AnyData out_data;
@@ -570,14 +572,11 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
  */
 template <int dim>
 void
-adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSparse<dim>& app,
-                                   dealii::Triangulation<dim>& tria,
-                                   dealii::Algorithms::OperatorBase& solver,
-                                   AmandusIntegrator<dim>& estimator,
-                                   AmandusRefineStrategy<dim>& mark,
-                                   const AmandusIntegrator<dim>* error = 0,
-                                   const dealii::Function<dim>* inhom_boundary = 0,
-                                   const bool boundary_projection = false)
+adaptive_refinement_nonlinear_loop(
+  unsigned int max_dofs, AmandusApplicationSparse<dim>& app, dealii::Triangulation<dim>& tria,
+  dealii::Algorithms::OperatorBase& solver, AmandusIntegrator<dim>& estimator,
+  AmandusRefineStrategy<dim>& mark, const AmandusIntegrator<dim>* error = 0,
+  const dealii::Function<dim>* inhom_boundary = 0, const bool boundary_projection = false)
 {
   dealii::Vector<double> sol;
   dealii::BlockVector<double> errors;
@@ -606,6 +605,7 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
 
     // error
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
+    convergence_table.add_value("cells", app.dofs().get_triangulation().n_active_cells());
     convergence_table.add_value("dofs", app.dofs().n_dofs());
     if (error != 0)
     {
@@ -621,7 +621,7 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
         err_name += ")";
         convergence_table.add_value(err_name, errors.block(i).l2_norm());
         convergence_table.evaluate_convergence_rates(
-          err_name, "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+          err_name, "cells", dealii::ConvergenceTable::reduction_rate_log2, dim);
         convergence_table.set_scientific(err_name, 1);
       }
     }
@@ -631,7 +631,8 @@ adaptive_refinement_nonlinear_loop(unsigned int max_dofs, AmandusApplicationSpar
     dealii::deallog << "Estimate: " << est << std::endl;
     convergence_table.add_value("estimate", est);
     convergence_table.evaluate_convergence_rates(
-      "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+      "estimate", "cells", dealii::ConvergenceTable::reduction_rate_log2, dim);
+    convergence_table.set_scientific("estimate", 1);
 
     // output
     dealii::AnyData out_data;
@@ -722,6 +723,7 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
 
     // eigenvalue errors
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
+    convergence_table.add_value("cells", app.dofs().get_triangulation().n_active_cells());
     convergence_table.add_value("dofs", app.dofs().n_dofs());
     if (std::isfinite(exact_eigenvalue))
     {
@@ -732,7 +734,7 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
         dealii::deallog << "ev-error-" << i << ": " << error << std::endl;
         convergence_table.add_value(std::string("ev-error-") + std::to_string(i), error);
         convergence_table.evaluate_convergence_rates(std::string("ev-error-") + std::to_string(i),
-                                                     "dofs",
+                                                     "cells",
                                                      dealii::ConvergenceTable::reduction_rate_log2,
                                                      1);
         convergence_table.set_scientific(std::string("ev-error-") + std::to_string(i), 1);
@@ -753,7 +755,8 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
     dealii::deallog << "Estimate: " << est << std::endl;
     convergence_table.add_value("estimate", est);
     convergence_table.evaluate_convergence_rates(
-      "estimate", "dofs", dealii::ConvergenceTable::reduction_rate_log2, 1);
+      "estimate", "cells", dealii::ConvergenceTable::reduction_rate_log2, 1);
+    convergence_table.set_scientific("estimate", 1);
 
     // output
     dealii::AnyData out_data;

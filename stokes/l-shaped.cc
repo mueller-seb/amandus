@@ -55,7 +55,6 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-
   Functions::StokesLSingularity solution;
 
   StokesIntegrators::Matrix<d> matrix_integrator;
