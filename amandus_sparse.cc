@@ -734,9 +734,8 @@ AmandusApplicationSparse<dim>::output_results(const unsigned int cycle, const An
   data_out.build_patches(subdivisions);
 
   std::ostringstream filename;
-  filename << "solution-"
-	   << std::setfill ('0') << std::setw (3) << cycle
-	   << data_out.default_suffix();
+  filename << "solution-" << std::setfill('0') << std::setw(3) << cycle
+           << data_out.default_suffix();
 
   deallog << "Writing " << filename.str() << std::endl;
 

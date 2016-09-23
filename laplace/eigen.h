@@ -16,17 +16,30 @@
 using namespace dealii;
 using namespace LocalIntegrators;
 
-/**
- * Integrators for Laplace problems.
- *
- * @ingroup integrators
- */
 namespace LaplaceIntegrators
 {
+/**
+ * \brief Integrator for eigenvalue problems.
+ *
+ * Integrates the matrix $A - \sigma M$ in the first matrix of the
+ * result. where $A$ is the stiffness matrix of the Laplacian, $M$
+ * is the mass matrix and $\sigma$ is the shift stored in the
+ * variable #shift by the constructor.
+ *
+ * If two matrices are built, typically on the leaf mesh, the second
+ * matrix is the mass matrix.
+ */
 template <int dim>
 class Eigen : public AmandusIntegrator<dim>
 {
+  double shift;
+
 public:
+  Eigen(double shift = 0.)
+    : shift(shift)
+  {
+  }
+
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const;
@@ -40,6 +53,7 @@ void
 Eigen<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
+  L2::mass_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), -shift);
   if (dinfo.n_matrices() == 2)
     L2::mass_matrix(dinfo.matrix(1, false).matrix, info.fe_values(0));
 }
