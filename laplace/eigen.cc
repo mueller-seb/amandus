@@ -32,7 +32,6 @@ main(int argc, const char** argv)
 
   std::ofstream logfile("deallog");
   deallog.attach(logfile);
-  deallog.depth_console(10);
 
   AmandusParameters param;
   param.declare_entry("Eigenvalues", "12", Patterns::Integer());
@@ -45,17 +44,18 @@ main(int argc, const char** argv)
   param.enter_subsection("Discretization");
   boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
-  Triangulation<d> tr;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  LaplaceIntegrators::Eigen<d> matrix_integrator;
+  LaplaceIntegrators::Eigen<d> matrix_integrator(0.);
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
 
   app.set_number_of_matrices(2);
   AmandusArpack<d> solver(app, matrix_integrator);
+  app.control.set_reduction(1.e-10);
 
   global_refinement_eigenvalue_loop(
     param.get_integer("Steps"), param.get_integer("Eigenvalues"), app, solver);
