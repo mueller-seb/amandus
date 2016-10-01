@@ -54,7 +54,7 @@ template <int dim, typename RELAXATION>
 AmandusApplication<dim, RELAXATION>::AmandusApplication(Triangulation<dim>& triangulation,
                                                         const FiniteElement<dim>& fe)
   : AmandusApplicationSparse<dim>(triangulation, fe, false)
-  , mg_transfer(this->constraint_matrix, mg_constraints)
+  , mg_transfer(mg_constraints)
 {
 }
 
@@ -87,7 +87,7 @@ AmandusApplication<dim, RELAXATION>::setup_system()
     deallog << ' ' << this->dof_handler.n_dofs(l);
   deallog << std::endl;
 
-  mg_transfer.initialize_constraints(this->constraint_matrix, mg_constraints);
+  mg_transfer.initialize_constraints(mg_constraints);
   mg_transfer.build_matrices(this->dof_handler);
 
   const unsigned int n_levels = this->triangulation->n_levels();
@@ -332,11 +332,10 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
   mg::Matrix<Vector<double>> mgfluxdown(mg_matrix_flux_down);
   mg::Matrix<Vector<double>> mgfluxup(mg_matrix_flux_up);
 
-  Multigrid<Vector<double>> mg(
-    this->dof_handler, mgmatrix, mg_coarse, mg_transfer, mg_smoother, mg_smoother);
+  Multigrid<Vector<double>> mg(mgmatrix, mg_coarse, mg_transfer, mg_smoother, 
+                               mg_smoother, mg_matrix.min_level());
   mg.set_edge_matrices(mgdown, mgup);
   mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
-  mg.set_minlevel(mg_matrix.min_level());
   mg.set_debug(0);
 
   PreconditionMG<dim, Vector<double>, MGTransferPrebuilt<Vector<double>>> preconditioner(
@@ -399,11 +398,10 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   mg::Matrix<Vector<double>> mgfluxdown(mg_matrix_flux_down);
   mg::Matrix<Vector<double>> mgfluxup(mg_matrix_flux_up);
 
-  Multigrid<Vector<double>> mg(
-    this->dof_handler, mgmatrix, mg_coarse, mg_transfer, mg_smoother, mg_smoother);
+  Multigrid<Vector<double>> mg(mgmatrix, mg_coarse, mg_transfer, mg_smoother,
+                               mg_smoother, mg_matrix.min_level());
   mg.set_edge_matrices(mgdown, mgup);
   mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
-  mg.set_minlevel(mg_matrix.min_level());
 
   PreconditionMG<dim, Vector<double>, MGTransferPrebuilt<Vector<double>>> preconditioner(
     this->dof_handler, mg, mg_transfer);
