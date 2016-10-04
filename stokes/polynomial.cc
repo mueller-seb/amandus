@@ -44,7 +44,7 @@ main(int argc, const char** argv)
   param.enter_subsection("Discretization");
   boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
-  Triangulation<d> tr;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();

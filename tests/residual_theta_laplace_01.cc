@@ -38,7 +38,7 @@ main(int argc, const char** argv)
   boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
   param.leave_subsection();
 
-  Triangulation<d> tr;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices) ;
   GridGenerator::hyper_cube(tr, -1, 1);
 
   LaplaceIntegrators::Matrix<d> matrix_integrator;

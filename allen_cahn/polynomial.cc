@@ -37,7 +37,7 @@ void
 run(AmandusParameters& param)
 {
   param.enter_subsection("Discretization");
-  Triangulation<d> tr;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices) ;
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
 
