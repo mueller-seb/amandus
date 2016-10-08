@@ -10,6 +10,7 @@
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/algorithms/theta_timestepping.h>
 #include <deal.II/base/data_out_base.h>
+#include <deal.II/base/path_search.h>
 
 using namespace dealii;
 
@@ -58,10 +59,27 @@ AmandusParameters::AmandusParameters()
 void
 AmandusParameters::read(int argc, const char** argv)
 {
-  read_input("options.prm", true);
+  try
+  {
+    parse_input("options.prm");
+  }
+  catch (dealii::PathSearch::ExcFileNotFound&)
+  {
+  }
+
   std::string myname = argv[0];
   myname += ".prm";
-  read_input(myname, true);
+  parse_input(myname);
   if (argc > 1)
-    read_input(argv[1], false, true);
+  {
+    try
+    {
+      parse_input(argv[1]);
+    }
+    catch (dealii::PathSearch::ExcFileNotFound&)
+    {
+      std::ofstream out(argv[1]);
+      print_parameters(out, OutputStyle::ShortText);
+    }
+  }
 }
