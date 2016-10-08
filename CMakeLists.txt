@@ -6,6 +6,8 @@ DEAL_II_INITIALIZE_CACHED_VARIABLES()
 PROJECT(amandus)
 SET(amandus_VERSION 0.1.0)
 
+set (CMAKE_BUILD_TYPE "Debug")
+
 # List of subdirectories with example codes
 SET(EXAMPLES laplace advection advection-diffusion
   stokes maxwell
