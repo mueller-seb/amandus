@@ -1,3 +1,4 @@
+set Steps = 3
 subsection Discretization
   set FE         = FE_DGQ(4)
   set Refinement = 1

@@ -84,16 +84,22 @@ global_refinement_linear_loop(unsigned int n_steps, AmandusApplicationSparse<dim
     if (error != 0)
     {
       app.error(errors, solution_data, *error);
+      std::vector<double> global_errors(errors.n_blocks());
       for (unsigned int i = 0; i < errors.n_blocks(); ++i)
       {
-        dealii::deallog << "Error(" << i << "): " << errors.block(i).l2_norm() << std::endl;
+        if (error->error_type(i) == 0)
+          global_errors[i] = errors.block(i).linfty_norm();
+        else
+          global_errors[i] = errors.block(i).lp_norm(error->error_type(i));
+        dealii::deallog << "Error(" << i << "): " << global_errors[i] << std::endl;
       }
+
       for (unsigned int i = 0; i < errors.n_blocks(); ++i)
       {
         std::string err_name{ "Error(" };
         err_name += std::to_string(i);
         err_name += ")";
-        convergence_table.add_value(err_name, errors.block(i).l2_norm());
+        convergence_table.add_value(err_name, global_errors[i]);
         convergence_table.evaluate_convergence_rates(err_name,
                                                      dealii::ConvergenceTable::reduction_rate_log2);
         convergence_table.set_scientific(err_name, 1);

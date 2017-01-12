@@ -31,7 +31,7 @@ main()
   deallog.attach(logfile);
   deallog.depth_console(10);
 
-  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices) ;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   std::vector<unsigned int> sub(d, 3);
   Point<d> p1;
   Point<d> p2;

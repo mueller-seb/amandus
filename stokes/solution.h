@@ -192,7 +192,11 @@ SolutionError<dim>::SolutionError(FlowFunction<dim>& solution)
 {
   this->use_boundary = false;
   this->use_face = false;
-  this->num_errors = 5;
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
+  this->error_types.push_back(0);
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
 }
 
 template <int dim>
@@ -238,11 +242,12 @@ SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     // 1. H^1(u)
     dinfo.value(1) += ((Du0 * Du0) + (Du1 * Du1)) * dx;
     // 2. div u
-    dinfo.value(2) = (div * div) * dx;
+    if (dinfo.value(2) < div * div)
+      dinfo.value(2) = div * div;
     // 3. L^2(p) up to mean value
-    dinfo.value(3) = (p * p) * dx;
+    dinfo.value(3) += (p * p) * dx;
     // 4. H^1(p)
-    dinfo.value(4) = (Dp * Dp) * dx;
+    dinfo.value(4) += (Dp * Dp) * dx;
   }
   for (unsigned int i = 0; i <= 4; ++i)
     dinfo.value(i) = std::sqrt(dinfo.value(i));

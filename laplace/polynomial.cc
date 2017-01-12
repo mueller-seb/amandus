@@ -42,7 +42,7 @@ main(int argc, const char** argv)
   param.enter_subsection("Discretization");
   boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
-  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices) ;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
@@ -63,5 +63,6 @@ main(int argc, const char** argv)
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
 
-  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  global_refinement_linear_loop(
+    param.get_integer("Steps"), app, solver, residual, &error_integrator);
 }

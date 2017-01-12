@@ -228,7 +228,8 @@ SolutionError<dim>::SolutionError(Function<dim>& solution)
 {
   this->use_boundary = false;
   this->use_face = false;
-  this->num_errors = 2;
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
 }
 
 template <int dim>

@@ -70,5 +70,6 @@ main(int argc, const char** argv)
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
 
-  global_refinement_linear_loop(5, app, solver, residual, &error_integrator);
+  global_refinement_linear_loop(
+    param.get_integer("Steps"), app, solver, residual, &error_integrator);
 }

@@ -252,7 +252,9 @@ PolynomialError<dim>::PolynomialError(const Polynomials::Polynomial<double> solu
 {
   this->use_boundary = false;
   this->use_face = false;
-  this->num_errors = 2;
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
+  this->error_types.push_back(0);
 }
 
 template <int dim>
@@ -260,6 +262,7 @@ void
 PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
+  dinfo.value(2) = 0.;
 
   std::vector<double> px(3);
   std::vector<double> py(3);
@@ -281,10 +284,14 @@ PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
     dinfo.value(0) += (u * u) * dx;
     // 1. H^1(u)
     dinfo.value(1) += (Du * Du) * dx;
+    // 2. Linfty(u)
+    if (dinfo.value(2) < u * u)
+      dinfo.value(2) = u * u;
   }
 
   dinfo.value(0) = std::sqrt(dinfo.value(0));
   dinfo.value(1) = std::sqrt(dinfo.value(1));
+  dinfo.value(2) = std::sqrt(dinfo.value(2));
 }
 
 template <int dim>

@@ -51,6 +51,13 @@ public:
   unsigned int n_errors() const;
 
   /**
+   * The type of error. A positive value indicates the exponent of
+   * the $\ell_p$ norm over all cells. Zero indicates the maximum
+   * norm over all cells.
+   */
+  unsigned int error_type(unsigned int i) const;
+
+  /**
    * \brief Returns the update flags to be used.
    */
   dealii::UpdateFlags update_flags() const;
@@ -81,7 +88,12 @@ public:
   dealii::SmartPointer<dealii::Quadrature<dim - 1>> face_quadrature;
 
 protected:
-  unsigned int num_errors;
+  /**
+   * Fill this in derived classes. For each error computed, the
+   * exponent of the vector $\ell_p$-norm used, where zero is the
+   * maximum norm.
+   */
+  std::vector<unsigned int> error_types;
 
 private:
   dealii::UpdateFlags u_flags;
@@ -365,7 +377,6 @@ inline AmandusIntegrator<dim>::AmandusIntegrator()
   , cell_quadrature(0)
   , boundary_quadrature(0)
   , face_quadrature(0)
-  , num_errors(0)
   , u_flags(dealii::update_JxW_values | dealii::update_values | dealii::update_gradients |
             dealii::update_quadrature_points)
 {
@@ -382,7 +393,15 @@ template <int dim>
 inline unsigned int
 AmandusIntegrator<dim>::n_errors() const
 {
-  return num_errors;
+  return error_types.size();
+}
+
+template <int dim>
+inline unsigned int
+AmandusIntegrator<dim>::error_type(unsigned int i) const
+{
+  AssertIndexRange(i, n_errors());
+  return error_types[i];
 }
 
 template <int dim>

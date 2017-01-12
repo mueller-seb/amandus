@@ -39,7 +39,7 @@ main()
   deallog.attach(logfile);
   deallog.depth_console(10);
 
-  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices) ;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(3);
 

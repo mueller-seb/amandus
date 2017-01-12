@@ -119,9 +119,10 @@ main()
   LaplaceIntegrators::NoForceResidual<d> rhs_integrator;
   rhs_integrator.use_boundary = false;
 
-  AmandusUMFPACK<d> app(tr, fe);
+  AmandusApplication<d> app(tr, fe);
   app.set_boundary(0);
-
+  app.control.set_reduction(1.e-6);
+  app.control.set_tolerance(1.e-12);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
 

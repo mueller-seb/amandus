@@ -289,7 +289,11 @@ PolynomialError<dim>::PolynomialError(const Polynomials::Polynomial<double> curl
   : curl_potential_1d(curl_potential_1d)
   , grad_potential_1d(grad_potential_1d)
 {
-  this->num_errors = 5;
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
+  this->error_types.push_back(0);
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
   this->use_boundary = false;
   this->use_face = false;
 }
