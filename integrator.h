@@ -112,10 +112,14 @@ template <int dim>
 class ErrorIntegrator : public AmandusIntegrator<dim>
 {
 public:
-  ErrorIntegrator() {}
+  ErrorIntegrator()
+    : block_idx(dealii::numbers::invalid_unsigned_int)
+  {
+  }
 
   ErrorIntegrator(const dealii::Function<dim>& solution)
     : solution(&solution)
+    , block_idx(dealii::numbers::invalid_unsigned_int)
   {
     this->use_cell = false;
     this->use_face = false;
@@ -131,14 +135,14 @@ public:
   void
   add(ErrorIntegrator<dim>* error_integrator)
   {
-    dealii::ComponentMask component_mask(this->solution->n_components, true);
-    this->add(error_integrator, component_mask);
+    dealii::ComponentMask new_component_mask(this->solution->n_components, true);
+    this->add(error_integrator, new_component_mask);
   }
 
   void
-  add(ErrorIntegrator<dim>* error_integrator, dealii::ComponentMask component_mask)
+  add(ErrorIntegrator<dim>* error_integrator, dealii::ComponentMask new_component_mask)
   {
-    error_integrator->component_mask = component_mask;
+    error_integrator->component_mask = new_component_mask;
     error_integrator->solution = this->solution;
     error_integrator->block_idx = error_integrators.size();
     error_integrators.push_back(error_integrator);
@@ -485,10 +489,11 @@ Theta<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
 
         for (unsigned int i = 0; i < dinfo.n_matrices(); ++i)
         {
-          if (dinfo.matrix(i, false).row == block_idx && dinfo.matrix(i, false).column == block_idx)
+          const dealii::MatrixBlock<dealii::FullMatrix<double>>& local_matrix_block =
+            dinfo.matrix(i, false);
+          if (local_matrix_block.row == block_idx && local_matrix_block.column == block_idx)
           {
-            dealii::LocalIntegrators::L2::mass_matrix(dinfo.matrix(i, false).matrix,
-                                                      info.fe_values(b));
+            dealii::LocalIntegrators::L2::mass_matrix(local_matrix_block.matrix, info.fe_values(b));
           }
         }
       }
