@@ -135,13 +135,13 @@ AmandusApplicationSparse<dim>::AmandusApplicationSparse(Triangulation<dim>& tria
 
 template <int dim>
 void
-AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler& param)
+AmandusApplicationSparse<dim>::parse_parameters(dealii::ParameterHandler& new_param)
 {
-  param.enter_subsection("Linear Solver");
-  control.parse_parameters(param);
-  param.leave_subsection();
+  new_param.enter_subsection("Linear Solver");
+  control.parse_parameters(new_param);
+  new_param.leave_subsection();
 
-  this->param = &param;
+  this->param = &new_param;
 }
 
 template <int dim>
@@ -285,15 +285,15 @@ AmandusApplicationSparse<dim>::assemble_matrix(const dealii::AnyData& in,
   assembler.initialize(matrix);
   assembler.initialize(constraints());
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(dof_handler.begin_active(),
                                          dof_handler.end(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
 
   for (unsigned int m = 0; m < matrix.size(); ++m)
     for (unsigned int i = 0; i < matrix[m].m(); ++i)
@@ -355,15 +355,15 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   assembler.initialize(this->constraints());
   assembler.initialize(out);
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(this->dof_handler.begin_active(),
                                          this->dof_handler.end(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
 }
 
 template <int dim>
@@ -395,15 +395,15 @@ AmandusApplicationSparse<dim>::verify_residual(AnyData& out, const AnyData& in,
   assembler.initialize(this->constraint_matrix);
   assembler.initialize(out);
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(this->dof_handler.begin_active(),
                                          this->dof_handler.end(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
   (*out.entry<Vector<double>*>(0)) *= -1.;
 
   const Vector<double>* p = in.try_read_ptr<Vector<double>>("Newton iterate");
@@ -433,7 +433,7 @@ void
 AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& eigenvalues,
                                             std::vector<Vector<double>>& eigenvectors)
 {
-  unsigned long min_Arnoldi_vectors = 20;
+  size_t min_Arnoldi_vectors = 20;
   bool symmetric = false;
   unsigned int max_steps = 100;
   double tolerance = 1e-10;
@@ -491,7 +491,7 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& e
   for (unsigned int i = 0; i < eigenvalues.size(); ++i)
   {
     eigenvectors[i] = arpack_vectors[i];
-    if (eigenvalues[i].imag() != 0.)
+    if (std::fabs(eigenvalues[i].imag() > 1.e-12))
     {
       eigenvectors[i + eigenvalues.size()] = arpack_vectors[i + 1];
       if (i + 1 < eigenvalues.size())
@@ -578,15 +578,15 @@ AmandusApplicationSparse<dim>::estimate(const AnyData& in, AmandusIntegrator<dim
 
   assembler.initialize(out_data, false);
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(dof_handler.begin_active(),
                                          dof_handler.end(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
 
   return estimates.block(0).l2_norm();
 }
@@ -657,15 +657,15 @@ AmandusApplicationSparse<dim>::error(BlockVector<double>& errors,
   out_data.add(est, "cells");
   assembler.initialize(out_data, false);
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(dof_handler.begin_active(),
                                          dof_handler.end(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
 }
 
 template <int dim>
@@ -675,7 +675,7 @@ AmandusApplicationSparse<dim>::error(BlockVector<double>& errors,
                                      const ErrorIntegrator<dim>& integrator)
 {
   errors.reinit(integrator.size());
-  this->error(errors, solution_data, (const AmandusIntegrator<dim>&)integrator);
+  this->error(errors, solution_data, static_cast<const AmandusIntegrator<dim>&>(integrator));
 }
 
 template <int dim>

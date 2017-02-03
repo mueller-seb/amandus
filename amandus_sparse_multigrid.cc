@@ -60,19 +60,19 @@ AmandusApplication<dim, RELAXATION>::AmandusApplication(Triangulation<dim>& tria
 
 template <int dim, typename RELAXATION>
 void
-AmandusApplication<dim, RELAXATION>::parse_parameters(dealii::ParameterHandler& param)
+AmandusApplication<dim, RELAXATION>::parse_parameters(dealii::ParameterHandler& new_param)
 {
-  AmandusApplicationSparse<dim>::parse_parameters(param);
+  AmandusApplicationSparse<dim>::parse_parameters(new_param);
 
-  param.enter_subsection("Linear Solver");
-  this->right_preconditioning = param.get_bool("Use Right Preconditioning");
-  this->use_default_residual = param.get_bool("Use Default Residual");
-  param.leave_subsection();
+  new_param.enter_subsection("Linear Solver");
+  this->right_preconditioning = new_param.get_bool("Use Right Preconditioning");
+  this->use_default_residual = new_param.get_bool("Use Default Residual");
+  new_param.leave_subsection();
 
-  param.enter_subsection("Multigrid");
-  this->smoother_relaxation = param.get_double("Smoother Relaxation");
-  this->log_smoother_statistics = param.get_bool("Log Smoother Statistics");
-  param.leave_subsection();
+  new_param.enter_subsection("Multigrid");
+  this->smoother_relaxation = new_param.get_double("Smoother Relaxation");
+  this->log_smoother_statistics = new_param.get_bool("Log Smoother Statistics");
+  new_param.leave_subsection();
 }
 
 template <int dim, typename RELAXATION>
@@ -189,15 +189,15 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
   assembler.initialize_interfaces(mg_matrix_up, mg_matrix_down);
   assembler.initialize_fluxes(mg_matrix_flux_up, mg_matrix_flux_down);
 
-  MeshWorker::LoopControl control;
-  control.cells_first = false;
+  MeshWorker::LoopControl new_control;
+  new_control.cells_first = false;
   MeshWorker::integration_loop<dim, dim>(this->dof_handler.begin_mg(),
                                          this->dof_handler.end_mg(),
                                          dof_info,
                                          info_box,
                                          integrator,
                                          assembler,
-                                         control);
+                                         new_control);
 
   coarse_matrix.reinit(0, 0);
   coarse_matrix.copy_from(mg_matrix[mg_matrix.min_level()]);
@@ -269,9 +269,9 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
       smoother_data[l].order.resize(ndir);
       for (unsigned int i = 0; i < ndir; ++i)
       {
-        smoother_data[l].order[i].resize(smoother_data[l].block_list.n_rows());
-        std::vector<std::pair<Point<dim>, types::global_dof_index>> aux(
-          smoother_data[l].order[i].size());
+        std::vector<unsigned int>& order_for_direction = smoother_data[l].order[i];
+        order_for_direction.resize(smoother_data[l].block_list.n_rows());
+        std::vector<std::pair<Point<dim>, types::global_dof_index>> aux(order_for_direction.size());
         if (this->vertex_patches)
         {
           for (unsigned int j = 0; j < vertex_mapping.size(); ++j)
@@ -292,9 +292,9 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
         }
         DoFRenumbering::ComparePointwiseDownstream<dim> comp(advection_directions[i]);
         std::sort(aux.begin(), aux.end(), comp);
-        smoother_data[l].order[i].resize(aux.size());
+        order_for_direction.resize(aux.size());
         for (unsigned int j = 0; j < smoother_data[l].order[i].size(); ++j)
-          smoother_data[l].order[i][j] = aux[j].second;
+          order_for_direction[j] = aux[j].second;
       }
     }
 
@@ -340,13 +340,7 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
 
   PreconditionMG<dim, Vector<double>, MGTransferPrebuilt<Vector<double>>> preconditioner(
     this->dof_handler, mg, mg_transfer);
-  try
-  {
-    solver.solve(this->matrix[0], sol, rhs, preconditioner);
-  }
-  catch (...)
-  {
-  }
+  solver.solve(this->matrix[0], sol, rhs, preconditioner);
   this->constraints().distribute(sol);
 }
 
@@ -356,7 +350,7 @@ void
 AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<double>>& eigenvalues,
                                                   std::vector<Vector<double>>& eigenvectors)
 {
-  unsigned long min_Arnoldi_vectors = 20;
+  size_t min_Arnoldi_vectors = 20;
   bool symmetric = false;
   unsigned int max_steps = 100;
   double tolerance = 1e-10;
@@ -427,7 +421,7 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   for (unsigned int i = 0; i < eigenvalues.size(); ++i)
   {
     eigenvectors[i] = arpack_vectors[i];
-    if (eigenvalues[i].imag() != 0.)
+    if (std::fabs(eigenvalues[i].imag()) > 1.e-12)
     {
       eigenvectors[i + eigenvalues.size()] = arpack_vectors[i + 1];
       if (i + 1 < eigenvalues.size())
