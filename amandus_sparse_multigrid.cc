@@ -251,7 +251,7 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
                                                      this->dof_handler,
                                                      l,
                                                      exclude_boundary_dofs,
-                                                     false,
+                                                     boundary_patches,
                                                      false,
                                                      false,
                                                      true);

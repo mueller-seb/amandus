@@ -91,8 +91,10 @@ main(int argc, const char** argv)
   ::Elasticity::Residual<d, 1> rhs_integrator(parameters, startup, boundaries);
   rhs_integrator.input_vector_names.push_back("Newton iterate");
 
-  AmandusUMFPACK<d> app(tr, *fe);
+  AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
+  app.boundary_patches = true;
+  
   app.set_boundary(0, ComponentMask(2, false));
   app.set_boundary(1, ComponentMask(2, false));
   app.set_boundary(2, ComponentMask(2, false));

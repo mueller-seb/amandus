@@ -317,8 +317,6 @@ public:
 
   typename dealii::Triangulation<dim>::Signals& signals;
 
-  bool vertex_patches = true;
-
 protected:
   /// The mesh
   dealii::SmartPointer<dealii::Triangulation<dim>, AmandusApplicationSparse<dim>> triangulation;
@@ -442,6 +440,20 @@ public:
    */
   virtual void arpack_solve(std::vector<std::complex<double>>& eigenvalues,
                             std::vector<dealii::Vector<double>>& eigenvectors);
+
+    /**
+     * The multigrid smoother uses vertex patches instead of inverting
+     * cell matrices.
+     */
+  bool vertex_patches = true;
+    /**
+     * If using vertex patches, also add patches for vertices at the
+     * boundary. This is necessary for instance if only interior
+     * degrees of freedom of the patch are used for local smoothing
+     * operations and some boundary degrees of freedom are not
+     * constrained by essential boundary conditions.
+     */
+  bool boundary_patches = false;
 
 protected:
   dealii::MGConstrainedDoFs mg_constraints;
