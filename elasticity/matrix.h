@@ -18,7 +18,7 @@ using namespace dealii::MeshWorker;
 namespace Elasticity
 {
 /**
- * Integrator for Elasticity problems and heat equation.
+ * Integrator for Elasticity problems
  *
  * The distinction between stationary and instationary problems is
  * made by the variable AmandusIntegrator::timestep, which is
