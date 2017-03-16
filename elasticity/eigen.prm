@@ -1,0 +1,22 @@
+set Steps = 3
+set Eigenvalues = 5
+
+set Mu = 1.
+set Lambda = 1.
+set Linear = true
+
+subsection Discretization
+#  set FE         = FE_RaviartThomas(1)
+  set FE         = FESystem[FESystem[FE_DGQ(1)^d]]
+  set Refinement = 1
+end
+
+subsection Linear Solver
+  set Tolerance = 1.e-10
+  set Reduction = 1.e-20
+end
+
+subsection Output
+  set Output format = none
+  set Subdivisions = 2
+end
