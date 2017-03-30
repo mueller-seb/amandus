@@ -46,7 +46,8 @@ public:
   double timestep;
 
   /**
-  * The number of errors to compute if this is called by an error computation or estimation loop.
+  * The number of errors to compute if this is called by an error computation or
+  * estimation loop.
   */
   unsigned int n_errors() const;
 
@@ -118,8 +119,8 @@ public:
   }
 
   ErrorIntegrator(const dealii::Function<dim>& solution)
-    : solution(&solution)
-    , block_idx(dealii::numbers::invalid_unsigned_int)
+    : block_idx(dealii::numbers::invalid_unsigned_int)
+    , solution(&solution)
   {
     this->use_cell = false;
     this->use_face = false;
@@ -489,7 +490,7 @@ Theta<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
 
         for (unsigned int i = 0; i < dinfo.n_matrices(); ++i)
         {
-          const dealii::MatrixBlock<dealii::FullMatrix<double>>& local_matrix_block =
+          dealii::MatrixBlock<dealii::FullMatrix<double>>& local_matrix_block =
             dinfo.matrix(i, false);
           if (local_matrix_block.row == block_idx && local_matrix_block.column == block_idx)
           {
