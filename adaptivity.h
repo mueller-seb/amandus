@@ -97,10 +97,10 @@ protected:
   void
   connect_transfer()
   {
-    this->tria->signals.pre_refinement.connect(dealii::std_cxx11::bind(
-      &InterpolatingRemesher<VECTOR, dim>::prepare_transfer, dealii::std_cxx11::ref(*this)));
-    this->tria->signals.post_refinement.connect(dealii::std_cxx11::bind(
-      &InterpolatingRemesher<VECTOR, dim>::finalize_transfer, dealii::std_cxx11::ref(*this)));
+    this->tria->signals.pre_refinement.connect(
+      std::bind(&InterpolatingRemesher<VECTOR, dim>::prepare_transfer, std::ref(*this)));
+    this->tria->signals.post_refinement.connect(
+      std::bind(&InterpolatingRemesher<VECTOR, dim>::finalize_transfer, std::ref(*this)));
   }
 
   dealii::SolutionTransfer<dim, VECTOR> transfer;
@@ -209,8 +209,8 @@ public:
 
   /// Set callback for flagging
   void
-  flag_callback(dealii::std_cxx11::function<void(dealii::Triangulation<dim>&,
-                                                 const dealii::BlockVector<double>&)> callback)
+  flag_callback(
+    std::function<void(dealii::Triangulation<dim>&, const dealii::BlockVector<double>&)> callback)
   {
     this->callback = callback;
   }
@@ -231,8 +231,7 @@ protected:
     */
   ErrorIntegrator<dim>* error_integrator;
   dealii::BlockVector<double> indicator;
-  dealii::std_cxx11::function<void(dealii::Triangulation<dim>&, const dealii::BlockVector<double>&)>
-    callback;
+  std::function<void(dealii::Triangulation<dim>&, const dealii::BlockVector<double>&)> callback;
 };
 
 /**
