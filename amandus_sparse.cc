@@ -710,7 +710,7 @@ AmandusApplicationSparse<dim>::output_results(const unsigned int cycle, const An
   }
   else
   {
-    data_out.set_default_format(DataOutBase::vtk);
+    data_out.set_default_format(DataOutBase::vtu);
   }
 
   if (data_out.default_suffix() == std::string(""))
