@@ -10,7 +10,7 @@ set (CMAKE_BUILD_TYPE "Debug")
 
 # List of subdirectories with example codes
 SET(EXAMPLES laplace advection advection-diffusion
-  stokes maxwell
+  stokes maxwell darcy
   allen_cahn cahn_hilliard
   brusselator readiff
   elasticity
