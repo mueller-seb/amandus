@@ -63,9 +63,17 @@ public:
    */
   dealii::UpdateFlags update_flags() const;
   /**
-   * \brief Add update flags.
+   * \brief Returns the update flags to be used on boundary and interior faces.
+   */
+  dealii::UpdateFlags update_flags_face() const;
+  /**
+   * \brief Add update flags on all objects.
    */
   void add_flags(const dealii::UpdateFlags flags);
+  /**
+   * \brief Add update flags on boundary and internal faces.
+   */
+  void add_flags_face(const dealii::UpdateFlags flags);
 
   /**
    * \brief Quadrature rule used on cells.
@@ -98,6 +106,7 @@ protected:
 
 private:
   dealii::UpdateFlags u_flags;
+  dealii::UpdateFlags f_flags;
 };
 
 /**
@@ -395,6 +404,13 @@ AmandusIntegrator<dim>::update_flags() const
 }
 
 template <int dim>
+inline dealii::UpdateFlags
+AmandusIntegrator<dim>::update_flags_face() const
+{
+  return f_flags;
+}
+
+template <int dim>
 inline unsigned int
 AmandusIntegrator<dim>::n_errors() const
 {
@@ -414,6 +430,13 @@ inline void
 AmandusIntegrator<dim>::add_flags(const dealii::UpdateFlags flags)
 {
   u_flags |= flags;
+}
+
+template <int dim>
+inline void
+AmandusIntegrator<dim>::add_flags_face(const dealii::UpdateFlags flags)
+{
+  f_flags |= flags;
 }
 
 template <int dim>

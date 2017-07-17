@@ -178,6 +178,8 @@ AmandusApplication<dim, RELAXATION>::assemble_mg_matrix(const dealii::AnyData& i
 
   UpdateFlags update_flags = integrator.update_flags();
   info_box.add_update_flags_all(update_flags);
+  info_box.add_update_flags_boundary(integrator.update_flags_face());
+  info_box.add_update_flags_face(integrator.update_flags_face());
   info_box.initialize(
     *this->fe, this->mapping, mg_in, Vector<double>(), &this->dof_handler.block_info());
 

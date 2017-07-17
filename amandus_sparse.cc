@@ -265,6 +265,8 @@ AmandusApplicationSparse<dim>::assemble_matrix(const dealii::AnyData& in,
   }
 
   info_box.add_update_flags_all(update_flags);
+  info_box.add_update_flags_boundary(integrator.update_flags_face());
+  info_box.add_update_flags_face(integrator.update_flags_face());
   if (integrator.cell_quadrature != 0)
   {
     info_box.cell_quadrature = *(integrator.cell_quadrature);
@@ -334,6 +336,8 @@ AmandusApplicationSparse<dim>::assemble_right_hand_side(
   }
 
   info_box.add_update_flags_all(update_flags);
+  info_box.add_update_flags_boundary(integrator.update_flags_face());
+  info_box.add_update_flags_face(integrator.update_flags_face());
   // user defined quadrature rules if set
   if (integrator.cell_quadrature != 0)
   {
