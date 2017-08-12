@@ -1,4 +1,5 @@
 subsection Discretization
   set FE         = FESystem[FE_RaviartThomas(3)-FE_DGQ(3)]
   set Refinement = 1
+  set Local refinement = false
 end

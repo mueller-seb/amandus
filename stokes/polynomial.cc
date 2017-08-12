@@ -46,21 +46,29 @@ main(int argc, const char** argv)
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
+  if (param.get_bool("Local refinement"))
+  {
+    tr.refine_global(1);
+    tr.begin_active()->set_refine_flag();
+    tr.execute_coarsening_and_refinement();
+  }
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  Polynomials::Polynomial<double> solution1d;
-  solution1d += Polynomials::Monomial<double>(4, 1.);
-  solution1d += Polynomials::Monomial<double>(2, -2.);
-  solution1d += Polynomials::Monomial<double>(0, 1.);
-  solution1d.print(std::cout);
+  // The curl potentialof u, needs zero tangential derivatives at the
+  // boundary for consistency with boundary conditions
+  Polynomials::Polynomial<double> solution1dcurl(4);
+  solution1dcurl += Polynomials::Monomial<double>(4, 1.);
+  solution1dcurl += Polynomials::Monomial<double>(2, -2.);
+  solution1dcurl += Polynomials::Monomial<double>(0, 1.);
+  solution1dcurl.print(std::cout);
 
-  Polynomials::Polynomial<double> solution1dp(1);
+  Polynomials::Polynomial<double> solution1dp(3);
   solution1dp += Polynomials::Monomial<double>(3, 1.);
 
   StokesIntegrators::Matrix<d> matrix_integrator;
-  StokesIntegrators::PolynomialRHS<d> rhs_integrator(solution1d, solution1dp);
-  StokesIntegrators::PolynomialError<d> error_integrator(solution1d, solution1dp);
+  StokesIntegrators::PolynomialRHS<d> rhs_integrator(solution1dcurl, solution1dp);
+  StokesIntegrators::PolynomialError<d> error_integrator(solution1dcurl, solution1dp);
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);

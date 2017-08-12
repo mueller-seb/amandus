@@ -47,14 +47,14 @@ main(int argc, const char** argv)
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   if (param.get_bool("Local refinement"))
-    {
-      tr.refine_global(1);
-      tr.begin_active()->set_refine_flag();
-      tr.execute_coarsening_and_refinement();
-    }
+  {
+    tr.refine_global(1);
+    tr.begin_active()->set_refine_flag();
+    tr.execute_coarsening_and_refinement();
+  }
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
-  
+
   // The curl potentialof u, needs zero tangential derivatives at the
   // boundary for consistency with boundary conditions
   Polynomials::Polynomial<double> solution1dcurl(4);
@@ -66,7 +66,7 @@ main(int argc, const char** argv)
   // The following part is not working yet. Solutions seem to havr the
   // same shape, there holds u=grad p, but there is a factor between
   // the true and numerical solution.
-  
+
   // The grad potential of u, needs zero normal derivatives at the boundary
   Polynomials::Polynomial<double> solution1dgrad(3);
   // solution1dgrad += Polynomials::Monomial<double>(3, 1.);
@@ -78,7 +78,9 @@ main(int argc, const char** argv)
 
   DarcyIntegrators::Matrix<d> matrix_integrator;
   DarcyIntegrators::Polynomial::RHS<d> rhs_integrator(solution1dcurl, solution1dgrad, solution1dp);
-  DarcyIntegrators::Polynomial::Error<d> error_integrator(solution1dcurl, solution1dgrad, solution1dp);;
+  DarcyIntegrators::Polynomial::Error<d> error_integrator(
+    solution1dcurl, solution1dgrad, solution1dp);
+  ;
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);

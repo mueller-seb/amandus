@@ -179,7 +179,7 @@ RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     py.resize(3);
     grad_potential_1d.value(x, px);
     grad_potential_1d.value(y, py);
-    rhs_p[k] = - px[2] * py[0] - px[0] * py[2];
+    rhs_p[k] = -px[2] * py[0] - px[0] * py[2];
   }
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs_u);
@@ -338,7 +338,7 @@ Error<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     Du1[0] -= px[1] * py[1];
     Du1[1] -= px[0] * py[2];
 
-    double divu = Du0[0] + Du1[1] + px[2]*py[0] + px[0]*py[2];
+    double divu = Du0[0] + Du1[1] + px[2] * py[0] + px[0] * py[2];
     p -= px[0] * py[0];
     Dp[0] -= px[1] * py[0];
     Dp[1] -= px[0] * py[1];
