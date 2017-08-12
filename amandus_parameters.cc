@@ -21,6 +21,7 @@ AmandusParameters::AmandusParameters()
   enter_subsection("Discretization");
   declare_entry("FE", "FE_Nothing", Patterns::Anything());
   declare_entry("Refinement", "1", Patterns::Integer());
+  declare_entry("Local refinement", "false", Patterns::Bool());
   leave_subsection();
 
   enter_subsection("Linear Solver");
