@@ -20,6 +20,8 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
+namespace DarcyIntegrators
+{
 /**
  * Integrate the residual for a Darcy problem, where the
  * solution is the curl of the symmetric tensor product of a given
@@ -28,7 +30,7 @@ using namespace MeshWorker;
  * @ingroup integrators
  */
 template <int dim>
-class DarcyNoForceResidual : public AmandusIntegrator<dim>
+class NoForceResidual : public AmandusIntegrator<dim>
 {
 public:
   DarcyNoForceResidual();
@@ -71,6 +73,7 @@ inline void
 DarcyNoForceResidual<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
                                 IntegrationInfo<dim>&) const
 {
+}
 }
 
 #endif

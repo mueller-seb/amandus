@@ -30,7 +30,7 @@
 
 #include <amandus/integrator.h>
 
-namespace Darcy
+namespace DarcyIntegrators
 {
 /**
  * Calculates a discontinuous function by solving a mean value constrained

@@ -56,7 +56,7 @@ using namespace MeshWorker;
  *
  * @ingroup integrators
  */
-namespace Darcy
+namespace DarcyIntegrators
 {
 namespace Polynomial
 {
@@ -161,25 +161,25 @@ RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     curl_potential_1d.value(x, px);
     curl_potential_1d.value(y, py);
 
-    // Right hand side corresponding to the vector potential of the velocity
+    // Right hand side f corresponding to the vector potential of the velocity
     rhs_u[0][k] = px[0] * py[1];
     rhs_u[1][k] = -px[1] * py[0];
 
-    // Add a gradient part to the right hand side to test for
+    // Add a gradient part to the right hand side f to test for
     // pressure
     pressure_1d.value(x, px);
     pressure_1d.value(y, py);
     rhs_u[0][k] += px[1] * py[0];
     rhs_u[1][k] += px[0] * py[1];
 
-    // Right hand side corresponding to the scalar potential of the
+    // Right hand side g corresponding to the scalar potential of the
     // velocity, entering as inhomogeneity for the divergence.
 
     px.resize(3);
     py.resize(3);
     grad_potential_1d.value(x, px);
     grad_potential_1d.value(y, py);
-    rhs_p[k] += px[2] * py[0] + px[0] * py[2];
+    rhs_p[k] = - px[2] * py[0] - px[0] * py[2];
   }
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs_u);
@@ -287,7 +287,11 @@ Error<dim>::Error(const Polynomials::Polynomial<double> curl_potential_1d,
   , grad_potential_1d(grad_potential_1d)
   , pressure_1d(pressure_1d)
 {
-  this->num_errors = 5;
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
+  this->error_types.push_back(0);
+  this->error_types.push_back(2);
+  this->error_types.push_back(2);
   this->use_boundary = false;
   this->use_face = false;
 }
@@ -334,7 +338,7 @@ Error<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     Du1[0] -= px[1] * py[1];
     Du1[1] -= px[0] * py[2];
 
-    double divu = Du0[0] + Du1[1];
+    double divu = Du0[0] + Du1[1] + px[2]*py[0] + px[0]*py[2];
     p -= px[0] * py[0];
     Dp[0] -= px[1] * py[0];
     Dp[1] -= px[0] * py[1];

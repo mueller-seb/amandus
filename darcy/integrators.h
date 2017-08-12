@@ -25,7 +25,7 @@
  *
  * @ingroup integrators
  */
-namespace Darcy
+namespace DarcyIntegrators
 {
 /**
  * The mass matrix for a weighted L2 inner product of vector valued finite

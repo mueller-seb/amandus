@@ -18,7 +18,7 @@ using namespace LocalIntegrators;
 /**
  * Integrators for Darcy equation
  */
-namespace Darcy
+namespace DarcyIntegrators
 {
 template <int dim>
 class Matrix : public AmandusIntegrator<dim>
@@ -54,7 +54,7 @@ Matrix<dim>::cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
   const unsigned int id = dinfo.cell->material_id();
   AssertIndexRange(id, resistance.size());
   const double R = resistance[id];
-
+  
   L2::mass_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), R);
   Divergence::cell_matrix(dinfo.matrix(2, false).matrix, info.fe_values(0), info.fe_values(1));
   dinfo.matrix(1, false).matrix.copy_transposed(dinfo.matrix(2, false).matrix);

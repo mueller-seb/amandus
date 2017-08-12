@@ -41,7 +41,7 @@ main()
   FE_DGQ<d> scal(degree);
   FESystem<d> fe(vec, 1, scal, 1);
 
-  Darcy::Matrix<d> matrix_integrator;
+  DarcyIntegrators::Matrix<d> matrix_integrator;
   RhsOne<d> rhs_integrator;
 
   AmandusApplication<d> app(tr, fe);
