@@ -1,0 +1,7 @@
+include_guard __biot_parameters_h
+namespace Biot
+parameter double mu "1." "Mu"
+parameter double lambda "1." "Lambda"
+parameter double resistance ".01" "Resistance"
+parameter double p_to_disp "0." "Pressure to Displacement"
+parameter double storage "0." "Specific storage capacity"
