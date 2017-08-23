@@ -63,10 +63,6 @@ main(int argc, const char** argv)
   solution1dcurl += Polynomials::Monomial<double>(0, 1.);
   solution1dcurl.print(std::cout);
 
-  // The following part is not working yet. Solutions seem to havr the
-  // same shape, there holds u=grad p, but there is a factor between
-  // the true and numerical solution.
-
   // The grad potential of u, needs zero normal derivatives at the boundary
   // and zero mean value
   Polynomials::Polynomial<double> solution1dgrad(3);

@@ -290,10 +290,17 @@ PolynomialError<dim>::PolynomialError(const Polynomials::Polynomial<double> curl
   , grad_potential_1d(grad_potential_1d)
 {
   this->error_types.push_back(2);
+  this->error_names.push_back("L2u");
   this->error_types.push_back(2);
-  this->error_types.push_back(0);
+  this->error_names.push_back("H1u");
   this->error_types.push_back(2);
+  this->error_names.push_back("L2divu");
   this->error_types.push_back(2);
+  this->error_names.push_back("L2p");
+  this->error_types.push_back(2);
+  this->error_names.push_back("H1p");
+  this->error_types.push_back(1);
+  this->error_names.push_back("meanp");
   this->use_boundary = false;
   this->use_face = false;
 }
@@ -342,10 +349,13 @@ PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
     dinfo.value(3) += p * p * dx;
     // 4. H^1(p)
     dinfo.value(4) += Dp * Dp * dx;
+    // 5. Mean value of p
+    dinfo.value(5) += p * dx;
   }
 
   for (unsigned int i = 0; i <= 4; ++i)
-    dinfo.value(i) = std::sqrt(dinfo.value(i));
+    if (this->error_type(i) == 2)
+      dinfo.value(i) = std::sqrt(dinfo.value(i));
 }
 
 template <int dim>

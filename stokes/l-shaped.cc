@@ -22,10 +22,10 @@
  */
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
+#include <amandus/refine_strategy.h>
 #include <amandus/stokes/function.h>
 #include <amandus/stokes/matrix.h>
 #include <amandus/stokes/solution.h>
-#include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/base/flow_function.h>
 #include <deal.II/fe/fe_tools.h>
