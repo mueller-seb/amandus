@@ -1,5 +1,4 @@
 /**********************************************************************
- * $Id$
  *
  * Copyright Guido Kanschat, 2010, 2012, 2013
  *
@@ -173,8 +172,11 @@ PolynomialError<dim>::PolynomialError(
 {
   AssertDimension(potentials_1d.size(), (dim == 2 ? 2 : dim + 1));
   this->error_types.push_back(2);
+  this->error_names.push_back("u");
   this->error_types.push_back(2);
+  this->error_names.push_back("gradu");
   this->error_types.push_back(2);
+  this->error_names.push_back("divu");
   this->use_boundary = false;
   this->use_face = false;
 }

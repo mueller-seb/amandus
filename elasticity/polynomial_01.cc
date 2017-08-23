@@ -44,6 +44,12 @@ main(int argc, const char** argv)
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
+  if (param.get_bool("Local refinement"))
+  {
+    tr.refine_global(1);
+    tr.begin_active()->set_refine_flag();
+    tr.execute_coarsening_and_refinement();
+  }
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
   std::set<unsigned int> boundaries;
