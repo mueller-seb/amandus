@@ -179,7 +179,7 @@ RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     py.resize(3);
     grad_potential_1d.value(x, px);
     grad_potential_1d.value(y, py);
-    rhs_p[k] = -px[2] * py[0] - px[0] * py[2];
+    rhs_p[k] += px[2] * py[0] + px[0] * py[2];
   }
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs_u);
@@ -251,7 +251,7 @@ Residual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     py.resize(3);
     grad_potential_1d.value(x, px);
     grad_potential_1d.value(y, py);
-    rhs_p[k] += px[2] * py[0] + px[0] * py[2];
+    rhs_p[k] -= px[2] * py[0] + px[0] * py[2];
   }
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs_u, -1.);
@@ -289,7 +289,7 @@ Error<dim>::Error(const Polynomials::Polynomial<double> curl_potential_1d,
 {
   this->error_types.push_back(2);
   this->error_types.push_back(2);
-  this->error_types.push_back(0);
+  this->error_types.push_back(2);
   this->error_types.push_back(2);
   this->error_types.push_back(2);
   this->use_boundary = false;
@@ -337,8 +337,8 @@ Error<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     Du0[1] -= px[1] * py[1];
     Du1[0] -= px[1] * py[1];
     Du1[1] -= px[0] * py[2];
-
-    double divu = Du0[0] + Du1[1] + px[2] * py[0] + px[0] * py[2];
+    double dive = Du0[0] + Du1[1];
+    
     p -= px[0] * py[0];
     Dp[0] -= px[1] * py[0];
     Dp[1] -= px[0] * py[1];
@@ -348,7 +348,7 @@ Error<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     // 1. H^1(u)
     dinfo.value(1) += ((Du0 * Du0) + (Du1 * Du1)) * dx;
     // 2. div u
-    dinfo.value(2) += divu * divu * dx;
+    dinfo.value(2) += dive * dive * dx;
     // 3. L^2(p) up to mean value
     dinfo.value(3) += p * p * dx;
     // 4. H^1(p)

@@ -68,9 +68,11 @@ main(int argc, const char** argv)
   // the true and numerical solution.
 
   // The grad potential of u, needs zero normal derivatives at the boundary
+  // and zero mean value
   Polynomials::Polynomial<double> solution1dgrad(3);
-  // solution1dgrad += Polynomials::Monomial<double>(3, 1.);
-  // solution1dgrad += Polynomials::Monomial<double>(1, 3.);
+  solution1dgrad += Polynomials::Monomial<double>(3, 1.);
+  solution1dgrad += Polynomials::Monomial<double>(1, -3.);
+  solution1dgrad += Polynomials::Monomial<double>(0, 11.5);
 
   // The gradient potential of f, source for nonzero pressure
   Polynomials::Polynomial<double> solution1dp(3);
