@@ -19,6 +19,8 @@
 #include <deal.II/meshworker/integration_info.h>
 #include <deal.II/meshworker/local_integrator.h>
 
+#include <string>
+
 /**
  * A local integrator which additionally manages the update flags and
  * quadrature rules to be used.
@@ -52,11 +54,17 @@ public:
   unsigned int n_errors() const;
 
   /**
-   * The type of error. A positive value indicates the exponent of
-   * the $\ell_p$ norm over all cells. Zero indicates the maximum
-   * norm over all cells.
+   * The type of error. A positive value indicates the exponent of the
+   * $\ell_p$ norm over all cells, with two exceptions. Zero indicates
+   * the maximum norm over all cells. One indicates the mean value
+   * without absolute values taken.
    */
   unsigned int error_type(unsigned int i) const;
+
+  /**
+   * The name of an error for output purposes.
+   */
+  std::string error_name(unsigned int i) const;
 
   /**
    * \brief Returns the update flags to be used.
@@ -100,9 +108,16 @@ protected:
   /**
    * Fill this in derived classes. For each error computed, the
    * exponent of the vector $\ell_p$-norm used, where zero is the
-   * maximum norm.
+   * maximum norm and one is the mean value without absolute values taken.
    */
   std::vector<unsigned int> error_types;
+
+  /**
+   * Fill this in derived classes. For each error computed this is the
+   * name of the error written to output and used in the convergence
+   * tables. If left empty, a number is used insted.
+   */
+  std::vector<std::string> error_names;
 
 private:
   dealii::UpdateFlags u_flags;
@@ -423,6 +438,15 @@ AmandusIntegrator<dim>::error_type(unsigned int i) const
 {
   AssertIndexRange(i, n_errors());
   return error_types[i];
+}
+
+template <int dim>
+inline std::string
+AmandusIntegrator<dim>::error_name(unsigned int i) const
+{
+  if (error_names.size() > i)
+    return error_names[i];
+  return std::string();
 }
 
 template <int dim>

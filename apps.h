@@ -84,14 +84,21 @@ global_refinement_linear_loop(unsigned int n_steps, AmandusApplicationSparse<dim
     if (error != 0)
     {
       app.error(errors, solution_data, *error);
-      std::vector<double> global_errors(errors.n_blocks());
+      std::vector<double> global_errors(errors.n_blocks(), 0.);
       for (unsigned int i = 0; i < errors.n_blocks(); ++i)
       {
         if (error->error_type(i) == 0)
           global_errors[i] = errors.block(i).linfty_norm();
+        else if (error->error_type(i) == 1)
+          for (unsigned int k = 0; k < errors.block(i).size(); ++k)
+            global_errors[i] += errors.block(i)[k];
         else
           global_errors[i] = errors.block(i).lp_norm(error->error_type(i));
-        dealii::deallog << "Error(" << i << "): " << global_errors[i] << std::endl;
+        if (error->error_name(i) != std::string())
+          dealii::deallog << "Error(" << error->error_name(i) << "): " << global_errors[i]
+                          << std::endl;
+        else
+          dealii::deallog << "Error(" << i << "): " << global_errors[i] << std::endl;
       }
 
       for (unsigned int i = 0; i < errors.n_blocks(); ++i)
@@ -99,6 +106,8 @@ global_refinement_linear_loop(unsigned int n_steps, AmandusApplicationSparse<dim
         std::string err_name{ "Error(" };
         err_name += std::to_string(i);
         err_name += ")";
+        if (error->error_name(i) != std::string())
+          err_name = error->error_name(i);
         convergence_table.add_value(err_name, global_errors[i]);
         convergence_table.evaluate_convergence_rates(err_name,
                                                      dealii::ConvergenceTable::reduction_rate_log2);
@@ -119,6 +128,8 @@ global_refinement_linear_loop(unsigned int n_steps, AmandusApplicationSparse<dim
         std::string err_name{ "Error(" };
         err_name += std::to_string(i);
         err_name += ")";
+        if (error->error_name(i) != std::string())
+          err_name = error->error_name(i);
         out_data.add(&errors.block(i), err_name);
       }
     app.output_results(s, &out_data);
@@ -719,13 +730,10 @@ adaptive_refinement_eigenvalue_loop(unsigned int max_dofs, unsigned int n_eigenv
       sort_eigenvalues[i].first = i;
       sort_eigenvalues[i].second = eigenvalues[i].real();
     }
-    sort(
-      sort_eigenvalues.begin(),
-      sort_eigenvalues.end(),
-      [](const std::pair<unsigned int, double>& left, const std::pair<unsigned int, double>& right)
-      {
-        return left.second < right.second;
-      });
+    sort(sort_eigenvalues.begin(),
+         sort_eigenvalues.end(),
+         [](const std::pair<unsigned int, double>& left,
+            const std::pair<unsigned int, double>& right) { return left.second < right.second; });
 
     // eigenvalue errors
     dealii::deallog << "Dofs: " << app.dofs().n_dofs() << std::endl;
