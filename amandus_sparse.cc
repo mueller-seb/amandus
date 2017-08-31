@@ -8,7 +8,6 @@
 
 #include <deal.II/lac/arpack_solver.h>
 #include <deal.II/lac/block_vector.h>
-#include <deal.II/lac/iterative_inverse.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/relaxation_block.h>
@@ -183,7 +182,7 @@ void
 AmandusApplicationSparse<dim>::setup_system()
 {
   dof_handler.distribute_dofs(*this->fe);
-  this->dof_handler.distribute_mg_dofs(*this->fe);
+  this->dof_handler.distribute_mg_dofs();
   dof_handler.initialize_local_block_info();
   unsigned int n_dofs = dof_handler.n_dofs();
 
@@ -480,13 +479,11 @@ AmandusApplicationSparse<dim>::arpack_solve(std::vector<std::complex<double>>& e
     solver.solve(matrix[0], matrix[1], inverse, eigenvalues, arpack_vectors, eigenvalues.size());
   else
   {
-    SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
     PreconditionIdentity identity;
-    IterativeInverse<Vector<double>> inv;
-    inv.initialize(matrix[0], identity);
-    inv.solver.set_control(control);
-    inv.solver.set_data(solver_data);
-    inv.solver.select("gmres");
+    SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
+    SolverGMRES<Vector<double>> inner(control, solver_data);
+    const auto A = linear_operator(matrix[0]); 
+    const auto inv = inverse_operator(A, inner, identity); 
     solver.solve(matrix[0], matrix[1], inv, eigenvalues, arpack_vectors, eigenvalues.size());
   }
   for (unsigned int i = 0; i < arpack_vectors.size(); ++i)

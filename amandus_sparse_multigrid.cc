@@ -7,7 +7,6 @@
  **********************************************************************/
 
 #include <deal.II/lac/block_vector.h>
-#include <deal.II/lac/iterative_inverse.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/precondition_block.h>
 #include <deal.II/lac/relaxation_block.h>
@@ -387,7 +386,6 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   if (eigenvectors[0].l2_norm() != 0.)
     solver.set_initial_vector(eigenvectors[0]);
 
-  SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
   mg::Matrix<Vector<double>> mgmatrix(mg_matrix);
   mg::Matrix<Vector<double>> mgdown(mg_matrix_down);
   mg::Matrix<Vector<double>> mgup(mg_matrix_up);
@@ -402,13 +400,10 @@ AmandusApplication<dim, RELAXATION>::arpack_solve(std::vector<std::complex<doubl
   PreconditionMG<dim, Vector<double>, MGTransferPrebuilt<Vector<double>>> preconditioner(
     this->dof_handler, mg, mg_transfer);
 
-  PreconditionIdentity identity;
-  IterativeInverse<Vector<double>> inv;
-  inv.initialize(this->matrix[0], preconditioner);
-  // inv.initialize(this->matrix[0], identity);
-  inv.solver.set_control(this->control);
-  inv.solver.set_data(solver_data);
-  inv.solver.select("gmres");
+  SolverGMRES<Vector<double>>::AdditionalData solver_data(40, true);
+  SolverGMRES<Vector<double>> inner(this->control, solver_data);
+  const auto A = linear_operator(this->matrix[0]); 
+  const auto inv = inverse_operator(A, inner, preconditioner); 
 
   for (unsigned int i = 0; i < this->matrix[1].m(); ++i)
     if (this->constraints().is_constrained(i))

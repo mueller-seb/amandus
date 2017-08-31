@@ -60,9 +60,6 @@ initlog(bool console = false)
   deallogfile.open(deallogname.c_str());
   deallog.attach(deallogfile);
   deallog.depth_console(console ? 10 : 0);
-
-  // TODO: Remove this line and replace by test_mode()
-  deallog.threshold_float(1.e-8);
 }
 
 int

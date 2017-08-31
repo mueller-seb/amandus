@@ -10,16 +10,16 @@
  * @ingroup Examples
  */
 
-#include <apps.h>
+#include <amandus/apps.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/base/function.h>
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
-#include <elasticity/matrix.h>
+#include <amandus/elasticity/matrix.h>
 #include <elasticity/parameters.h>
-#include <elasticity/polynomial.h>
-#include <elasticity/residual.h>
+#include <amandus/elasticity/polynomial.h>
+#include <amandus/elasticity/residual.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -39,9 +39,9 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_from_name<d>(param.get("FE")));
+  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d>(param.get("FE")));
 
-  Triangulation<d> tr;
+  Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
