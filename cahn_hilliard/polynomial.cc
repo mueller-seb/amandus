@@ -210,7 +210,7 @@ run(AmandusParameters& param)
   mask.push_back(true);
   BlockMask timemask(mask);
 
-  ZeroFunction<d> zero_advection(d);
+  Functions::ZeroFunction<d> zero_advection(d);
   CahnHilliard::Matrix<d> matrix(diffusion, zero_advection);
   matrix.input_vector_names.push_back("Newton iterate");
   CahnHilliard::Residual<d> residual_integrator(diffusion, zero_advection);

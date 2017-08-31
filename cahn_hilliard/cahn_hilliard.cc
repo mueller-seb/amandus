@@ -128,7 +128,7 @@ main(int argc, const char** argv)
 
   // CahnHilliard::Remesher<Vector<double>, d> remesher(threshold, c_threshold);
   Integrators::H1ErrorIntegrator<d> h1_error_integrator;
-  ZeroFunction<d> zero(2);
+  Functions::ZeroFunction<d> zero(2);
   ErrorIntegrator<d> refine_integrator(zero);
   ComponentMask refine_mask(2, false);
   refine_mask.set(1, true);

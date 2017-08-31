@@ -320,7 +320,7 @@ selector(int i)
     case 4:
       return new TopologicalFunction2;
     case 5:
-      return new ZeroFunction<dim>(2);
+      return new Functions::ZeroFunction<dim>(2);
     case 6:
       return new SquareFunction;
     case 7:
