@@ -267,17 +267,18 @@ global_refinement_eigenvalue_loop(unsigned int n_steps, unsigned int n_values,
     dealii::AnyData out_data;
     for (unsigned int i = 0; i < n_values; ++i)
     {
+      std::ostringstream nstream;
+      nstream << "ev" << std::setw(3) << std::setfill('0') << i;
       if (symmetric)
       {
-        out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i));
+        out_data.add(&eigenvectors[i], nstream.str());
         dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15)
                         << eigenvalues[i].real() << std::endl;
       }
       else
       {
-        out_data.add(&eigenvectors[i], std::string("ev") + std::to_string(i) + std::string("re"));
-        out_data.add(&eigenvectors[n_values + i],
-                     std::string("ev") + std::to_string(i) + std::string("im"));
+        out_data.add(&eigenvectors[i], nstream.str() + std::string("re"));
+        out_data.add(&eigenvectors[n_values + i], nstream.str() + std::string("im"));
         dealii::deallog << "Eigenvalue " << i << '\t' << std::setprecision(15) << eigenvalues[i]
                         << std::endl;
       }
