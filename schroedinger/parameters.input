@@ -1,2 +1,4 @@
-include_guard __laplace_parameters_h
-namespace LaplaceIntegrators
+include_guard __schroedinger_parameters_h
+namespace Schroedinger
+parameter double	Shift	"200."	"Eigenvalue shift"
+parameter double	Depth	"100."	"Factor for potential"

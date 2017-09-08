@@ -22,6 +22,7 @@
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
+#include <schroedinger/parameters.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -35,12 +36,17 @@ main(int argc, const char** argv)
   deallog.depth_console(10);
 
   AmandusParameters param;
+  Schroedinger::Parameters::declare_parameters(param);
+
   param.declare_entry("Eigenvalues", "12", Patterns::Integer());
   param.enter_subsection("Arpack");
   param.set("Symmetric", "true");
   param.leave_subsection();
   param.read(argc, argv);
   param.log_parameters(deallog);
+
+  Schroedinger::Parameters parameters;
+  parameters.parse_parameters(param);
 
   param.enter_subsection("Discretization");
   boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
@@ -50,7 +56,7 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  SchroedingerIntegrators::Eigen<d> matrix_integrator;
+  Schroedinger::Logarithmic<d> matrix_integrator(parameters);
   AmandusUMFPACK<d> app(tr, *fe);
   app.parse_parameters(param);
 
