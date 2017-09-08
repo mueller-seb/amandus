@@ -1,9 +1,9 @@
-set Steps = 3
+set Steps = 6
 set Eigenvalues = 13
 
 subsection Discretization
   set FE         = FE_Q(1)
-  set Refinement = 4
+  set Refinement = 2
 end
 
 subsection Linear Solver
@@ -12,6 +12,6 @@ subsection Linear Solver
 end
 
 subsection Output
-  set Output format = none
+  set Output format = gnuplot
   set Subdivisions = 1
 end

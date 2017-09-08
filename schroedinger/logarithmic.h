@@ -4,11 +4,11 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-#ifndef schroedinger_single_h
-#define schroedinger_single_h
+#ifndef schroedinger_logarithmic_h
+#define schroedinger_logarithmic_h
 
 #include <deal.II/meshworker/integration_info.h>
-#include <integrator.h>
+#include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
@@ -41,17 +41,19 @@ namespace SchroedingerIntegrators
     const FEValuesBase<dim>& fe = info.fe_values(0);
     FullMatrix<double>& M = dinfo.matrix(0,false).matrix;
     Laplace::cell_matrix(M, fe);
+    L2::mass_matrix(M, fe, 200.);
     const unsigned int n_dofs = fe.dofs_per_cell;
       const unsigned int n_components = fe.get_fe().n_components();
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
         {
+	  const double potential = 100.* std::log(fe.quadrature_point(k).norm()/2.);
           const double dx = fe.JxW(k);
           for (unsigned int i=0; i<n_dofs; ++i)
             {
               double Mii = 0.0;
               for (unsigned int d=0; d<n_components; ++d)
-                Mii -= dx * 1./fe.quadrature_point(k).norm()
+                Mii += dx * potential
                        * fe.shape_value_component(i,k,d)
                        * fe.shape_value_component(i,k,d);
 
@@ -61,7 +63,7 @@ namespace SchroedingerIntegrators
                 {
                   double Mij = 0.0;
                   for (unsigned int d=0; d<n_components; ++d)
-                    Mij -= dx * 1./fe.quadrature_point(k).norm()
+                    Mij += dx * potential
                            * fe.shape_value_component(j,k,d)
                            * fe.shape_value_component(i,k,d);
 
