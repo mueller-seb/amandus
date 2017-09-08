@@ -4,8 +4,8 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-#ifndef schroedinger_logarithmic_h
-#define schroedinger_logarithmic_h
+#ifndef schroedinger_coulomb_h
+#define schroedinger_coulomb_h
 
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
@@ -25,10 +25,10 @@ using namespace LocalIntegrators;
 namespace Schroedinger
 {
 template <int dim>
-class Logarithmic : public AmandusIntegrator<dim>
+class Coulomb : public AmandusIntegrator<dim>
 {
 public:
-  Logarithmic(const Parameters& par);
+  Coulomb(const Parameters& par);
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const;
@@ -37,11 +37,11 @@ public:
                     MeshWorker::IntegrationInfo<dim>& info2) const;
 
 private:
-  SmartPointer<const Parameters, class Logarithmic<dim>> parameters;
+  SmartPointer<const Parameters, class Coulomb<dim>> parameters;
 };
 
 template <int dim>
-Logarithmic<dim>::Logarithmic(const Parameters& par)
+Coulomb<dim>::Coulomb(const Parameters& par)
   : parameters(&par)
 {
   this->use_boundary = true;
@@ -50,7 +50,7 @@ Logarithmic<dim>::Logarithmic(const Parameters& par)
 
 template <int dim>
 void
-Logarithmic<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
+Coulomb<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
                        MeshWorker::IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values(0);
@@ -62,7 +62,7 @@ Logarithmic<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
 
   for (unsigned int k = 0; k < fe.n_quadrature_points; ++k)
   {
-    const double potential = parameters->depth * std::log(fe.quadrature_point(k).norm() / 2.);
+    const double potential = -parameters->depth / fe.quadrature_point(k).norm();
     const double dx = fe.JxW(k);
     for (unsigned int i = 0; i < n_dofs; ++i)
     {
@@ -92,7 +92,7 @@ Logarithmic<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo,
 
 template <int dim>
 void
-Logarithmic<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
+Coulomb<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                            typename MeshWorker::IntegrationInfo<dim>& info) const
 {
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
@@ -103,9 +103,9 @@ Logarithmic<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
 
 template <int dim>
 void
-Logarithmic<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-                       MeshWorker::IntegrationInfo<dim>& info1,
-                       MeshWorker::IntegrationInfo<dim>& info2) const
+Coulomb<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+		   MeshWorker::IntegrationInfo<dim>& info1,
+		   MeshWorker::IntegrationInfo<dim>& info2) const
 {
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
   Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,

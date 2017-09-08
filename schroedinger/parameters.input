@@ -1,4 +1,4 @@
 include_guard __schroedinger_parameters_h
 namespace Schroedinger
-parameter double	Shift	"200."	"Eigenvalue shift"
-parameter double	Depth	"100."	"Factor for potential"
+parameter double	shift	"200."	"Eigenvalue shift"
+parameter double	depth	"100."	"Potential factor"
