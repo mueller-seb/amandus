@@ -52,7 +52,8 @@ main(int argc, const char** argv)
     tr.begin_active()->set_refine_flag();
     tr.execute_coarsening_and_refinement();
   }
-  tr.refine_global(param.get_integer("Refinement"));
+  if (param.get_integer("Refinement") != 0)
+    tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
   // The curl potentialof u, needs zero tangential derivatives at the

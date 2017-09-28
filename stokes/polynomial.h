@@ -297,6 +297,8 @@ PolynomialError<dim>::PolynomialError(const Polynomials::Polynomial<double> curl
   this->error_names.push_back("L2divu");
   this->error_types.push_back(2);
   this->error_names.push_back("L2p");
+  this->error_types.push_back(0);
+  this->error_names.push_back("Linftyp");
   this->error_types.push_back(2);
   this->error_names.push_back("H1p");
   this->error_types.push_back(1);
@@ -347,10 +349,12 @@ PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
     dinfo.value(2) = Divergence::norm(info.fe_values(0), make_slice(info.gradients[0], 0, dim));
     // 3. L^2(p) up to mean value
     dinfo.value(3) += p * p * dx;
+    // 3. L^\infty(p) up to mean value
+    dinfo.value(4) = std::max(dinfo.value(4), std::abs(p));
     // 4. H^1(p)
-    dinfo.value(4) += Dp * Dp * dx;
+    dinfo.value(5) += Dp * Dp * dx;
     // 5. Mean value of p
-    dinfo.value(5) += p * dx;
+    dinfo.value(6) += p * dx;
   }
 
   for (unsigned int i = 0; i <= 4; ++i)
