@@ -48,7 +48,8 @@ global_refinement_linear_loop(unsigned int n_steps, AmandusApplicationSparse<dim
   for (unsigned int s = 0; s < n_steps; ++s)
   {
     dealii::deallog << "Step " << s << std::endl;
-    app.refine_mesh(true);
+    if (s != 0)
+      app.refine_mesh(true);
     solver.notify(dealii::Algorithms::Events::remesh);
     app.setup_system();
     app.setup_vector(res);
