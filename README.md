@@ -5,7 +5,7 @@ library](http://www.dealii.org). It basically allows the
 implementation of a new equation by just providing local integrators
 for residuals and matrices. In addition, it has a lot of example
 applications. You can find more information in [the documentation generated
-by doxygen](http://pesser.bitbucket.org/amandus_doc/).
+with doxygen](http://www.mathsim.eu/~gkanscha/amandus/).
 
 ## Getting started
 
