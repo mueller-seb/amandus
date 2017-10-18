@@ -1,4 +1,4 @@
-# Installing, using, and improving Amandus
+# Overview
 
 Amandus is a simple experimentation suite built on the [dealii
 library](http://www.dealii.org). It basically allows the
@@ -6,6 +6,39 @@ implementation of a new equation by just providing local integrators
 for residuals and matrices. In addition, it has a lot of example
 applications. You can find more information in [the documentation generated
 with doxygen](http://www.mathsim.eu/~gkanscha/amandus/).
+
+## Structure of Amandus
+
+Amandus consists of two parts: first, there is a framework for implementing
+finite element discretizations based on the deal.II finite element library.
+This framework is established in the class templates `AmandusApplication` and
+`AmandusUMFPACK`, as well as a few files with driver functions like `apps.h`.
+The application classes contain all functions for building matrices, computing
+right hand sides and residuals, or writing results in various output formats.
+They also contain all the data needed for this except the data vectors describing
+solutions and residuals. These are set up in the driver functions, since they differ
+between different numerical algorithms like linear solvers, Newton-like schemes
+and time stepping methods.
+
+The second part of Amandus is a long list of subdirectories with specific applications.
+These contain typically several header files with local integrators and
+`.cc` files which can be compiled to obtain an executable program. This file
+structure mirrors the structure of code written in Amandus. The application
+classes of Amandus provide the technical intermediate layer implementing a generic
+finite element program. What is left to the user is:
+
+1. Writing local integrators, which describe the action of a differential operator
+   in weak form on cell or face level. These are inherited from `AmandusIntegrator`
+   and provide functions to integrate on cells as well as boundary and interior faces.
+   These objects incorporate the 'physics' of a problem.
+2. Writing a file which contains a `main()` function and sets up the environment
+   like creating a mesh, choosing the right drivers and choosing the numerical
+   method for solving the problem.
+
+We recommend looking at the subdirectories `laplace` or `stokes` to get a first idea
+of this structure.
+
+# Installing, using, and improving Amandus
 
 ## Getting started
 
