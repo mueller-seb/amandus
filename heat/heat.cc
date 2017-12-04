@@ -29,7 +29,11 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 
+#include <amandus/heat/rhs_one.h>
+#include <amandus/heat/RHS_heat.h>
+
 #include <boost/scoped_ptr.hpp>
+
 
 class Waterfall : public Function<2>
 {
@@ -209,6 +213,7 @@ Waterfall::gradient(const Point<2>& p, const unsigned int) const
   return val;
 }
 
+
 //---------------------------------------------------------//
 
 int
@@ -236,10 +241,10 @@ main(int argc, const char** argv)
   Waterfall exact_solution;
 
   HeatIntegrators::Matrix<d> matrix_integrator;
-  HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
-  HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
-
-  HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
+//HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
+//HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
+ HeatIntegrators::RHS<d> rhs_integrator(exact_solution);
+//HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
@@ -248,12 +253,22 @@ main(int argc, const char** argv)
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
 
-  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
+  /*adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,
                                   tr,
                                   solver,
                                   residual,
                                   estimate_integrator,
                                   refine_strategy,
-                                  &error_integrator);
+                                  &error_integrator);*/
+AmandusIntegrator<d>* AmandInt = 0;
+//Function<d>* startup = 0;
+
+global_refinement_linear_loop(param.get_integer("MaxDofs"),
+				app,
+				solver,
+				residual,
+				AmandInt,
+				AmandInt);
+				//startup, false);
 }
