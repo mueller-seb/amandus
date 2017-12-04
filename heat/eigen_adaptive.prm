@@ -1,0 +1,23 @@
+set MaxDofs = 10000
+set Eigenvalue = 1
+#set ExactEigenvalue = 19.7392088
+#set Domain = square
+#set ExactEigenvalue = 9.6397238440219
+#set Domain = L
+set ExactEigenvalue = 8.3713297112
+set Domain = slit
+
+subsection Discretization
+  set FE         = FE_Q(1)
+  set Refinement = 3
+end
+
+subsection Linear Solver
+  set Tolerance = 1.e-10
+  set Reduction = 1.e-40
+end
+
+subsection Output
+  set Output format = none
+end
+

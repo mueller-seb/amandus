@@ -15,6 +15,7 @@ SET(EXAMPLES laplace advection advection-diffusion
   brusselator readiff
   elasticity biot
   schroedinger
+  heat
   )
 # To be added after fixing: darcy brinkman lotkavolterra
 
