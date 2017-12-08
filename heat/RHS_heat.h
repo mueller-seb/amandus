@@ -31,15 +31,12 @@ template <int dim>
 class RHS : public AmandusIntegrator<dim>
 {
 public:
-  RHS(Function<dim>& solution);
+  RHS();
 
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                     IntegrationInfo<dim>& info2) const;
-
-private:
-  SmartPointer<Function<dim>, RHS<dim>> solution;
 };
 
 /**
@@ -97,10 +94,51 @@ private:
 //----------------------------------------------------------------------//
 
 template <int dim>
-RHS<dim>::RHS(Function<dim>& solution)
-  : solution(&solution)
+class RHSfun : public dealii::Function<dim>
 {
-  this->use_boundary = true;
+public:
+  RHSfun();
+  virtual double value(const Point<dim>& p, const unsigned int component) const;
+
+  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                          const unsigned int component) const;
+};
+
+// constructor defould one component
+template <int dim>
+RHSfun<dim>::RHSfun()
+  : Function<dim>()
+{
+}
+
+template <int dim>
+double
+RHSfun<dim>::value(const Point<dim>& p, const unsigned int) const
+{
+  double result = 10. * p(0);
+  return result;
+}
+
+template <int dim>
+void
+RHSfun<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int) const
+{
+  AssertDimension(points.size(), values.size());
+
+  for (unsigned int k = 0; k < points.size(); ++k)
+  {
+    const Point<dim>& p = points[k];
+    values[k] = 1. * p(0);
+  }
+}
+
+//-----//
+
+template <int dim>
+RHS<dim>::RHS()
+{
+  this->use_boundary = false;
   this->use_face = false;
 }
 
@@ -109,9 +147,10 @@ void
 RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
+  RHSfun<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = 1;//-solution->laplacian(info.fe_values(0).quadrature_point(k));
+    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
