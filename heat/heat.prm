@@ -10,5 +10,6 @@ subsection Linear Solver
 end
 
 subsection Output
-  set Output format = none
+  set Output format = vtu
+  set Subdivisions  = 1
 end

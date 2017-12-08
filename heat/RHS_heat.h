@@ -120,7 +120,7 @@ template <int dim>
 void
 RHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+/*  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;
 
   const FEValuesBase<dim>& fe = info.fe_values();
@@ -137,6 +137,7 @@ RHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
       local_vector(i) += (penalty * fe.shape_value(i, k) * boundary_values[k] -
                           (fe.normal_vector(k) * fe.shape_grad(i, k)) * boundary_values[k]) *
                          fe.JxW(k);
+*/
 }
 
 template <int dim>
