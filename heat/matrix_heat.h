@@ -72,7 +72,7 @@ MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>
                   MeshWorker::IntegrationInfo<dim>& info1,
                   MeshWorker::IntegrationInfo<dim>& info2) const
 {
-  if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+/*  if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;
 
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
@@ -82,7 +82,7 @@ MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>
                      dinfo2.matrix(0, false).matrix,
                      info1.fe_values(0),
                      info2.fe_values(0),
-                     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));
+                     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));*/
 }
 }
 

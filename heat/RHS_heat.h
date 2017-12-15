@@ -138,7 +138,7 @@ RHSfun<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<doubl
 template <int dim>
 RHS<dim>::RHS()
 {
-  this->use_boundary = false;
+  this->use_boundary = true;
   this->use_face = false;
 }
 
@@ -175,8 +175,8 @@ RHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
       local_vector(i) += (penalty * fe.shape_value(i, k) * boundary_values[k] -
                           (fe.normal_vector(k) * fe.shape_grad(i, k)) * boundary_values[k]) *
-                         fe.JxW(k);
-*/
+                         fe.JxW(k);*/
+
 }
 
 template <int dim>

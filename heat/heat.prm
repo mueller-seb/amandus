@@ -1,7 +1,7 @@
 set MaxDofs = 10000
 
 subsection Discretization
-  set FE         = FE_DGQ(1)
+  set FE         = FE_Q(1)
   set Refinement = 1
 end
 
