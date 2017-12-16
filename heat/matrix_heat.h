@@ -59,11 +59,34 @@ MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
 {
   if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;
-
+/*
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_matrix(dinfo.matrix(0, false).matrix,
                           info.fe_values(0),
                           Laplace::compute_penalty(dinfo, dinfo, deg, deg));
+*/
+
+FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
+const FEValuesBase<dim>& fe = info.fe_values(0);
+
+const unsigned int n_dofs = fe.dofs_per_cell;
+const unsigned int n_comp = fe.get_fe().n_components();
+
+Assert (M.m() == n_dofs, ExcDimensionMismatch(M.m(), n_dofs));
+Assert (M.n() == n_dofs, ExcDimensionMismatch(M.n(), n_dofs));
+
+for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
+      {
+        const double dx = fe.JxW(k)/* * factor*/;
+        const Tensor<1,dim> n = fe.normal_vector(k);
+          for (unsigned int i=0; i<n_dofs; ++i)
+          for (unsigned int j=0; j<n_dofs; ++j)
+             for (unsigned int d=0; d<n_comp; ++d)
+                M(i,j) += dx *
+                         (/*2. * fe.shape_value_component(i,k,d) * penalty * fe.shape_value_component(j,k,d)*/
+                           - (n * fe.shape_grad_component(i,k,d)) * fe.shape_value_component(j,k,d)
+                          /*- (n * fe.shape_grad_component(j,k,d)) * fe.shape_value_component(i,k,d)*/);
+      }
 }
 
 template <int dim>
