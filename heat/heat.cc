@@ -21,7 +21,7 @@
 
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
-#include <amandus/heat/matrix.h>
+//#include <amandus/heat/matrix.h>
 #include <amandus/heat/matrix_heat.h>
 //#include <amandus/heat/solution.h>
 //#include <amandus/heat/rhs_one.h>

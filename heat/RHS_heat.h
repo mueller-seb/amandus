@@ -115,7 +115,16 @@ template <int dim>
 double
 RHSfun<dim>::value(const Point<dim>& p, const unsigned int) const
 {
-  double result = 10. * p(0);
+  double x = p(0);
+  double y = p(1);
+  double result = 0;
+  if ((y > -0.1) && (y < 0.1))
+  {
+	if (x < -0.95)
+		result = 10;
+        if (x > 0.95)
+		result = -10;
+  }
   return result;
 }
 

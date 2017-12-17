@@ -45,11 +45,88 @@ public:
 };
 
 template <int dim>
+class Heatcoeff : public dealii::Function<dim>
+{
+public:
+  Heatcoeff();
+  virtual double value(const Point<dim>& p, const unsigned int component) const;
+
+  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                          const unsigned int component) const;
+};
+
+// constructor defould one component
+template <int dim>
+Heatcoeff<dim>::Heatcoeff()
+  : Function<dim>()
+{
+}
+
+template <int dim>
+double
+Heatcoeff<dim>::value(const Point<dim>& p, const unsigned int) const
+{
+  /*double result = 10. * p(0);*/
+  double y = p(1);
+  double result = 0.1;
+  if ((y < 0.1) && (y > -0.1))
+	result = 10;
+  return result;
+}
+
+template <int dim>
+void
+Heatcoeff<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int) const
+{
+  AssertDimension(points.size(), values.size());
+
+  for (unsigned int k = 0; k < points.size(); ++k)
+  {
+    const Point<dim>& p = points[k];
+    values[k] = 1. * p(0);
+  }
+}
+
+
+
+template <int dim>
 void
 MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension(dinfo.n_matrices(), 1);
-  Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
+  //Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
+
+Heatcoeff<dim> kappa;
+FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
+const FEValuesBase<dim>& fe = info.fe_values(0);
+const unsigned int n_dofs = fe.dofs_per_cell;
+const unsigned int n_components = fe.get_fe().n_components();
+
+      for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
+         {
+              const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0)/* * factor*/;
+           for (unsigned int i=0; i<n_dofs; ++i)
+              {
+               double Mii = 0.0;
+               for (unsigned int d=0; d<n_components; ++d)
+                   Mii += dx *
+                           (fe.shape_grad_component(i,k,d) * fe.shape_grad_component(i,k,d));
+   
+                 M(i,i) += Mii;
+   
+                 for (unsigned int j=i+1; j<n_dofs; ++j)
+{
+                     double Mij = 0.0;
+                     for (unsigned int d=0; d<n_components; ++d)
+                        Mij += dx *
+                              (fe.shape_grad_component(j,k,d) * fe.shape_grad_component(i,k,d));
+  
+                     M(i,j) += Mij;
+                    M(j,i) += Mij;
+  		 }
+        }
+   }
 }
 
 template <int dim>
@@ -65,7 +142,7 @@ MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                           info.fe_values(0),
                           Laplace::compute_penalty(dinfo, dinfo, deg, deg));
 */
-
+Heatcoeff<dim> kappa;
 FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe = info.fe_values(0);
 
@@ -77,7 +154,7 @@ Assert (M.n() == n_dofs, ExcDimensionMismatch(M.n(), n_dofs));
 
 for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
       {
-        const double dx = fe.JxW(k)/* * factor*/;
+        const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0)/* * factor*/;
         const Tensor<1,dim> n = fe.normal_vector(k);
           for (unsigned int i=0; i<n_dofs; ++i)
           for (unsigned int j=0; j<n_dofs; ++j)
