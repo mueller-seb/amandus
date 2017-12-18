@@ -1,4 +1,4 @@
-# This is a sample build configuration for C++ â€“ Make.
+# This is a sample build configuration for C++ – Make.
 # Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
 # Only use spaces to indent your .yml configuration.
 # -----
@@ -12,3 +12,5 @@ pipelines:
           - find . -name \*.h -exec clang-format -i {} \;
           - find . -name \*.cc -exec clang-format -i {} \;
           - git diff
+          - git diff-files --quiet
+          
