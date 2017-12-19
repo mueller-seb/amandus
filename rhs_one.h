@@ -16,14 +16,22 @@ using namespace dealii;
 using namespace LocalIntegrators;
 
 /**
+ * \brief Very simple local integrator for constant right hand side.
+ *
  * A local integrator for a right hand side equal to constant one in
- * the vector valued equation and zero in the scalar.
+ * the scalar case and equal to the vector with constant one in every
+ * entry, respectively.
  */
 template <int dim>
 class RhsOne : public AmandusIntegrator<dim>
 {
+  const unsigned int components;
 public:
-  RhsOne();
+  /// Constructor, with argument system dimension.
+  RhsOne(const unsigned int components=dim)
+    :components(components)
+  {}
+  
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const;
@@ -31,11 +39,6 @@ public:
                     MeshWorker::IntegrationInfo<dim>& info1,
                     MeshWorker::IntegrationInfo<dim>& info2) const;
 };
-
-template <int dim>
-RhsOne<dim>::RhsOne()
-{
-}
 
 template <int dim>
 void
@@ -46,7 +49,7 @@ RhsOne<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<d
   Vector<double>& result = dinfo.vector(0).block(0);
   for (unsigned int k = 0; k < fe.n_quadrature_points; ++k)
     for (unsigned int i = 0; i < n_dofs; ++i)
-      for (unsigned int d = 0; d < dim; ++d)
+      for (unsigned int d = 0; d < components; ++d)
         result(i) += fe.JxW(k) * fe.shape_value_component(i, k, d);
 }
 

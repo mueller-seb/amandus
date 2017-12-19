@@ -5,7 +5,7 @@
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
 /**
- * @file
+ * \file
  * <ul>
  * <li> Laplace operator</li>
  * <li> Dirichlet boundary condition</li>

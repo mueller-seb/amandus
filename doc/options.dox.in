@@ -25,6 +25,7 @@ GENERATE_LATEX	       = NO
 EXTRA_PACKAGES	       = amsmath
 
 INPUT                  = @DOXYGEN_INPUT@
+EXAMPLE_PATH           = @DOXYGEN_INPUT@
 RECURSIVE	       = YES
 
 UML_LOOK	       = NO

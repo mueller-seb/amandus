@@ -6,10 +6,13 @@
  **********************************************************************/
 /**
  * @file
+ * \brief Example for Laplacian with manufactured solution on adaptive meshes
  * <ul>
  * <li> Stationary Poisson equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact solution</li>
+ * <li> Error computation</li>
+ * <li> Error estimation</li>
  * <li> Adaptive linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -31,6 +34,9 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \brief Example for a function class with derivatives and Laplacian implemented
+ */
 class Waterfall : public Function<2>
 {
 public:
