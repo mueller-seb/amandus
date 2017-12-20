@@ -43,9 +43,19 @@ public:
    */
   virtual void extract_data(const dealii::AnyData& data);
   /**
+   * \brief Set to true if we are in a timestepping scheme and #timestep and #time are meaningful.
+   */
+  bool timestepping;
+
+  /**
    * \brief Current timestep if applicable.
    */
   double timestep;
+
+  /**
+   * \brief Current time value if applicable.
+   */
+  double time;
 
   /**
   * The number of errors to compute if this is called by an error computation or
@@ -470,8 +480,12 @@ AmandusIntegrator<dim>::extract_data(const dealii::AnyData& data)
   const double* ts = data.try_read_ptr<double>("Timestep");
   if (ts != 0)
   {
+    timestepping = true;
     timestep = *ts;
+    time = *data.read_ptr<double>("Time");
   }
+  else
+    timestepping = false;
 }
 
 namespace Integrators
