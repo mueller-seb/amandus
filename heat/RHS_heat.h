@@ -45,22 +45,19 @@ public:
  *
  * @ingroup integrators
  */
-/*
+
 template <int dim>
-class SolutionResidual : public AmandusIntegrator<dim>
+class Residual : public AmandusIntegrator<dim>
 {
 public:
-  SolutionResidual(Function<dim>& solution);
+  Residual();
 
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  /*virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
-
-private:
-  SmartPointer<Function<dim>, SolutionResidual<dim>> solution;
+                    IntegrationInfo<dim>& info2) const;*/
 };
-
+/*
 template <int dim>
 class SolutionError : public AmandusIntegrator<dim>
 {
@@ -74,23 +71,21 @@ public:
 
 private:
   SmartPointer<Function<dim>, SolutionError<dim>> solution;
-};
+};*/
 
 template <int dim>
-class SolutionEstimate : public AmandusIntegrator<dim>
+class Estimate : public AmandusIntegrator<dim>
 {
 public:
-  SolutionEstimate(Function<dim>& solution);
+  Estimate();
 
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  /*virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const;*/
 
-private:
-  SmartPointer<Function<dim>, SolutionEstimate<dim>> solution;
 };
-*/
+
 //----------------------------------------------------------------------//
 
 template <int dim>
@@ -142,6 +137,8 @@ RHSfun<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<doubl
   }
 }
 
+
+
 //-----//
 
 template <int dim>
@@ -156,7 +153,8 @@ void
 RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-  RHSfun<dim> f;
+RHSfun<dim> f;
+
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
     rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
@@ -194,28 +192,28 @@ RHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
                        IntegrationInfo<dim>&) const
 {
 }
-/*
+
 //----------------------------------------------------------------------//
 
 template <int dim>
-SolutionResidual<dim>::SolutionResidual(Function<dim>& solution)
-  : solution(&solution)
+Residual<dim>::Residual()
 {
-  this->use_boundary = true;
-  this->use_face = true;
+  this->use_boundary = false;//true;
+  this->use_face = false;
 }
 
 template <int dim>
 void
-SolutionResidual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+Residual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
   Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
 
+RHSfun<dim> f;
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = -solution->laplacian(info.fe_values(0).quadrature_point(k));
+    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
 
   double factor = 1.;
   if (this->timestep != 0)
@@ -224,9 +222,9 @@ SolutionResidual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) con
     L2::L2(dinfo.vector(0).block(0), info.fe_values(0), info.values[0][0]);
   }
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -factor);
-  Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0), info.gradients[0][0], factor);
+  Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0), info.gradients[0][0], factor); //Gewichtung er us???
 }
-
+/*
 template <int dim>
 void
 SolutionResidual<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
@@ -269,9 +267,9 @@ SolutionResidual<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, Integrat
                        Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
                        factor);
 }
-
+*/
 //----------------------------------------------------------------------//
-
+/*
 template <int dim>
 SolutionError<dim>::SolutionError(Function<dim>& solution)
   : solution(&solution)
@@ -320,34 +318,34 @@ SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
                          IntegrationInfo<dim>&) const
 {
 }
-
+*/
 //----------------------------------------------------------------------//
 
 template <int dim>
-SolutionEstimate<dim>::SolutionEstimate(Function<dim>& solution)
-  : solution(&solution)
+Estimate<dim>::Estimate()
 {
-  this->use_boundary = true;
-  this->use_face = true;
+  this->use_boundary = false;//true;
+  this->use_face = false;//true;
   this->add_flags(update_hessians);
 }
 
 template <int dim>
 void
-SolutionEstimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+Estimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
+RHSfun<dim> f;
 
   const std::vector<Tensor<2, dim>>& DDuh = info.hessians[0][0];
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
   {
     const double t = dinfo.cell->diameter() *
-                     (trace(DDuh[k]) - solution->laplacian(info.fe_values(0).quadrature_point(k)));
+                     (trace(DDuh[k]) + f.value(info.fe_values(0).quadrature_point(k), 0));/*- solution->laplacian(info.fe_values(0).quadrature_point(k)));*/
     dinfo.value(0) += t * t * fe.JxW(k);
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
-
+/*
 template <int dim>
 void
 SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const

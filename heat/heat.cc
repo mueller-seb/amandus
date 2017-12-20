@@ -67,6 +67,10 @@ main(int argc, const char** argv)
 //HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
  HeatIntegrators::RHS<d> rhs_integrator;
 //HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
+HeatIntegrators::Residual<d> residual_integrator;
+HeatIntegrators::Estimate<d> estimate_integrator;
+AmandusIntegrator<d>* error_integrator = 0;
+
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
@@ -75,14 +79,14 @@ main(int argc, const char** argv)
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
 
-  /*adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
+  adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,
                                   tr,
                                   solver,
                                   residual,
                                   estimate_integrator,
-                                  refine_strategy,
-                                  &error_integrator);*/
+                                  refine_strategy, error_integrator);
+/*
 AmandusIntegrator<d>* AmandInt = 0;
 //Function<d>* startup = 0;
 
@@ -92,5 +96,5 @@ global_refinement_linear_loop(param.get_integer("MaxDofs"),
 				residual,
 				AmandInt,
 				AmandInt);
-				//startup, false);
+				//startup, false);*/
 }
