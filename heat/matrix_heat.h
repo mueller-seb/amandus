@@ -70,7 +70,7 @@ Heatcoeff<dim>::value(const Point<dim>& p, const unsigned int) const
   double y = p(1);
   double result = 0.1;
   if ((y < 0.1) && (y > -0.1))
-	result = 10;
+	result = 1;
   return result;
 }
 
