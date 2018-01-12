@@ -748,3 +748,34 @@ AmandusApplicationSparse<dim>::output_results(const unsigned int cycle, const An
 
 template class AmandusApplicationSparse<2>;
 template class AmandusApplicationSparse<3>;
+
+template <int dim>
+void
+AmandusApplicationSparse<dim>::output_grid(const unsigned int cycle, const AnyData* in) const
+{
+  GridOut grid_out;
+  GridOut::OutputFormat grid_format = GridOut::OutputFormat::vtu;
+
+  if (param != 0)
+  {
+    param->enter_subsection("GridOut");
+    grid_out.parse_parameters(*param);
+    grid_format = GridOut::parse_output_format(param->get("Format"));
+    param->leave_subsection();
+  }
+
+  if (grid_out.default_suffix() == std::string(""))
+  {
+    deallog << "No output cycle " << cycle << std::endl;
+    return;
+  }
+
+  std::ostringstream filename;
+  filename << "grid-" << std::setfill('0') << std::setw(3) << cycle
+           << grid_out.default_suffix();
+
+  deallog << "Writing " << filename.str() << std::endl;
+
+  std::ofstream output(filename.str().c_str());
+  grid_out.write(*triangulation, output);
+}

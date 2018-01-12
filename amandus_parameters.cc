@@ -49,6 +49,12 @@ AmandusParameters::AmandusParameters()
   set("Output format", "vtu");
   leave_subsection();
 
+//added
+  enter_subsection("GridOut");
+  GridOut::declare_parameters(*this);
+  set("Format", "vtu");
+  leave_subsection();
+
   enter_subsection("Arpack");
   declare_entry("Min Arnoldi vectors", "20", Patterns::Integer(0));
   declare_entry("Symmetric", "false", Patterns::Bool());

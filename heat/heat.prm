@@ -13,3 +13,7 @@ subsection Output
   set Output format = vtu
   set Subdivisions  = 1
 end
+
+subsection GridOut
+  set Format = eps
+end

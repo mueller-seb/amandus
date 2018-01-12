@@ -296,6 +296,7 @@ public:
                             std::vector<dealii::Vector<double>>& eigenvectors);
 
   void output_results(unsigned int refinement_cycle, const dealii::AnyData* data = 0) const;
+  void output_grid(unsigned int refinement_cycle, const dealii::AnyData* data = 0) const;
 
   /**
    * For testing purposes compare the residual operator applied to to

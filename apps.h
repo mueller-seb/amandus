@@ -570,6 +570,12 @@ adaptive_refinement_linear_loop(unsigned int max_dofs, AmandusApplicationSparse<
     indicators = app.indicators();
     out_data.add(&indicators, "estimator");
     app.output_results(step, &out_data);
+    app.output_grid(step, &out_data);
+/*
+dealii::GridOut grid_out;
+std::ofstream output_file("gridout" + std::to_string(step) + ".eps");
+grid_out.write_eps (tria, output_file);
+*/
     std::cout << std::endl;
     convergence_table.write_text(std::cout);
 
