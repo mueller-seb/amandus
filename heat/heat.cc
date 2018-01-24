@@ -21,9 +21,7 @@
 
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
-//#include <amandus/heat/matrix.h>
 #include <amandus/heat/matrix_heat.h>
-//#include <amandus/heat/solution.h>
 //#include <amandus/heat/rhs_one.h>
 #include <amandus/heat/RHS_heat.h>
 #include <amandus/refine_strategy.h>
@@ -63,13 +61,9 @@ main(int argc, const char** argv)
 
 
   HeatIntegrators::MatrixHeat<d> matrix_integrator;
-//HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
-//HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
- HeatIntegrators::RHS<d> rhs_integrator;
-//HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
-//HeatIntegrators::Residual<d> residual_integrator;
-HeatIntegrators::Estimate<d> estimate_integrator;
-AmandusIntegrator<d>* error_integrator = 0;
+  HeatIntegrators::RHS<d> rhs_integrator;
+  HeatIntegrators::Estimate<d> estimate_integrator;
+  AmandusIntegrator<d>* error_integrator = 0;
 
 
   AmandusApplication<d> app(tr, *fe);
@@ -86,14 +80,4 @@ AmandusIntegrator<d>* error_integrator = 0;
                                   residual,
                                   estimate_integrator,
                                   refine_strategy, error_integrator);
-
-AmandusIntegrator<d>* AmandInt = 0;
-
-/*
-global_refinement_linear_loop(param.get_integer("MaxDofs"),
-				app,
-				solver,
-				residual,
-				AmandInt,
-				AmandInt);*/
 }

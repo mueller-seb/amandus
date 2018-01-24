@@ -80,9 +80,9 @@ public:
   Estimate();
 
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  /*virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;*/
+                    IntegrationInfo<dim>& info2) const;
 
 };
 
@@ -190,81 +190,6 @@ RHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
 }
 
 //----------------------------------------------------------------------//
-
-template <int dim>
-Residual<dim>::Residual()
-{
-  this->use_boundary = false;//true;
-  this->use_face = false;
-}
-
-template <int dim>
-void
-Residual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
-{
-  Assert(info.values.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
-  Assert(info.gradients.size() >= 1, ExcDimensionMismatch(info.values.size(), 1));
-
-RHSfun<dim> f;
-  std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-
-  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
-
-  double factor = 1.;
-  if (this->timestep != 0)
-  {
-    factor = -this->timestep;
-    L2::L2(dinfo.vector(0).block(0), info.fe_values(0), info.values[0][0]);
-  }
-  L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs, -factor);
-  Laplace::cell_residual(dinfo.vector(0).block(0), info.fe_values(0), info.gradients[0][0], factor); //Gewichtung er us???
-}
-/*
-template <int dim>
-void
-SolutionResidual<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
-{
-  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;
-
-  std::vector<double> boundary_values(info.fe_values(0).n_quadrature_points, 0.);
-  solution->value_list(info.fe_values(0).get_quadrature_points(), boundary_values);
-
-  const double factor = (this->timestep == 0.) ? 1. : this->timestep;
-  const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  Laplace::nitsche_residual(dinfo.vector(0).block(0),
-                            info.fe_values(0),
-                            info.values[0][0],
-                            info.gradients[0][0],
-                            boundary_values,
-                            Laplace::compute_penalty(dinfo, dinfo, deg, deg),
-                            factor);
-}
-
-template <int dim>
-void
-SolutionResidual<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                            IntegrationInfo<dim>& info2) const
-{
-  if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;
-
-  const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-  const double factor = (this->timestep == 0.) ? 1. : this->timestep;
-  Laplace::ip_residual(dinfo1.vector(0).block(0),
-                       dinfo2.vector(0).block(0),
-                       info1.fe_values(0),
-                       info2.fe_values(0),
-                       info1.values[0][0],
-                       info1.gradients[0][0],
-                       info2.values[0][0],
-                       info2.gradients[0][0],
-                       Laplace::compute_penalty(dinfo1, dinfo2, deg, deg),
-                       factor);
-}
-*/
-//----------------------------------------------------------------------//
 /*
 template <int dim>
 SolutionError<dim>::SolutionError(Function<dim>& solution)
@@ -321,7 +246,7 @@ template <int dim>
 Estimate<dim>::Estimate()
 {
   this->use_boundary = false;//true;
-  this->use_face = false;//true;
+  this->use_face = true;//true;
   this->add_flags(update_hessians);
 }
 
@@ -341,12 +266,12 @@ RHSfun<dim> f;
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
-/*
+
 template <int dim>
 void
-SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  const FEValuesBase<dim>& fe = info.fe_values();
+/*  const FEValuesBase<dim>& fe = info.fe_values();
 
   std::vector<double> boundary_values(fe.n_quadrature_points, 0.);
   solution->value_list(fe.get_quadrature_points(), boundary_values);
@@ -359,12 +284,12 @@ SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info)
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
     dinfo.value(0) +=
       penalty * (boundary_values[k] - uh[k]) * (boundary_values[k] - uh[k]) * fe.JxW(k);
-  dinfo.value(0) = std::sqrt(dinfo.value(0));
+  dinfo.value(0) = std::sqrt(dinfo.value(0));*/
 }
 
 template <int dim>
 void
-SolutionEstimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                             IntegrationInfo<dim>& info2) const
 {
   const FEValuesBase<dim>& fe = info1.fe_values();
@@ -392,7 +317,7 @@ SolutionEstimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, Integrat
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);
 }
-*/
+
 }
 
 #endif

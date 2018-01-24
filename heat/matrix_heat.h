@@ -45,10 +45,10 @@ public:
 };
 
 template <int dim>
-class Heatcoeff : public dealii::Function<dim>
+class HeatCoeff : public dealii::Function<dim>
 {
 public:
-  Heatcoeff();
+  HeatCoeff();
   virtual double value(const Point<dim>& p, const unsigned int component) const;
 
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
@@ -57,26 +57,25 @@ public:
 
 // constructor defould one component
 template <int dim>
-Heatcoeff<dim>::Heatcoeff()
+HeatCoeff<dim>::HeatCoeff()
   : Function<dim>()
 {
 }
 
 template <int dim>
 double
-Heatcoeff<dim>::value(const Point<dim>& p, const unsigned int) const
+HeatCoeff<dim>::value(const Point<dim>& p, const unsigned int) const
 {
-  /*double result = 10. * p(0);*/
   double y = p(1);
   double result = 0.1;
-  if ((y < 0.1) && (y > -0.1))
+  if ((y < 1e-5) && (y > -1e-5))
 	result = 1;
   return result;
 }
 
 template <int dim>
 void
-Heatcoeff<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+HeatCoeff<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                          const unsigned int) const
 {
   AssertDimension(points.size(), values.size());
@@ -98,7 +97,7 @@ MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationIn
   AssertDimension(dinfo.n_matrices(), 1);
   //Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
 
-Heatcoeff<dim> kappa;
+HeatCoeff<dim> kappa;
 FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe = info.fe_values(0);
 const unsigned int n_dofs = fe.dofs_per_cell;
@@ -106,7 +105,7 @@ const unsigned int n_components = fe.get_fe().n_components();
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
          {
-              const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0)/* * factor*/;
+              const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0);// * factor;
            for (unsigned int i=0; i<n_dofs; ++i)
               {
                double Mii = 0.0;
@@ -123,7 +122,7 @@ const unsigned int n_components = fe.get_fe().n_components();
                         Mij += dx *
                               (fe.shape_grad_component(j,k,d) * fe.shape_grad_component(i,k,d));
   
-                     M(i,j) += Mij;
+                    M(i,j) += Mij;
                     M(j,i) += Mij;
   		 }
         }
@@ -143,7 +142,7 @@ MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                           info.fe_values(0),
                           Laplace::compute_penalty(dinfo, dinfo, deg, deg));
 */
-Heatcoeff<dim> kappa;
+HeatCoeff<dim> kappa;
 FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe = info.fe_values(0);
 
@@ -167,6 +166,7 @@ for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
       }
 }
 
+
 template <int dim>
 void
 MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
@@ -184,6 +184,99 @@ MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>
                      info1.fe_values(0),
                      info2.fe_values(0),
                      Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));*/
+HeatCoeff<dim> kappa;
+
+FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
+FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
+const FEValuesBase<dim>& fe1 = info1.fe_values(0);
+const FEValuesBase<dim>& fe2 = info2.fe_values(0);
+
+const std::vector<Point<dim>>& qp1 = fe1.get_quadrature_points();
+const std::vector<Point<dim>>& qp2 = fe2.get_quadrature_points();
+Assert((qp1.size() == qp2.size()), ExcInternalError());
+
+const unsigned int n_dofs = fe1.dofs_per_cell;
+const unsigned int n_comp = fe1.get_fe().n_components();
+//AssertDimension(fe1.get_fe().n_components(), dim);
+Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
+Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
+
+std::vector<double> y1(qp1.size()), y2(qp2.size());
+std::vector<double> x1(qp1.size()), x2(qp2.size());
+bool y0 = true;
+double eps = 1e-5;
+
+for (int i = 0; i < qp1.size(); i++) {
+	//Point<dim> pt = qp1[i];
+	y1[i] = qp1[i](1);
+	y2[i] = qp2[i](1);
+	x1[i] = qp1[i](0);
+	x2[i] = qp2[i](0);
+	if ((abs(y1[i])>eps) or (abs(y2[i])>eps))
+		{ y0 = false; }
+}
+
+if (y0) {
+std::ostringstream message;
+message << "new face with quadrature points" << std::endl;
+
+for (int i = 0; i < qp1.size(); i++) {
+message << "(" << x1[i] << ", " << y1[i] << ") - (" << x2[i] << ", " << y2[i] << ")" << std::endl;
+}
+
+deallog << message.str();
+
+for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
+{
+        const Tensor<1,dim> n = fe1.normal_vector(k);
+	AssertDimension(2, dim);
+        Tensor<1,dim> t = cross_product_2d(n);
+        t = (1/t.norm())*t;
+	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 0);
+	for (unsigned int i=0; i<n_dofs; ++i)
+		for (unsigned int j=0; j<n_dofs; ++j)
+		{
+		double tgradu = 0.;
+		double tgradv = 0.;
+		double dtu_dot_dtv = 0.;
+		         for (unsigned int d=0; d<n_comp; ++d)
+		         {
+		             tgradu = t*fe1.shape_grad_component(j,k,d);
+		             tgradv = t*fe1.shape_grad_component(i,k,d);
+			     dtu_dot_dtv += tgradu * tgradv;
+		          } 
+                 M1(i,j) += dx * dtu_dot_dtv;
+                 }
+}
+
+
+
+for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
+{
+        const Tensor<1,dim> n = fe1.normal_vector(k);
+	AssertDimension(2, dim);
+        Tensor<1,dim> t = cross_product_2d(n);
+        t = (1/t.norm())*t;
+	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 0);
+	for (unsigned int i=0; i<n_dofs; ++i)
+		for (unsigned int j=0; j<n_dofs; ++j)
+		{
+		double tgradu = 0.;
+		double tgradv = 0.;
+		double dtu_dot_dtv = 0.;
+		         for (unsigned int d=0; d<n_comp; ++d)
+		         {
+		             tgradu = t*fe2.shape_grad_component(j,k,d);
+		             tgradv = t*fe2.shape_grad_component(i,k,d);
+			     dtu_dot_dtv += tgradu * tgradv;
+		          } 
+		 M2(i,j) += dx * dtu_dot_dtv;
+                 }
+}
+
+}
+
+
 }
 }
 
