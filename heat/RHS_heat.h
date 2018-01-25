@@ -140,7 +140,7 @@ RHSfun<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<doubl
 template <int dim>
 RHS<dim>::RHS()
 {
-  this->use_boundary = true;
+  this->use_boundary = false;
   this->use_face = false;
 }
 
@@ -298,6 +298,7 @@ Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<
   const std::vector<Tensor<1, dim>>& Duh1 = info1.gradients[0][0];
   const std::vector<Tensor<1, dim>>& Duh2 = info2.gradients[0][0];
 
+/*
   const unsigned int deg1 = info1.fe_values().get_fe().tensor_degree();
   const unsigned int deg2 = info2.fe_values().get_fe().tensor_degree();
   const double penalty = 2. * Laplace::compute_penalty(dinfo1, dinfo2, deg1, deg2);
@@ -307,13 +308,20 @@ Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<
     h = std::sqrt(dinfo1.face->measure());
   else
     h = dinfo1.face->measure();
+ */
 
-  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
-  {
-    double diff1 = uh1[k] - uh2[k];
-    double diff2 = fe.normal_vector(k) * Duh1[k] - fe.normal_vector(k) * Duh2[k];
-    dinfo1.value(0) += (penalty * diff1 * diff1 + h * diff2 * diff2) * fe.JxW(k);
-  }
+  const unsigned int deg = fe.get_fe().tensor_degree();
+  const double penalty1 = deg * (deg+1) * dinfo1.face->measure() / dinfo1.cell->measure();
+  const double penalty2 = deg * (deg+1) * dinfo2.face->measure() / dinfo2.cell->measure();
+  const double penalty = penalty1 + penalty2;
+  const double h = dinfo1.face->measure();
+  for (unsigned k=0; k<fe.n_quadrature_points; ++k)
+    {
+      double diff1 = uh1[k] - uh2[k];
+      double diff2 = fe.normal_vector(k) * Duh1[k] - fe.normal_vector(k) * Duh2[k];
+      dinfo1.value(0) += (penalty * diff1*diff1 + h * diff2*diff2)
+                         * fe.JxW(k);
+    }
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);
 }
