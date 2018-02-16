@@ -7,7 +7,7 @@
 #ifndef __biot_residual_h
 #define __biot_residual_h
 
-#include <biot/biot.h>
+#include <amandus/biot/biot.h>
 #include <deal.II/base/function.h>
 
 using namespace dealii::MeshWorker;

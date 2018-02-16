@@ -11,10 +11,10 @@
  * @ingroup Examples
  */
 
-#include <apps.h>
-#include <biot/matrix.h>
+#include <amandus/apps.h>
+#include <amandus/biot/matrix.h>
 #include <biot/parameters.h>
-#include <biot/residual.h>
+#include <amandus/biot/residual.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/fe/fe_tools.h>
 #include <deal.II/numerics/dof_output_operator.h>

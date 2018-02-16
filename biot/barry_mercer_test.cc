@@ -1,4 +1,4 @@
-#include <biot/barry_mercer.h>
+#include <amandus/biot/barry_mercer.h>
 #include <iostream>
 
 int
