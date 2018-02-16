@@ -6,7 +6,9 @@ main()
 {
 
   Coefficients2Sine<2> coeff;
-  BarryMercer<2> bm;
+  const double mu=1.;
+  const double lambda=1.;
+  BarryMercer<2> bm(mu, lambda);
 
   dealii::Point<2> p0(.25, .25);
   for (double t = 0; t <= 1.; t += .01)
