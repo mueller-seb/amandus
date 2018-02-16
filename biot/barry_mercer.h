@@ -254,7 +254,7 @@ public:
   {
     BarryMercer<dim> solution(parameters->mu, parameters->lambda);
     const unsigned int nq = info.fe_values(0).n_quadrature_points;
-    const unsigned int sqrt_nq = static_cast<unsigned int>(std::sqrt(nq) + .5);
+    //const unsigned int sqrt_nq = static_cast<unsigned int>(std::sqrt(nq) + .5);
     // std::cout << std::endl;
     for (unsigned int k = 0; k < nq; ++k)
     {

@@ -110,16 +110,16 @@ template <int dim>
 void
 MandelResidual<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-  const double factor =
-    (this->timestep == 0.) ? 1. : (this->is_implicit ? this->timestep : -this->timestep);
-  const double mu = factor * this->parameters->mu;
+  //const double factor =
+  //  (this->timestep == 0.) ? 1. : (this->is_implicit ? this->timestep : -this->timestep);
+  //const double mu = factor * this->parameters->mu;
 
   std::vector<std::vector<double>> force(
     dim, std::vector<double>(info.fe_values(0).n_quadrature_points, 0.));
   for (unsigned int i = 0; i < force[1].size(); ++i)
     force[1][i] = -2.;
 
-  const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
+  //const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   if (dinfo.face->boundary_id() == 2)
   {
     dealii::LocalIntegrators::L2::L2(dinfo.vector(0).block(0), info.fe_values(0), force);

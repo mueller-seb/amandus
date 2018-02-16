@@ -213,12 +213,12 @@ PolynomialError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
   {
     const dealii::Point<dim>& x = info.fe_values(0).quadrature_point(k);
-    double Divu = 0.;
+    //double Divu = 0.;
     dealii::Tensor<1, dim> u;
     dealii::Tensor<2, dim> Du;
     dealii::Tensor<1, dim> w;
     dealii::Tensor<2, dim> Dw;
-    double Divw = 0.;
+    //double Divw = 0.;
     double p;
     dealii::Tensor<1, dim> Dp;
 

@@ -101,7 +101,7 @@ public:
   gradient(const Point<2>& p, const unsigned int component = 0) const
   {
     double pihalf = numbers::PI / 2.0;
-    double u = std::sin(pihalf * p(0)) * std::sin(pihalf * p(1));
+    //double u = std::sin(pihalf * p(0)) * std::sin(pihalf * p(1));
 
     dealii::Tensor<1, dim> grad;
     grad[0] = pihalf * std::cos(pihalf * p(0)) * std::sin(pihalf * p(1));
