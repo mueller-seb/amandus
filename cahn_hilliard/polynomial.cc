@@ -191,7 +191,7 @@ run(AmandusParameters& param)
   GridGenerator::hyper_cube(tr, -1, 1);
   tr.refine_global(param.get_integer("Refinement"));
 
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+  std::unique_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
   param.leave_subsection();
 
   Polynomials::Polynomial<double> solution1d;
