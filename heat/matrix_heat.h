@@ -67,7 +67,7 @@ double
 HeatCoeff<dim>::value(const Point<dim>& p, const unsigned int) const
 {
   double y = p(1);
-  double result = 0.1;
+  double result = 1e-5;
   if ((y < 1e-5) && (y > -1e-5))
 	result = 1;
   return result;
@@ -154,15 +154,19 @@ Assert (M.n() == n_dofs, ExcDimensionMismatch(M.n(), n_dofs));
 
 for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
       {
-        const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0)/* * factor*/;
+        const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0);// * factor;
         const Tensor<1,dim> n = fe.normal_vector(k);
           for (unsigned int i=0; i<n_dofs; ++i)
           for (unsigned int j=0; j<n_dofs; ++j)
              for (unsigned int d=0; d<n_comp; ++d)
-                M(i,j) += dx *
-                         (/*2. * fe.shape_value_component(i,k,d) * penalty * fe.shape_value_component(j,k,d)*/
-                           - (n * fe.shape_grad_component(i,k,d)) * fe.shape_value_component(j,k,d) //boundary Term aus Green's formula
-                          /*- (n * fe.shape_grad_component(j,k,d)) * fe.shape_value_component(i,k,d)*/);
+		//alle Terme oder keinen
+                /*M(i,j) += dx *
+                         (2. * fe.shape_value_component(i,k,d) * penalty * fe.shape_value_component(j,k,d)
+				//aus Nitsche matrix
+                          - (n * fe.shape_grad_component(i,k,d)) * fe.shape_value_component(j,k,d)
+				//boundary Term aus Green's formula entfällt, da v in H_0^1
+                          - (n * fe.shape_grad_component(j,k,d)) * fe.shape_value_component(i,k,d));
+				//aus Nitsche matrix*/
       }
 }
 

@@ -149,8 +149,7 @@ void
 RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-RHSfun<dim> f;
-
+  RHSfun<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
     rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
