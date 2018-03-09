@@ -142,6 +142,8 @@ MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                           info.fe_values(0),
                           Laplace::compute_penalty(dinfo, dinfo, deg, deg));
 */
+
+/*
 HeatCoeff<dim> kappa;
 FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe = info.fe_values(0);
@@ -158,16 +160,16 @@ for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
         const Tensor<1,dim> n = fe.normal_vector(k);
           for (unsigned int i=0; i<n_dofs; ++i)
           for (unsigned int j=0; j<n_dofs; ++j)
-             for (unsigned int d=0; d<n_comp; ++d)
+           for (unsigned int d=0; d<n_comp; ++d)
 		//alle Terme oder keinen
-                /*M(i,j) += dx *
+                M(i,j) += dx *
                          (2. * fe.shape_value_component(i,k,d) * penalty * fe.shape_value_component(j,k,d)
 				//aus Nitsche matrix
                           - (n * fe.shape_grad_component(i,k,d)) * fe.shape_value_component(j,k,d)
 				//boundary Term aus Green's formula entfällt, da v in H_0^1
                           - (n * fe.shape_grad_component(j,k,d)) * fe.shape_value_component(i,k,d));
-				//aus Nitsche matrix*/
-      }
+				//aus Nitsche matrix
+      }*/
 }
 
 
