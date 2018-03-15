@@ -49,11 +49,11 @@ public:
   virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const;
 
 private:
-  const double k;
+  const double eps;
 };
 
 Solution::Solution(const double eps)
-  : k(k)
+  : eps(eps)
 {
 }
 
@@ -86,8 +86,8 @@ Solution::laplacian(const Point<2>& p, const unsigned int) const
   const double y = p[1];
 
   double val = 2*(y*y-1)+2*(x*x-1);
-  if (abs(y) < 1e-5)
-     val = val - 2;
+  /*if (abs(y) < eps)
+     val = val - 2;*/
   return val;
 }
 
@@ -100,8 +100,8 @@ Solution::gradient(const Point<2>& p, const unsigned int) const
 
   val[0] = 2*x*(y*y-1);
   val[1] = 2*y*(x*x-1);
-  if (abs(y) < 1e-5)
-    val[0] = val[0] - 2*x;
+  /*if (abs(y) < eps)
+    val[0] = val[0] - 2*x;*/
   return val;
 }
 

@@ -286,7 +286,7 @@ Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   dinfo.value(0) = std::sqrt(dinfo.value(0));*/
 }
 
-template <int dim>
+template <int dim> //adapted to tutorial 39
 void
 Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                             IntegrationInfo<dim>& info2) const
