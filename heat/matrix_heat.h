@@ -251,7 +251,7 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 		             tgradv = t*fe1.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-                 M1(i,j) += dx * dtu_dot_dtv;
+                 M1(i,j) += dx * dtu_dot_dtv * 0.5;
                  }
 }
 
@@ -276,7 +276,7 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 		             tgradv = t*fe2.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-		 M2(i,j) += dx * dtu_dot_dtv;
+		 M2(i,j) += dx * dtu_dot_dtv * 0.5;
                  }
 }
 
