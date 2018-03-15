@@ -244,7 +244,7 @@ SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
 template <int dim>
 Estimate<dim>::Estimate()
 {
-  this->use_boundary = false;//true;
+  this->use_boundary = true;//true;
   this->use_face = true;//true;
   this->add_flags(update_hessians);
 }
@@ -270,20 +270,23 @@ template <int dim>
 void
 Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-/*  const FEValuesBase<dim>& fe = info.fe_values();
+  const FEValuesBase<dim>& fe = info.fe_values();
 
-  std::vector<double> boundary_values(fe.n_quadrature_points, 0.);
-  solution->value_list(fe.get_quadrature_points(), boundary_values);
+  std::vector<double> boundary_values(fe.n_quadrature_points, 0.); //vector of zero, boundary values = 0
+  //solution->value_list(fe.get_quadrature_points(), boundary_values);
 
   const std::vector<double>& uh = info.values[0][0];
 
   const unsigned int deg = fe.get_fe().tensor_degree();
-  const double penalty = Laplace::compute_penalty(dinfo, dinfo, deg, deg);
+
+  //const double penalty = Laplace::compute_penalty(dinfo, dinfo, deg, deg);
+
+  const double penalty = 2. * deg * (deg+1) * dinfo.face->measure() / dinfo.cell->measure(); //from Tutorial 39
 
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
     dinfo.value(0) +=
       penalty * (boundary_values[k] - uh[k]) * (boundary_values[k] - uh[k]) * fe.JxW(k);
-  dinfo.value(0) = std::sqrt(dinfo.value(0));*/
+  dinfo.value(0) = std::sqrt(dinfo.value(0));
 }
 
 template <int dim> //adapted to tutorial 39

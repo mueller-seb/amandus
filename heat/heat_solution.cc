@@ -23,7 +23,6 @@
 #include <amandus/apps.h>
 #include <amandus/heat/matrix_heat.h>
 //#include <amandus/heat/rhs_one.h>
-#include <amandus/heat/RHS_heat.h>
 #include <amandus/heat/heat_solution.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
