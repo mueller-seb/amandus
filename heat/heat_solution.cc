@@ -24,7 +24,7 @@
 #include <amandus/heat/matrix_heat.h>
 //#include <amandus/heat/rhs_one.h>
 #include <amandus/heat/RHS_heat.h>
-#include <amandus/heat/solution.h>
+#include <amandus/heat/heat_solution.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/fe/fe_tools.h>
@@ -38,7 +38,7 @@
 class Solution : public Function<2>
 {
 public:
-  Solution(const double k = 60.);
+  Solution(const double eps = 1e-5);
 
   virtual double value(const Point<2>& p, const unsigned int component = 0) const;
 
@@ -52,7 +52,7 @@ private:
   const double k;
 };
 
-Solution::Solution(const double k)
+Solution::Solution(const double eps)
   : k(k)
 {
 }
@@ -85,7 +85,10 @@ Solution::laplacian(const Point<2>& p, const unsigned int) const
   const double x = p[0];
   const double y = p[1];
 
-  return 2*(y*y-1)+2*(x*x-1);
+  double val = 2*(y*y-1)+2*(x*x-1);
+  if (abs(y) < 1e-5)
+     val = val - 2;
+  return val;
 }
 
 Tensor<1, 2>
@@ -97,7 +100,8 @@ Solution::gradient(const Point<2>& p, const unsigned int) const
 
   val[0] = 2*x*(y*y-1);
   val[1] = 2*y*(x*x-1);
-
+  if (abs(y) < 1e-5)
+    val[0] = val[0] - 2*x;
   return val;
 }
 
