@@ -48,20 +48,6 @@ private:
  *
  * @ingroup integrators
  */
-template <int dim>
-class SolutionResidual : public AmandusIntegrator<dim>
-{
-public:
-  SolutionResidual(Function<dim>& solution);
-
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
-
-private:
-  SmartPointer<Function<dim>, SolutionResidual<dim>> solution;
-};
 
 template <int dim>
 class SolutionError : public AmandusIntegrator<dim>

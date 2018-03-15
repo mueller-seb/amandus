@@ -47,33 +47,6 @@ public:
  */
 
 template <int dim>
-class Residual : public AmandusIntegrator<dim>
-{
-public:
-  Residual();
-
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  /*virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;*/
-};
-/*
-template <int dim>
-class SolutionError : public AmandusIntegrator<dim>
-{
-public:
-  SolutionError(Function<dim>& solution);
-
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
-
-private:
-  SmartPointer<Function<dim>, SolutionError<dim>> solution;
-};*/
-
-template <int dim>
 class Estimate : public AmandusIntegrator<dim>
 {
 public:
@@ -189,57 +162,7 @@ RHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
 }
 
 //----------------------------------------------------------------------//
-/*
-template <int dim>
-SolutionError<dim>::SolutionError(Function<dim>& solution)
-  : solution(&solution)
-{
-  this->use_boundary = false;
-  this->use_face = false;
-  this->error_types.push_back(2);
-  this->error_types.push_back(2);
-}
 
-template <int dim>
-void
-SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
-{
-  Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
-
-  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-  {
-    const double dx = info.fe_values(0).JxW(k);
-
-    Tensor<1, dim> Du_h = info.gradients[0][0][k];
-    Tensor<1, dim> Du = solution->gradient(info.fe_values(0).quadrature_point(k));
-    Tensor<1, dim> ddiff = Du - Du_h;
-    double u_h = info.values[0][0][k];
-    double u = solution->value(info.fe_values(0).quadrature_point(k));
-    double diff = u - u_h;
-
-    // 0. L^2(u)
-    dinfo.value(0) += (diff * diff) * dx;
-    // 1. H^1(u)
-    dinfo.value(1) += (ddiff * ddiff) * dx;
-  }
-  dinfo.value(0) = std::sqrt(dinfo.value(0));
-  dinfo.value(1) = std::sqrt(dinfo.value(1));
-}
-
-template <int dim>
-void
-SolutionError<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
-{
-}
-
-template <int dim>
-void
-SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
-                         IntegrationInfo<dim>&) const
-{
-}
-*/
-//----------------------------------------------------------------------//
 
 template <int dim>
 Estimate<dim>::Estimate()
