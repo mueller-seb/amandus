@@ -5,7 +5,7 @@
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
 /**
- * @file
+ * \file
  * <ul>
  * <li> Laplace operator</li>
  * <li> Dirichlet boundary condition</li>
@@ -43,7 +43,7 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+  std::unique_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);

@@ -6,10 +6,13 @@
  **********************************************************************/
 /**
  * @file
+ * \brief Example for Laplacian with manufactured solution on adaptive meshes
  * <ul>
  * <li> Stationary Poisson equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact solution</li>
+ * <li> Error computation</li>
+ * <li> Error estimation</li>
  * <li> Adaptive linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -21,8 +24,8 @@
 
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
-#include <amandus/heat/matrix.h>
-#include <amandus/heat/solution.h>
+#include <amandus/laplace/matrix.h>
+#include <amandus/laplace/solution.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/fe/fe_tools.h>
@@ -31,6 +34,9 @@
 
 #include <boost/scoped_ptr.hpp>
 
+/**
+ * \brief Example for a function class with derivatives and Laplacian implemented
+ */
 class Waterfall : public Function<2>
 {
 public:
@@ -226,7 +232,7 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+  std::unique_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, 0, 1);
@@ -235,11 +241,11 @@ main(int argc, const char** argv)
 
   Waterfall exact_solution;
 
-  HeatIntegrators::Matrix<d> matrix_integrator;
-  HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
-  HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
+  LaplaceIntegrators::Matrix<d> matrix_integrator;
+  LaplaceIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
+  LaplaceIntegrators::SolutionError<d> error_integrator(exact_solution);
 
-  HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
+  LaplaceIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);

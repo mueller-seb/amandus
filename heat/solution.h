@@ -6,8 +6,8 @@
  *
  **********************************************************************/
 
-#ifndef __heat_solution_h
-#define __heat_solution_h
+#ifndef __laplace_solution_h
+#define __laplace_solution_h
 
 #include <amandus/integrator.h>
 #include <deal.II/base/smartpointer.h>
@@ -19,7 +19,7 @@ using namespace dealii;
 using namespace LocalIntegrators;
 using namespace MeshWorker;
 
-namespace HeatIntegrators
+namespace LaplaceIntegrators
 {
 /**
  * Integrate the right hand side for a Laplace problem, where the

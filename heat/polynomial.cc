@@ -6,13 +6,18 @@
  **********************************************************************/
 /**
  * @file
+ * \brief Test case with manufactured solution, a tensor product polynomial of degree 4.
  * <ul>
- * <li> Stationary Poisson equations</li>
+ * <li> Stationary Poisson equation</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact polynomial solution</li>
  * <li> Linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
+ *
+ * This is a test case and unless the polynomial degree in the
+ * parameter file is chosen less than 4, the errors displayed after
+ * each solution should be within machine accuracy.
  *
  * @ingroup Laplacegroup
  */
@@ -40,7 +45,7 @@ main(int argc, const char** argv)
   param.log_parameters(deallog);
 
   param.enter_subsection("Discretization");
-  boost::scoped_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
+  std::unique_ptr<const FiniteElement<d>> fe(FETools::get_fe_by_name<d, d>(param.get("FE")));
 
   Triangulation<d> tr(Triangulation<d>::limit_level_difference_at_vertices);
   GridGenerator::hyper_cube(tr, -1, 1);
