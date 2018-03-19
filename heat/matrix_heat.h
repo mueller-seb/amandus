@@ -17,21 +17,17 @@ using namespace dealii;
 using namespace LocalIntegrators;
 
 /**
- * Integrator for Laplace problems and heat equation.
+ * Integrator for heat equation.
  *
  * The distinction between stationary and instationary problems is
  * made by the variable AmandusIntegrator::timestep, which is
  * inherited from the base class. If this variable is zero, we solve a
  * stationary problem. If it is nonzero, we assemble for an implicit
  * scheme.
- *
- * @ingroup integrators
  */
 namespace HeatIntegrators
 {
-/**
- * \brief Integrator for the matrix of the Laplace operator.
- */
+
 template <int dim>
 class MatrixHeat : public AmandusIntegrator<dim>
 {
@@ -45,26 +41,22 @@ public:
 };
 
 template <int dim>
-class HeatCoeff : public dealii::Function<dim>
+class Conductivity : public dealii::Function<dim>
 {
 public:
-  HeatCoeff();
+  Conductivity();
   virtual double value(const Point<dim>& p, const unsigned int component) const;
-
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component) const;
 };
 
-// constructor defould one component
 template <int dim>
-HeatCoeff<dim>::HeatCoeff()
-  : Function<dim>()
+Conductivity<dim>::Conductivity() : Function<dim>()
 {
 }
 
 template <int dim>
-double
-HeatCoeff<dim>::value(const Point<dim>& p, const unsigned int) const
+double Conductivity<dim>::value(const Point<dim>& p, const unsigned int) const
 {
   double y = p(1);
   double result = 1e-5;
@@ -74,8 +66,7 @@ HeatCoeff<dim>::value(const Point<dim>& p, const unsigned int) const
 }
 
 template <int dim>
-void
-HeatCoeff<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+void Conductivity<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                          const unsigned int) const
 {
   AssertDimension(points.size(), values.size());
@@ -88,24 +79,23 @@ HeatCoeff<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<do
 }
 
 
-
-
+/**
+ * \brief Integrator for the matrix of the differential operator.
+ */
 template <int dim>
-void
-MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension(dinfo.n_matrices(), 1);
-  //Laplace::cell_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0));
 
-HeatCoeff<dim> kappa;
-FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
-const FEValuesBase<dim>& fe = info.fe_values(0);
-const unsigned int n_dofs = fe.dofs_per_cell;
-const unsigned int n_components = fe.get_fe().n_components();
+  Conductivity<dim> kappa;
+  FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
+  const FEValuesBase<dim>& fe = info.fe_values(0);
+  const unsigned int n_dofs = fe.dofs_per_cell;
+  const unsigned int n_components = fe.get_fe().n_components();
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
          {
-              const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0);// * factor;
+              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
            for (unsigned int i=0; i<n_dofs; ++i)
               {
                double Mii = 0.0;
@@ -129,9 +119,9 @@ const unsigned int n_components = fe.get_fe().n_components();
    }
 }
 
+/*Boundary term of Green's formula diminishes due to shape functions v in H_0^1. Boundary term of Green's formular (partial integration) is part of the nitsche matrix.*/
 template <int dim>
-void
-MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
+void MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                       typename MeshWorker::IntegrationInfo<dim>& info) const
 {
   if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
@@ -142,46 +132,69 @@ MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                           info.fe_values(0),
                           Laplace::compute_penalty(dinfo, dinfo, deg, deg));
 */
+}
 
-/*
-HeatCoeff<dim> kappa;
-FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
-const FEValuesBase<dim>& fe = info.fe_values(0);
+template <int dim>
+class QPointsOut
+{
+private:
+	const std::vector<Point<dim>>& QPoints1;
+	const std::vector<Point<dim>>& QPoints2;
+	unsigned int n1 = 0;
+	unsigned int n2 = 0;
+	const double eps = 1e-15;
+	bool y0 = true;
+public:
+  QPointsOut(const std::vector<Point<dim>>& qp1, const std::vector<Point<dim>>& qp2);
+  void write();
+};
 
-const unsigned int n_dofs = fe.dofs_per_cell;
-const unsigned int n_comp = fe.get_fe().n_components();
-
-Assert (M.m() == n_dofs, ExcDimensionMismatch(M.m(), n_dofs));
-Assert (M.n() == n_dofs, ExcDimensionMismatch(M.n(), n_dofs));
-
-for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
-      {
-        const double dx = fe.JxW(k)*kappa.value(fe.quadrature_point(k), 0);// * factor;
-        const Tensor<1,dim> n = fe.normal_vector(k);
-          for (unsigned int i=0; i<n_dofs; ++i)
-          for (unsigned int j=0; j<n_dofs; ++j)
-           for (unsigned int d=0; d<n_comp; ++d)
-		//alle Terme oder keinen
-                M(i,j) += dx *
-                         (2. * fe.shape_value_component(i,k,d) * penalty * fe.shape_value_component(j,k,d)
-				//aus Nitsche matrix
-                          - (n * fe.shape_grad_component(i,k,d)) * fe.shape_value_component(j,k,d)
-				//boundary Term aus Green's formula entfällt, da v in H_0^1
-                          - (n * fe.shape_grad_component(j,k,d)) * fe.shape_value_component(i,k,d));
-				//aus Nitsche matrix
-      }*/
+template <int dim>
+QPointsOut<dim>::QPointsOut(const std::vector<Point<dim>>& qp1, const std::vector<Point<dim>>& qp2) : QPoints1(qp1), QPoints2(qp2)
+{
+	n1 = QPoints1.size();
+	n2 = QPoints2.size();
+	Assert((n1 == n2), ExcInternalError());
 }
 
 
 template <int dim>
-void
-MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+void QPointsOut<dim>::write()
+{
+std::vector<double> y1(n1), y2(n2);
+std::vector<double> x1(n1), x2(n2);
+
+for (int i = 0; i < n1; i++) {
+	//Point<dim> pt = qp1[i];
+	y1[i] = QPoints1[i](1);
+	y2[i] = QPoints2[i](1);
+	x1[i] = QPoints1[i](0);
+	x2[i] = QPoints2[i](0);
+	if ((abs(y1[i])>eps) or (abs(y2[i])>eps))
+		{ y0 = false; }
+}
+if (y0) {
+std::ostringstream message;
+message << "new face with quadrature points" << std::endl;
+
+for (int i = 0; i < n1; i++) {
+message << "(" << x1[i] << ", " << y1[i] << ") - (" << x2[i] << ", " << y2[i] << ")" << std::endl;
+}
+
+deallog << message.str();
+}
+}
+
+
+
+template <int dim>
+void MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                   MeshWorker::IntegrationInfo<dim>& info1,
                   MeshWorker::IntegrationInfo<dim>& info2) const
 {
-/*  if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;
-
+/*if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+    return;*/
+/*
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
   Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,
                      dinfo1.matrix(0, true).matrix,
@@ -190,7 +203,8 @@ MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>
                      info1.fe_values(0),
                      info2.fe_values(0),
                      Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));*/
-HeatCoeff<dim> kappa;
+
+Conductivity<dim> kappa;
 
 FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
 FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
@@ -199,38 +213,15 @@ const FEValuesBase<dim>& fe2 = info2.fe_values(0);
 
 const std::vector<Point<dim>>& qp1 = fe1.get_quadrature_points();
 const std::vector<Point<dim>>& qp2 = fe2.get_quadrature_points();
-Assert((qp1.size() == qp2.size()), ExcInternalError());
+
+QPointsOut qptsout(qp1, qp2);
+qptsout.write();
 
 const unsigned int n_dofs = fe1.dofs_per_cell;
 const unsigned int n_comp = fe1.get_fe().n_components();
 //AssertDimension(fe1.get_fe().n_components(), dim);
 Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
 Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
-
-std::vector<double> y1(qp1.size()), y2(qp2.size());
-std::vector<double> x1(qp1.size()), x2(qp2.size());
-bool y0 = true;
-double eps = 1e-5;
-
-for (int i = 0; i < qp1.size(); i++) {
-	//Point<dim> pt = qp1[i];
-	y1[i] = qp1[i](1);
-	y2[i] = qp2[i](1);
-	x1[i] = qp1[i](0);
-	x2[i] = qp2[i](0);
-	if ((abs(y1[i])>eps) or (abs(y2[i])>eps))
-		{ y0 = false; }
-}
-
-if (y0) {
-std::ostringstream message;
-message << "new face with quadrature points" << std::endl;
-
-for (int i = 0; i < qp1.size(); i++) {
-message << "(" << x1[i] << ", " << y1[i] << ") - (" << x2[i] << ", " << y2[i] << ")" << std::endl;
-}
-
-deallog << message.str();
 
 for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 {
@@ -251,7 +242,7 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 		             tgradv = t*fe1.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-                 M1(i,j) += -dx * dtu_dot_dtv * 0.5;
+                 M1(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
                  }
 }
 
@@ -276,14 +267,13 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 		             tgradv = t*fe2.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-		 M2(i,j) += -dx * dtu_dot_dtv * 0.5;
+		 M2(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
                  }
 }
-
 }
 
 
 }
-}
+
 
 #endif
