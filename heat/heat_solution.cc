@@ -130,7 +130,7 @@ main(int argc, const char** argv)
   param.leave_subsection();
 
 
-  HeatIntegrators::MatrixHeat<d> matrix_integrator;
+  HeatIntegrators::Matrix<d> matrix_integrator;
 
   Solution exact_solution;
 

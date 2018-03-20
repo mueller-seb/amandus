@@ -29,7 +29,7 @@ namespace HeatIntegrators
 {
 
 template <int dim>
-class MatrixHeat : public AmandusIntegrator<dim>
+class Matrix : public AmandusIntegrator<dim>
 {
 public:
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
@@ -83,7 +83,7 @@ void Conductivity<dim>::value_list(const std::vector<Point<dim>>& points, std::v
  * \brief Integrator for the matrix of the differential operator.
  */
 template <int dim>
-void MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
+void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
   AssertDimension(dinfo.n_matrices(), 1);
 
@@ -121,12 +121,12 @@ void MatrixHeat<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::Integrat
 
 /*Boundary term of Green's formula diminishes due to shape functions v in H_0^1. Boundary term of Green's formular (partial integration) is part of the nitsche matrix.*/
 template <int dim>
-void MatrixHeat<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
+void Matrix<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                       typename MeshWorker::IntegrationInfo<dim>& info) const
 {
-  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+/*  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;
-/*
+
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_matrix(dinfo.matrix(0, false).matrix,
                           info.fe_values(0),
@@ -138,22 +138,23 @@ template <int dim>
 class QPointsOut
 {
 private:
-	const std::vector<Point<dim>>& QPoints1;
-	const std::vector<Point<dim>>& QPoints2;
+	const std::vector<Point<dim>>& qp1;
+        const std::vector<Point<dim>>& qp2;
 	unsigned int n1 = 0;
 	unsigned int n2 = 0;
-	const double eps = 1e-15;
+	const double eps = 1e-5;
 	bool y0 = true;
 public:
-  QPointsOut(const std::vector<Point<dim>>& qp1, const std::vector<Point<dim>>& qp2);
+  QPointsOut(const FEValuesBase<dim>& fe1, const FEValuesBase<dim>& fe2);
   void write();
 };
 
 template <int dim>
-QPointsOut<dim>::QPointsOut(const std::vector<Point<dim>>& qp1, const std::vector<Point<dim>>& qp2) : QPoints1(qp1), QPoints2(qp2)
+QPointsOut<dim>::QPointsOut(const FEValuesBase<dim>& fe1, const FEValuesBase<dim>& fe2):
+qp1(fe1.get_quadrature_points()), qp2(fe2.get_quadrature_points())
 {
-	n1 = QPoints1.size();
-	n2 = QPoints2.size();
+	n1 = qp1.size();
+	n2 = qp2.size();
 	Assert((n1 == n2), ExcInternalError());
 }
 
@@ -161,15 +162,14 @@ QPointsOut<dim>::QPointsOut(const std::vector<Point<dim>>& qp1, const std::vecto
 template <int dim>
 void QPointsOut<dim>::write()
 {
-std::vector<double> y1(n1), y2(n2);
-std::vector<double> x1(n1), x2(n2);
+std::vector<double> x1(n1), x2(n2), y1(n1), y2(n2);
 
 for (int i = 0; i < n1; i++) {
 	//Point<dim> pt = qp1[i];
-	y1[i] = QPoints1[i](1);
-	y2[i] = QPoints2[i](1);
-	x1[i] = QPoints1[i](0);
-	x2[i] = QPoints2[i](0);
+	y1[i] = qp1[i](1);
+	y2[i] = qp2[i](1);
+	x1[i] = qp1[i](0);
+	x2[i] = qp2[i](0);
 	if ((abs(y1[i])>eps) or (abs(y2[i])>eps))
 		{ y0 = false; }
 }
@@ -188,12 +188,12 @@ deallog << message.str();
 
 
 template <int dim>
-void MatrixHeat<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+void Matrix<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                   MeshWorker::IntegrationInfo<dim>& info1,
                   MeshWorker::IntegrationInfo<dim>& info2) const
 {
-/*if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;*/
+if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H2)) //H1 original, H2 due to non-DGQ?
+    return;
 /*
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
   Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,
@@ -211,11 +211,10 @@ FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe1 = info1.fe_values(0);
 const FEValuesBase<dim>& fe2 = info2.fe_values(0);
 
-const std::vector<Point<dim>>& qp1 = fe1.get_quadrature_points();
-const std::vector<Point<dim>>& qp2 = fe2.get_quadrature_points();
-
-QPointsOut qptsout(qp1, qp2);
+/*
+QPointsOut qptsout(fe1, fe2);
 qptsout.write();
+*/
 
 const unsigned int n_dofs = fe1.dofs_per_cell;
 const unsigned int n_comp = fe1.get_fe().n_components();

@@ -62,26 +62,25 @@ public:
 //----------------------------------------------------------------------//
 
 template <int dim>
-class RHSfun : public dealii::Function<dim>
+class Force : public dealii::Function<dim>
 {
 public:
-  RHSfun();
+  Force();
   virtual double value(const Point<dim>& p, const unsigned int component) const;
-
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component) const;
 };
 
 // constructor defould one component
 template <int dim>
-RHSfun<dim>::RHSfun()
+Force<dim>::Force()
   : Function<dim>()
 {
 }
 
 template <int dim>
 double
-RHSfun<dim>::value(const Point<dim>& p, const unsigned int) const
+Force<dim>::value(const Point<dim>& p, const unsigned int) const
 {
   double x = p(0);
   double result = 0;
@@ -94,7 +93,7 @@ RHSfun<dim>::value(const Point<dim>& p, const unsigned int) const
 
 template <int dim>
 void
-RHSfun<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                          const unsigned int) const
 {
   AssertDimension(points.size(), values.size());
@@ -122,7 +121,7 @@ void
 RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-  RHSfun<dim> f;
+  Force<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
     rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
@@ -177,7 +176,7 @@ void
 Estimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
-RHSfun<dim> f;
+Force<dim> f;
 
   const std::vector<Tensor<2, dim>>& DDuh = info.hessians[0][0];
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)

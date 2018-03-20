@@ -60,7 +60,7 @@ main(int argc, const char** argv)
   param.leave_subsection();
 
 
-  HeatIntegrators::MatrixHeat<d> matrix_integrator;
+  HeatIntegrators::Matrix<d> matrix_integrator;
   HeatIntegrators::RHS<d> rhs_integrator;
   HeatIntegrators::Estimate<d> estimate_integrator;
   AmandusIntegrator<d>* error_integrator = 0;
