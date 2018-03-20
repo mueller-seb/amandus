@@ -27,19 +27,6 @@ using namespace LocalIntegrators;
  */
 namespace HeatIntegrators
 {
-
-template <int dim>
-class Matrix : public AmandusIntegrator<dim>
-{
-public:
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
-  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
-                    MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
-};
-
 template <int dim>
 class Conductivity : public dealii::Function<dim>
 {
@@ -78,6 +65,17 @@ void Conductivity<dim>::value_list(const std::vector<Point<dim>>& points, std::v
   }
 }
 
+template <int dim>
+class Matrix : public AmandusIntegrator<dim>
+{
+public:
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
+                        MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
+                    MeshWorker::IntegrationInfo<dim>& info1,
+                    MeshWorker::IntegrationInfo<dim>& info2) const;
+};
 
 /**
  * \brief Integrator for the matrix of the differential operator.

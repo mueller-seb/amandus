@@ -21,12 +21,56 @@ using namespace MeshWorker;
 
 namespace HeatIntegrators
 {
+
+template <int dim>
+class Force : public dealii::Function<dim>
+{
+public:
+  Force();
+  virtual double value(const Point<dim>& p, const unsigned int component) const;
+  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                          const unsigned int component) const;
+};
+
+template <int dim>
+Force<dim>::Force()
+  : Function<dim>()
+{
+}
+
+template <int dim>
+double
+Force<dim>::value(const Point<dim>& p, const unsigned int) const
+{
+  double x = p(0);
+  double result = 0;
+  if (x < 0)
+	result = 10;
+  if (x > 0)
+	result = -10;
+  return result;
+}
+
+template <int dim>
+void
+Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int) const
+{
+  AssertDimension(points.size(), values.size());
+
+  for (unsigned int k = 0; k < points.size(); ++k)
+  {
+    const Point<dim>& p = points[k];
+    values[k] = 1. * p(0);
+  }
+}
+
 /**
- * Integrate the right hand side for a Laplace problem, where the
- * solution is given.
+ * Integrate the right hand side
  *
  * @ingroup integrators
  */
+
 template <int dim>
 class RHS : public AmandusIntegrator<dim>
 {
@@ -61,49 +105,7 @@ public:
 
 //----------------------------------------------------------------------//
 
-template <int dim>
-class Force : public dealii::Function<dim>
-{
-public:
-  Force();
-  virtual double value(const Point<dim>& p, const unsigned int component) const;
-  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component) const;
-};
 
-// constructor defould one component
-template <int dim>
-Force<dim>::Force()
-  : Function<dim>()
-{
-}
-
-template <int dim>
-double
-Force<dim>::value(const Point<dim>& p, const unsigned int) const
-{
-  double x = p(0);
-  double result = 0;
-  if (x < 0)
-	result = 10;
-  if (x > 0)
-	result = -10;
-  return result;
-}
-
-template <int dim>
-void
-Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                         const unsigned int) const
-{
-  AssertDimension(points.size(), values.size());
-
-  for (unsigned int k = 0; k < points.size(); ++k)
-  {
-    const Point<dim>& p = points[k];
-    values[k] = 1. * p(0);
-  }
-}
 
 
 
@@ -124,7 +126,7 @@ RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   Force<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);//-solution->laplacian(info.fe_values(0).quadrature_point(k));
+    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
@@ -166,8 +168,8 @@ RHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
 template <int dim>
 Estimate<dim>::Estimate()
 {
-  this->use_boundary = true;//true;
-  this->use_face = true;//true;
+  this->use_boundary = true;
+  this->use_face = true;
   this->add_flags(update_hessians);
 }
 
@@ -182,7 +184,7 @@ Force<dim> f;
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
   {
     const double t = dinfo.cell->diameter() *
-                     (trace(DDuh[k]) + f.value(info.fe_values(0).quadrature_point(k), 0));/*- solution->laplacian(info.fe_values(0).quadrature_point(k)));*/
+                     (trace(DDuh[k]) + f.value(info.fe_values(0).quadrature_point(k), 0));
     dinfo.value(0) += t * t * fe.JxW(k);
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));

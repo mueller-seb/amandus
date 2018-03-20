@@ -129,11 +129,9 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-
-  HeatIntegrators::Matrix<d> matrix_integrator;
-
   Solution exact_solution;
 
+  HeatIntegrators::Matrix<d> matrix_integrator;
   HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
   HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
   HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
