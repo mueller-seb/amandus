@@ -115,8 +115,8 @@ Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<d
     }
     L2::weighted_mass_matrix(dinfo.matrix(0, false).matrix, info.fe_values(0), Du_ru);
     L2::weighted_mass_matrix(dinfo.matrix(1, false).matrix, info.fe_values(0), Dv_ru);
-    L2::weighted_mass_matrix(dinfo.matrix(2, false).matrix, info.fe_values(0), Dv_rv);
-    L2::weighted_mass_matrix(dinfo.matrix(3, false).matrix, info.fe_values(0), Du_rv);
+    L2::weighted_mass_matrix(dinfo.matrix(2, false).matrix, info.fe_values(0), Du_rv);
+    L2::weighted_mass_matrix(dinfo.matrix(3, false).matrix, info.fe_values(0), Dv_rv);
   }
 }
 
