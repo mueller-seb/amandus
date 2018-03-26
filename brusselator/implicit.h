@@ -84,7 +84,7 @@ ImplicitResidual<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) con
     rhs0[k] = u + this->timestep * (-parameters->B - u * u * v + (parameters->A + 1.) * u);
     rhs1[k] = v + this->timestep * (-parameters->A * u + u * u * v);
   }
-
+  // The signs of the formulae above and below are not consistent with the typeset equation
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs0);
   L2::L2(dinfo.vector(0).block(1), info.fe_values(0), rhs1);
   Laplace::cell_residual(dinfo.vector(0).block(0),
