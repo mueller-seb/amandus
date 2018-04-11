@@ -85,8 +85,8 @@ Solution::laplacian(const Point<2>& p, const unsigned int) const
   const double y = p[1];
 
   double val = 2*(y*y-1)+2*(x*x-1);
-  /*if (abs(y) < eps)
-     val = val - 2;*/
+  if (abs(y) < eps)
+     val = val - 2;
   return val;
 }
 
@@ -99,8 +99,8 @@ Solution::gradient(const Point<2>& p, const unsigned int) const
 
   val[0] = 2*x*(y*y-1);
   val[1] = 2*y*(x*x-1);
-  /*if (abs(y) < eps)
-    val[0] = val[0] - 2*x;*/
+  if (abs(y) < eps)
+    val[0] = val[0] - 2*x;
   return val;
 }
 
@@ -142,7 +142,8 @@ main(int argc, const char** argv)
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
-  RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
+  //RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
+  RefineStrategy::MarkUniform<d> refine_strategy(tr);
 
   adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,

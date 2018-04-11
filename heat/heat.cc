@@ -71,7 +71,8 @@ main(int argc, const char** argv)
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
-  RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
+//RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
+  RefineStrategy::MarkUniform<d> refine_strategy(tr);
 
   adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,

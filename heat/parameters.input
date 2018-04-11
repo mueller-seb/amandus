@@ -1,2 +1,2 @@
-include_guard __laplace_parameters_h
-namespace LaplaceIntegrators
+include_guard __heat_parameters_h
+namespace HeatIntegrators

@@ -32,7 +32,7 @@ class Conductivity : public dealii::Function<dim>
 {
 public:
   Conductivity();
-  virtual double value(const Point<dim>& p, const unsigned int component) const;
+  virtual double value(const Point<dim>& p, const unsigned int component, bool onFace) const;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component) const;
 };
@@ -43,10 +43,12 @@ Conductivity<dim>::Conductivity() : Function<dim>()
 }
 
 template <int dim>
-double Conductivity<dim>::value(const Point<dim>& p, const unsigned int) const
+double Conductivity<dim>::value(const Point<dim>& p, const unsigned int, bool onFace) const
 {
   double y = p(1);
-  double result = 1e-5;
+  double result = 0;
+  if (!onFace)
+    result = 1e-5;
   if ((y < 1e-5) && (y > -1e-5))
 	result = 1;
   return result;
@@ -93,7 +95,7 @@ void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationI
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
          {
-              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
+              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0, false);
            for (unsigned int i=0; i<n_dofs; ++i)
               {
                double Mii = 0.0;
@@ -226,7 +228,7 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 	AssertDimension(2, dim);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 0);
+	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 0, true);
 	for (unsigned int i=0; i<n_dofs; ++i)
 		for (unsigned int j=0; j<n_dofs; ++j)
 		{
@@ -251,7 +253,7 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 	AssertDimension(2, dim);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 0);
+	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 0, true);
 	for (unsigned int i=0; i<n_dofs; ++i)
 		for (unsigned int j=0; j<n_dofs; ++j)
 		{
