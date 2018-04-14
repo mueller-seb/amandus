@@ -30,9 +30,8 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 
-
-
 #include <boost/scoped_ptr.hpp>
+
 
 class Solution : public Function<2>
 {
@@ -45,7 +44,7 @@ public:
                           const unsigned int component = 0) const;
   virtual Tensor<1, 2> gradient(const Point<2>& p, const unsigned int component = 0) const;
 
-  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const;
+  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const ;
 
 private:
   const double eps;
@@ -59,10 +58,11 @@ Solution::Solution(const double eps)
 double
 Solution::value(const Point<2>& p, const unsigned int) const
 {
+  HeatIntegrators::Conductivity<2> kappa;
   const double x = p[0];
   const double y = p[1];
 
-  return (x*x-1)*(y*y-1);
+  return kappa.value(p, 0)*(x*x-1)*(y*y-1);
 }
 
 void
@@ -79,28 +79,32 @@ Solution::value_list(const std::vector<Point<2>>& points, std::vector<double>& v
 }
 
 double
-Solution::laplacian(const Point<2>& p, const unsigned int) const
+Solution::laplacian(const Point<2>& p, const unsigned int component) const
 {
+  HeatIntegrators::Conductivity<2> kappa;
   const double x = p[0];
   const double y = p[1];
+  double val = 0;
 
-  double val = 2*(y*y-1)+2*(x*x-1);
-  if (abs(y) < eps)
-     val = val - 2;
+if (component == 0)
+  val = kappa.value(p, 0)*(2*(y*y-1)+2*(x*x-1));
+if (component == 1)
+  val = -2*kappa.value(p, 1);
+
   return val;
 }
 
 Tensor<1, 2>
 Solution::gradient(const Point<2>& p, const unsigned int) const
 {
+  HeatIntegrators::Conductivity<2> kappa;
   Tensor<1, 2> val;
   const double x = p[0];
   const double y = p[1];
 
-  val[0] = 2*x*(y*y-1);
-  val[1] = 2*y*(x*x-1);
-  if (abs(y) < eps)
-    val[0] = val[0] - 2*x;
+  val[0] = kappa.value(p, 0)*2*x*(y*y-1);
+  val[1] = kappa.value(p, 0)*2*y*(x*x-1);
+
   return val;
 }
 
@@ -142,8 +146,8 @@ main(int argc, const char** argv)
   app.set_boundary(0);
   AmandusSolve<d> solver(app, matrix_integrator);
   AmandusResidual<d> residual(app, rhs_integrator);
-  //RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
-  RefineStrategy::MarkUniform<d> refine_strategy(tr);
+  RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
+  //RefineStrategy::MarkUniform<d> refine_strategy(tr);
 
   adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,

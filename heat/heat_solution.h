@@ -86,7 +86,7 @@ SolutionRHS<dim>::SolutionRHS(Function<dim>& solution)
   : solution(&solution)
 {
   this->use_boundary = false;//true
-  this->use_face = false;
+  this->use_face = true;//false
 }
 
 template <int dim>
@@ -96,7 +96,7 @@ SolutionRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = -solution->laplacian(info.fe_values(0).quadrature_point(k));
+    rhs[k] = -solution->laplacian(info.fe_values(0).quadrature_point(k), 0);
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
@@ -111,7 +111,7 @@ SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
   const FEValuesBase<dim>& fe = info.fe_values();
   Vector<double>& local_vector = dinfo.vector(0).block(0);
 
-  std::vector<double> boundary_values(fe.n_quadrature_points);
+  std::vector<double> boundary_values(fe.n_quadrature_points, 0.);
   solution->value_list(fe.get_quadrature_points(), boundary_values);
 
   const unsigned int deg = fe.get_fe().tensor_degree();
@@ -126,9 +126,23 @@ SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
 
 template <int dim>
 void
-SolutionRHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
-                       IntegrationInfo<dim>&) const
+SolutionRHS<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+                       IntegrationInfo<dim>& info2) const
 {
+  /*const FEValuesBase<dim>& fe = info1.fe_values();
+  Vector<double>& local_vector = dinfo1.vector(0).block(0);
+
+  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+    for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
+      local_vector(i) += -solution->laplacian(info1.fe_values(0).quadrature_point(k), 1) * fe.shape_value(i, k) * fe.JxW(k);*/
+
+  std::vector<double> rhs(info1.fe_values(0).n_quadrature_points, 0.);
+
+  for (unsigned int k = 0; k < info1.fe_values(0).n_quadrature_points; ++k)
+    rhs[k] = -solution->laplacian(info1.fe_values(0).quadrature_point(k), 1);
+
+  L2::L2(dinfo1.vector(0).block(0), info1.fe_values(0), rhs);
+
 }
 
 //----------------------------------------------------------------------//
@@ -158,7 +172,7 @@ SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
     Tensor<1, dim> Du = solution->gradient(info.fe_values(0).quadrature_point(k));
     Tensor<1, dim> ddiff = Du - Du_h;
     double u_h = info.values[0][0][k];
-    double u = solution->value(info.fe_values(0).quadrature_point(k));
+    double u = solution->value(info.fe_values(0).quadrature_point(k), 0);
     double diff = u - u_h;
 
     // 0. L^2(u)
@@ -204,7 +218,7 @@ SolutionEstimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) con
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
   {
     const double t = dinfo.cell->diameter() *
-                     (trace(DDuh[k]) - solution->laplacian(info.fe_values(0).quadrature_point(k)));
+                     (trace(DDuh[k]) - solution->laplacian(info.fe_values(0).quadrature_point(k), 0));
     dinfo.value(0) += t * t * fe.JxW(k);
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));

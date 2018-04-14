@@ -32,9 +32,9 @@ class Conductivity : public dealii::Function<dim>
 {
 public:
   Conductivity();
-  virtual double value(const Point<dim>& p, const unsigned int component, bool onFace) const;
+  virtual double value(const Point<dim>& p, const unsigned int component = 0) const;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component) const;
+                          const unsigned int component = 0) const;
 };
 
 template <int dim>
@@ -43,14 +43,16 @@ Conductivity<dim>::Conductivity() : Function<dim>()
 }
 
 template <int dim>
-double Conductivity<dim>::value(const Point<dim>& p, const unsigned int, bool onFace) const
+double Conductivity<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
   double y = p(1);
-  double result = 0;
-  if (!onFace)
-    result = 1e-5;
-  if ((y < 1e-5) && (y > -1e-5))
-	result = 1;
+  double result = 1e-5;
+  if (component == 1)
+    {
+    result = 0;
+    if (abs(y) < 1e-5)
+      result = 1;
+    }
   return result;
 }
 
@@ -71,6 +73,7 @@ template <int dim>
 class Matrix : public AmandusIntegrator<dim>
 {
 public:
+  Matrix();
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const;
@@ -82,6 +85,14 @@ public:
 /**
  * \brief Integrator for the matrix of the differential operator.
  */
+
+template <int dim>
+Matrix<dim>::Matrix()
+{
+  this->use_boundary = false;
+  this->use_face = true;
+}
+
 template <int dim>
 void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
@@ -95,7 +106,7 @@ void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationI
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
          {
-              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0, false);
+              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
            for (unsigned int i=0; i<n_dofs; ++i)
               {
                double Mii = 0.0;
@@ -228,7 +239,7 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 	AssertDimension(2, dim);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 0, true);
+	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 1);
 	for (unsigned int i=0; i<n_dofs; ++i)
 		for (unsigned int j=0; j<n_dofs; ++j)
 		{
@@ -253,7 +264,7 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 	AssertDimension(2, dim);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 0, true);
+	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 1);
 	for (unsigned int i=0; i<n_dofs; ++i)
 		for (unsigned int j=0; j<n_dofs; ++j)
 		{
