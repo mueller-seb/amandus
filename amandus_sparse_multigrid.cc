@@ -337,7 +337,6 @@ AmandusApplication<dim, RELAXATION>::solve(Vector<double>& sol, const Vector<dou
     mgmatrix, mg_coarse, mg_transfer, mg_smoother, mg_smoother, mg_matrix.min_level());
   mg.set_edge_matrices(mgdown, mgup);
   mg.set_edge_flux_matrices(mgfluxdown, mgfluxup);
-  mg.set_debug(0);
 
   PreconditionMG<dim, Vector<double>, MGTransferPrebuilt<Vector<double>>> preconditioner(
     this->dof_handler, mg, mg_transfer);

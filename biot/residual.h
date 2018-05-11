@@ -29,7 +29,7 @@ public:
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
-  dealii::ZeroFunction<dim> zero;
+  dealii::Functions::ZeroFunction<dim> zero;
 
 protected:
   dealii::SmartPointer<const dealii::Function<dim>, class Residual<dim>> boundary_values;

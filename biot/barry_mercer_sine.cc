@@ -47,7 +47,7 @@ main(int argc, const char** argv)
   deallog << "Mesh: " << tr.n_levels() << " levels, " << tr.n_active_cells() << " cells"
           << std::endl;
 
-  ZeroFunction<d> startup(2 * d + 1);
+  Functions::ZeroFunction<d> startup(2 * d + 1);
 
   ::Biot::Parameters parameters;
   parameters.parse_parameters(param);
