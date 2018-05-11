@@ -37,7 +37,7 @@ public:
   void log_mass(const VECTOR* solution);
   void write_output(const AnyData& vectors);
 
-  virtual OutputOperator<VECTOR>& operator<<(const AnyData& vectors);
+  virtual OutputOperator<VECTOR>& operator<<(const AnyData& vectors) override;
 
 protected:
   Vector<double> mean_values;

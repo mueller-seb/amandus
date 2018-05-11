@@ -51,7 +51,7 @@ public:
   {
   }
 
-  void operator()(const dealii::Vector<double>& /*indicator*/)
+  void operator()(const dealii::Vector<double>& /*indicator*/) override
   {
     this->tria->set_all_refine_flags();
   }
@@ -100,7 +100,7 @@ public:
   {
   }
 
-  void operator()(const dealii::Vector<double>& indicator)
+  void operator()(const dealii::Vector<double>& indicator) override
   {
     dealii::Vector<double> square_indicators(indicator);
     square_indicators.scale(indicator);

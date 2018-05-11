@@ -43,10 +43,10 @@ public:
   PolynomialRHS(const Polynomials::Polynomial<double> curl_potential_1d,
                 const Polynomials::Polynomial<double> grad_potential_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> curl_potential_1d;
@@ -79,10 +79,10 @@ public:
   PolynomialResidual(const Polynomials::Polynomial<double> curl_potential_1d,
                      const Polynomials::Polynomial<double> grad_potential_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> curl_potential_1d;
@@ -129,10 +129,10 @@ public:
   PolynomialError(const Polynomials::Polynomial<double> curl_potential_1d,
                   const Polynomials::Polynomial<double> grad_potential_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> curl_potential_1d;

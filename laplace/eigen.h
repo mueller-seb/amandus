@@ -40,12 +40,12 @@ public:
   {
   }
 
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
+                        MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
+                    MeshWorker::IntegrationInfo<dim>& info2) const override;
 };
 
 template <int dim>
@@ -93,15 +93,15 @@ class EigenEstimate : public AmandusIntegrator<dim>
 {
 public:
   EigenEstimate();
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
+                        MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
+                    MeshWorker::IntegrationInfo<dim>& info2) const override;
 
 private:
-  virtual void extract_data(const dealii::AnyData& data);
+  virtual void extract_data(const dealii::AnyData& data) override;
   std::vector<double> ev;
 };
 

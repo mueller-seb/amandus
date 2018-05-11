@@ -41,8 +41,8 @@ public:
                         double factor1, double factor2, std::vector<std::vector<double>> direction,
                         double x1, double x2, double y1, double y2);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
   dealii::SmartPointer<const Parameters, class PolynomialBoundaryRHS<dim>> parameters;

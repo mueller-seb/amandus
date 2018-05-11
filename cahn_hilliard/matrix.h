@@ -13,7 +13,7 @@ class Matrix : public AmandusIntegrator<dim>
 public:
   Matrix(double diffusion, const Function<dim>& advection);
 
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
 
 private:
   const double diffusion;

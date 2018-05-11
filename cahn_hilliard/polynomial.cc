@@ -38,7 +38,7 @@ public:
   }
 
   virtual double
-  value(const Point<dim>& p, const unsigned int component = 0) const
+  value(const Point<dim>& p, const unsigned int component = 0) const override
   {
     if (component == 0)
     {
@@ -52,7 +52,7 @@ public:
   }
 
   virtual Tensor<1, dim>
-  gradient(const Point<dim>& p, const unsigned int component = 0) const
+  gradient(const Point<dim>& p, const unsigned int component = 0) const override
   {
     if (component == 0)
     {
@@ -129,7 +129,7 @@ public:
   }
 
   virtual double
-  value(const Point<dim>& p, const unsigned int component = 0) const
+  value(const Point<dim>& p, const unsigned int component = 0) const override
   {
     double u = p(0) * p(1);
     if (component == 1)
@@ -143,7 +143,7 @@ public:
   }
 
   virtual Tensor<1, dim>
-  gradient(const Point<dim>& p, const unsigned int component = 0) const
+  gradient(const Point<dim>& p, const unsigned int component = 0) const override
   {
     dealii::Tensor<1, dim> grad;
     if (component == 1)

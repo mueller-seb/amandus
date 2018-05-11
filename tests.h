@@ -141,7 +141,7 @@ public:
   {
   }
 
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in)
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override
   {
     dealii::LogStream::Prefix p("ExactResidual");
 
@@ -207,7 +207,7 @@ public:
   }
 
   virtual double
-  value(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const
+  value(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const override
   {
     double value = 1;
     for (std::size_t d = 0; d < dim; ++d)
@@ -218,7 +218,7 @@ public:
   }
 
   virtual dealii::Tensor<1, dim>
-  gradient(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const
+  gradient(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const override
   {
     dealii::Tensor<1, dim> grad;
     for (std::size_t d = 0; d < dim; ++d)
@@ -234,7 +234,7 @@ public:
   }
 
   virtual double
-  laplacian(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const
+  laplacian(const dealii::Point<dim>& p, const unsigned int /*component = 0*/) const override
   {
     double laplace = 0.0;
     for (std::size_t d = 0; d < dim; ++d)

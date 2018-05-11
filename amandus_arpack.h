@@ -29,7 +29,7 @@ public:
   /**
    * Apply the solution operator. If indicated by events, reassemble matrices
    */
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 private:
   /// The pointer to the application object.

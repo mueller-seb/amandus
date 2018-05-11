@@ -37,7 +37,7 @@ class Startup : public dealii::Function<dim>
 public:
   Startup();
   virtual void vector_value_list(const std::vector<Point<dim>>& points,
-                                 std::vector<Vector<double>>& values) const;
+                                 std::vector<Vector<double>>& values) const override;
 };
 
 template <int dim>

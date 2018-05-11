@@ -124,7 +124,7 @@ public:
   {
   }
 
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in)
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override
   {
     this->extract_vectors(out);
     this->remesh(out, in);
@@ -146,7 +146,7 @@ public:
   }
 
   virtual void
-  finalize_transfer()
+  finalize_transfer() override
   {
     InterpolatingRemesher<VECTOR, dim>::finalize_transfer();
     for (unsigned int i = 0; i < this->extracted.size(); ++i)
@@ -178,7 +178,7 @@ public:
   }
 
   virtual void
-  remesh(const dealii::AnyData& /*out*/, const dealii::AnyData& /*in*/)
+  remesh(const dealii::AnyData& /*out*/, const dealii::AnyData& /*in*/) override
   {
     this->tria->set_all_refine_flags();
     this->tria->execute_coarsening_and_refinement();
@@ -216,7 +216,7 @@ public:
   }
 
   virtual void
-  remesh(const dealii::AnyData& out, const dealii::AnyData& /*in*/)
+  remesh(const dealii::AnyData& out, const dealii::AnyData& /*in*/) override
   {
     this->app->error(indicator, out, *(this->error_integrator));
     this->callback(*(this->tria), indicator);
@@ -253,7 +253,7 @@ public:
   }
 
   virtual void
-  remesh(const dealii::AnyData& out, const dealii::AnyData& /*in*/)
+  remesh(const dealii::AnyData& out, const dealii::AnyData& /*in*/) override
   {
     this->app->estimate(out, *(this->estimate_integrator));
     const dealii::Vector<double> indicators = this->app->indicators();

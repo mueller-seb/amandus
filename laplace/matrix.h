@@ -44,18 +44,18 @@ public:
   /**
    * \brief The bilinear form of the Laplacian.
    */
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   /**
    * \brief The weak implementation of Dirichlet boundary conditions of Nitsche.
   */
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
+                        MeshWorker::IntegrationInfo<dim>& info) const override;
   /**
    * \brief The interior penalty bilinear form of Arnold on interior faces.
   */
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
+                    MeshWorker::IntegrationInfo<dim>& info2) const override;
 };
 
 template <int dim>

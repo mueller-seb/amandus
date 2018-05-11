@@ -36,10 +36,10 @@ class SolutionRHS : public AmandusIntegrator<dim>
 public:
   SolutionRHS(FlowFunction<dim>& solution);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   SmartPointer<FlowFunction<dim>, SolutionRHS<dim>> solution;
@@ -57,10 +57,10 @@ class SolutionResidual : public AmandusIntegrator<dim>
 public:
   SolutionResidual(FlowFunction<dim>& solution);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   SmartPointer<FlowFunction<dim>, SolutionResidual<dim>> solution;
@@ -72,10 +72,10 @@ class SolutionError : public AmandusIntegrator<dim>
 public:
   SolutionError(FlowFunction<dim>& solution);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   SmartPointer<FlowFunction<dim>, SolutionError<dim>> solution;
@@ -275,12 +275,12 @@ class SolutionEstimate : public AmandusIntegrator<dim>
 {
 public:
   SolutionEstimate(FlowFunction<dim>& solution);
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
+                        MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
+                    MeshWorker::IntegrationInfo<dim>& info2) const override;
 
 private:
   SmartPointer<FlowFunction<dim>, SolutionEstimate<dim>> solution;

@@ -42,13 +42,13 @@ class Waterfall : public Function<2>
 public:
   Waterfall(const double k = 60.);
 
-  virtual double value(const Point<2>& p, const unsigned int component = 0) const;
+  virtual double value(const Point<2>& p, const unsigned int component = 0) const override;
 
   virtual void value_list(const std::vector<Point<2>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const;
-  virtual Tensor<1, 2> gradient(const Point<2>& p, const unsigned int component = 0) const;
+                          const unsigned int component = 0) const override;
+  virtual Tensor<1, 2> gradient(const Point<2>& p, const unsigned int component = 0) const override;
 
-  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const;
+  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const override;
 
 private:
   const double k;

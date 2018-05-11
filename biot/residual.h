@@ -26,7 +26,7 @@ public:
   TestResidual(const Parameters& par, const dealii::Function<dim>& bdry, bool implicit = true);
   TestResidual(const Parameters& par, bool implicit = true);
 
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
   dealii::ZeroFunction<dim> zero;
@@ -45,8 +45,8 @@ public:
    */
   MandelResidual(const Parameters& par, bool implicit = true);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 };
 
 //----------------------------------------------------------------------//

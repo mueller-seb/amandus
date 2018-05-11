@@ -67,13 +67,13 @@ public:
    */
   Matrix();
   virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
                     dealii::MeshWorker::DoFInfo<dim>& dinfo2,
                     dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info2) const override;
 
   std::vector<double> curl_coefficient;
   std::vector<double> mass_coefficient;

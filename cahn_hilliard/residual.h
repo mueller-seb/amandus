@@ -29,7 +29,7 @@ class Residual : public AmandusIntegrator<dim>
 public:
   Residual(double diffusion, const Function<dim>& advection);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
   const double diffusion;

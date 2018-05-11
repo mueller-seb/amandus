@@ -15,8 +15,8 @@ class PolynomialResidual : public Residual<dim>
 public:
   PolynomialResidual(const std::vector<dealii::Polynomials::Polynomial<double>>& polynomials,
                      const Parameters& par, bool implicit = true);
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
   /**
@@ -44,7 +44,7 @@ class PolynomialError : public AmandusIntegrator<dim>
 public:
   PolynomialError(const std::vector<dealii::Polynomials::Polynomial<double>>& polynomials,
                   const Parameters& par);
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 
 private:
   dealii::SmartPointer<const Parameters, class Residual<dim>> parameters;

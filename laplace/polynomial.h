@@ -35,10 +35,10 @@ class PolynomialRHS : public AmandusIntegrator<dim>
 public:
   PolynomialRHS(const Polynomials::Polynomial<double> solution_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> solution_1d;
@@ -57,10 +57,10 @@ class PolynomialResidual : public AmandusIntegrator<dim>
 public:
   PolynomialResidual(const Polynomials::Polynomial<double> solution_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> solution_1d;
@@ -76,7 +76,7 @@ public:
   {
   }
 
-  virtual double value(const Point<dim>& p, const unsigned int component = 0) const;
+  virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
 
 private:
   Polynomials::Polynomial<double> solution_1d;
@@ -88,10 +88,10 @@ class PolynomialError : public AmandusIntegrator<dim>
 public:
   PolynomialError(const Polynomials::Polynomial<double> solution_1d);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   Polynomials::Polynomial<double> solution_1d;

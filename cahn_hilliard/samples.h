@@ -11,9 +11,9 @@ class Startup : public Function<dim>
 public:
   Startup();
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const;
+                          const unsigned int component = 0) const override;
   virtual void vector_value_list(const std::vector<Point<dim>>& points,
-                                 std::vector<Vector<double>>& values) const;
+                                 std::vector<Vector<double>>& values) const override;
 };
 
 template <int dim>
@@ -74,7 +74,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -93,9 +93,9 @@ class CrossFunction : public dealii::Function<dim>
 public:
   CrossFunction();
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const;
+                          const unsigned int component = 0) const override;
   virtual void vector_value_list(const std::vector<Point<dim>>& points,
-                                 std::vector<Vector<double>>& values) const;
+                                 std::vector<Vector<double>>& values) const override;
 };
 
 template <int dim>
@@ -158,7 +158,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -180,7 +180,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -203,7 +203,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -229,7 +229,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -255,7 +255,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -285,7 +285,7 @@ public:
   }
 
   virtual double
-  value(const Point<2>& p, const unsigned int component = 0) const
+  value(const Point<2>& p, const unsigned int component = 0) const override
   {
     if (component == 1)
     {
@@ -344,7 +344,7 @@ public:
   }
 
   virtual double
-  value(const Point<dim>& p, const unsigned int component = 0) const
+  value(const Point<dim>& p, const unsigned int component = 0) const override
   {
     if (component == 0)
     {

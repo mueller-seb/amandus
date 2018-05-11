@@ -38,10 +38,10 @@ public:
   Matrix(const Parameters& par, double factor1, double factor2,
          std::vector<std::vector<double>> direction, double x1, double x2, double y1, double y2);
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 
 private:
   dealii::SmartPointer<const Parameters, class Matrix<dim>> parameters;

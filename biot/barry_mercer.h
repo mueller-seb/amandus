@@ -250,7 +250,7 @@ public:
   }
 
   virtual void
-  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     BarryMercer<dim> solution(parameters->mu, parameters->lambda);
     const unsigned int nq = info.fe_values(0).n_quadrature_points;
@@ -340,7 +340,7 @@ public:
   }
 
   virtual void
-  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     const double factor = (this->timestep == 0.) ? 1. : this->timestep;
     const double mu = factor * this->parameters->mu;
@@ -365,7 +365,7 @@ public:
   }
 
   virtual void
-  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     const double factor =
       (this->timestepping) ? (this->is_implicit ? this->timestep : -this->timestep) : 1.;
@@ -386,7 +386,7 @@ public:
   }
 
   virtual void
-  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     const double factor =
       (this->timestepping) ? (this->is_implicit ? this->timestep : -this->timestep) : 1.;
@@ -411,7 +411,7 @@ public:
   }
 
   virtual void
-  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     const double factor =
       (this->timestepping) ? (this->is_implicit ? this->timestep : -this->timestep) : 1.;
@@ -432,7 +432,7 @@ public:
   }
 
   virtual void
-  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+  cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override
   {
     const double factor =
       (this->timestepping) ? (this->is_implicit ? this->timestep : -this->timestep) : 1.;

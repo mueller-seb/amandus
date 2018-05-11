@@ -399,7 +399,7 @@ public:
   AmandusApplication(dealii::Triangulation<dim>& triangulation,
                      const dealii::FiniteElement<dim>& fe);
 
-  virtual void parse_parameters(dealii::ParameterHandler& param);
+  virtual void parse_parameters(dealii::ParameterHandler& param) override;
 
   /**
    * This function is used to set the advection directions in which
@@ -416,22 +416,22 @@ public:
    *
    * @note This function calls the virtual function setup_constraints().
    */
-  void setup_system();
+  void setup_system() override;
 
-  void setup_constraints();
+  void setup_constraints() override;
 
   /**
    * Use the integrator to build the matrix for the level meshes. This
    * also automatically generates the transfer matrices needed for
    * multigrid with local smoothing on locally refined meshes.
    */
-  void assemble_mg_matrix(const dealii::AnyData& in, const AmandusIntegrator<dim>& integrator);
+  void assemble_mg_matrix(const dealii::AnyData& in, const AmandusIntegrator<dim>& integrator) override;
 
   /**
    * Solve the linear system stored in #matrix with the right hand
    * side given. Uses the multigrid preconditioner.
    */
-  void solve(dealii::Vector<double>& sol, const dealii::Vector<double>& rhs);
+  void solve(dealii::Vector<double>& sol, const dealii::Vector<double>& rhs) override;
 
   /**
    * Solve the eigenvalue system stored in the first element of
@@ -439,7 +439,7 @@ public:
    * of the first matrix for shifting.
    */
   virtual void arpack_solve(std::vector<std::complex<double>>& eigenvalues,
-                            std::vector<dealii::Vector<double>>& eigenvectors);
+                            std::vector<dealii::Vector<double>>& eigenvectors) override;
 
     /**
      * The multigrid smoother uses vertex patches instead of inverting
@@ -530,7 +530,7 @@ public:
    * found, the vector of this element is subtracted from the result
    * of the assembling.
    */
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 protected:
   /// Pointer to the application computing the residual
@@ -557,7 +557,7 @@ public:
   /**
    * Apply the solution operator. If indecated by events, reassemble matrices
    */
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 private:
   /// The pointer to the application object.

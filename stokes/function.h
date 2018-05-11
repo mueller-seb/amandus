@@ -21,11 +21,11 @@ class StokesPolynomial : public FlowFunction<dim>
 {
 public:
   virtual void vector_values(const std::vector<Point<dim>>& points,
-                             std::vector<std::vector<double>>& values) const;
+                             std::vector<std::vector<double>>& values) const override;
   virtual void vector_gradients(const std::vector<Point<dim>>& points,
-                                std::vector<std::vector<Tensor<1, dim>>>& gradients) const;
+                                std::vector<std::vector<Tensor<1, dim>>>& gradients) const override;
   virtual void vector_laplacians(const std::vector<Point<dim>>& points,
-                                 std::vector<std::vector<double>>& values) const;
+                                 std::vector<std::vector<double>>& values) const override;
 };
 
 template <int dim>

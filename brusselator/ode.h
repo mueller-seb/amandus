@@ -19,7 +19,7 @@ class Explicit : public dealii::Algorithms::OperatorBase
 {
 public:
   Explicit(const Brusselator::Parameters& par);
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 private:
   dealii::SmartPointer<const Brusselator::Parameters, class Explicit> parameters;
@@ -45,7 +45,7 @@ class ImplicitResidual : public dealii::Algorithms::OperatorBase
 {
 public:
   ImplicitResidual(const Brusselator::Parameters& par);
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 private:
   dealii::SmartPointer<const Brusselator::Parameters, class ImplicitResidual> parameters;
@@ -73,7 +73,7 @@ class ImplicitSolve : public dealii::Algorithms::OperatorBase
 {
 public:
   ImplicitSolve(const Brusselator::Parameters& par);
-  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in);
+  virtual void operator()(dealii::AnyData& out, const dealii::AnyData& in) override;
 
 private:
   dealii::SmartPointer<const Brusselator::Parameters, class ImplicitSolve> parameters;

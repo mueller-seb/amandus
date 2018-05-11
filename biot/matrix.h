@@ -37,7 +37,7 @@ public:
   {
   }
 
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
 };
 
 template <int dim>

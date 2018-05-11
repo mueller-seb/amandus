@@ -189,7 +189,7 @@ public:
 
   virtual void
   cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-       dealii::MeshWorker::IntegrationInfo<dim>& info) const
+       dealii::MeshWorker::IntegrationInfo<dim>& info) const override
   {
     for (std::size_t i = 0; i < error_integrators.size(); ++i)
     {
@@ -202,7 +202,7 @@ public:
 
   virtual void
   boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-           dealii::MeshWorker::IntegrationInfo<dim>& info) const
+           dealii::MeshWorker::IntegrationInfo<dim>& info) const override
   {
     for (std::size_t i = 0; i < error_integrators.size(); ++i)
     {
@@ -216,7 +216,7 @@ public:
   virtual void
   face(dealii::MeshWorker::DoFInfo<dim>& dinfo1, dealii::MeshWorker::DoFInfo<dim>& dinfo2,
        dealii::MeshWorker::IntegrationInfo<dim>& info1,
-       dealii::MeshWorker::IntegrationInfo<dim>& info2) const
+       dealii::MeshWorker::IntegrationInfo<dim>& info2) const override
   {
     for (std::size_t i = 0; i < error_integrators.size(); ++i)
     {
@@ -295,17 +295,17 @@ public:
    */
   Theta(AmandusIntegrator<dim>& client, bool implicit,
         dealii::BlockMask blocks = dealii::BlockMask(), bool enforce_homogenity = false);
-  virtual void extract_data(const dealii::AnyData& data);
+  virtual void extract_data(const dealii::AnyData& data) override;
 
 private:
   virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void boundary(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                        dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                        dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
   virtual void face(dealii::MeshWorker::DoFInfo<dim>& dinfo1,
                     dealii::MeshWorker::DoFInfo<dim>& dinfo2,
                     dealii::MeshWorker::IntegrationInfo<dim>& info1,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info2) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info2) const override;
   dealii::SmartPointer<AmandusIntegrator<dim>, Theta<dim>> client;
   bool is_implicit;
   dealii::BlockMask block_mask;
@@ -325,7 +325,7 @@ public:
                     dealii::update_quadrature_points);
   }
   virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
 };
 
 template <int dim>
@@ -372,7 +372,7 @@ public:
   }
 
   virtual void cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-                    dealii::MeshWorker::IntegrationInfo<dim>& info) const;
+                    dealii::MeshWorker::IntegrationInfo<dim>& info) const override;
 };
 
 template <int dim>
@@ -620,7 +620,7 @@ public:
 
   virtual void
   cell(dealii::MeshWorker::DoFInfo<dim>& dinfo,
-       dealii::MeshWorker::IntegrationInfo<dim>& info) const
+       dealii::MeshWorker::IntegrationInfo<dim>& info) const override
   {
     // this only works for scalars fe values
     const std::vector<double> one(info.fe_values(0).n_quadrature_points, 1.0);
