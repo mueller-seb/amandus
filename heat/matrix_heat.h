@@ -45,12 +45,13 @@ Conductivity<dim>::Conductivity() : Function<dim>()
 template <int dim>
 double Conductivity<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
+  double x = p(0);
   double y = p(1);
   double result = 1e-5;
   if (component == 1)
     {
     result = 0;
-    if (abs(y) < 1e-5)
+    if ((abs(y) < 1e-5) && (abs(x) <= 1))
       result = 1;
     }
   return result;

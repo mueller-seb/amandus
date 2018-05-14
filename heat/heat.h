@@ -42,19 +42,13 @@ template <int dim>
 double
 Force<dim>::value(const Point<dim>& p, const unsigned int) const
 {
-  double margin = 0.1;
   double x = p(0);
   double y = p(1);
   double result = 0;
-if ((abs(y) < (1-margin)) && (abs(x) < (1-margin)))
-{
   if (x < 0)
 	result = 10;
   if (x > 0)
 	result = -10;
-}
-else
-	result = 0;
   return result;
 }
 
