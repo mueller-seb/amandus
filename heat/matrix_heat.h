@@ -51,7 +51,7 @@ double Conductivity<dim>::value(const Point<dim>& p, const unsigned int componen
   if (component == 1)
     {
     result = 0;
-    if ((abs(y) < 1e-5) && (abs(x) <= 1))
+    if ((abs(y) < 1e-16) && (abs(x) <= 0.5))
       result = 1;
     }
   return result;
@@ -234,6 +234,8 @@ const unsigned int n_comp = fe1.get_fe().n_components();
 Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
 Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
 
+if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-16)
+{
 for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 {
         const Tensor<1,dim> n = fe1.normal_vector(k);
@@ -256,9 +258,10 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
                  M1(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
                  }
 }
+}
 
-
-
+if (abs(fe2.quadrature_point(fe2.n_quadrature_points-1)(1)-fe2.quadrature_point(0)(1)) < 1e-16)
+{
 for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 {
         const Tensor<1,dim> n = fe1.normal_vector(k);
@@ -281,6 +284,8 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
 		 M2(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
                  }
 }
+}
+
 }
 
 

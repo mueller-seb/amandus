@@ -138,10 +138,13 @@ SolutionRHS<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationIn
 
   std::vector<double> rhs(info1.fe_values(0).n_quadrature_points, 0.);
 
+if (abs(info1.fe_values(0).quadrature_point(info1.fe_values(0).n_quadrature_points-1)(1) - info1.fe_values(0).quadrature_point(0)(1)) < 1e-16)
+{
   for (unsigned int k = 0; k < info1.fe_values(0).n_quadrature_points; ++k)
     rhs[k] = -solution->laplacian(info1.fe_values(0).quadrature_point(k), 1);
 
   L2::L2(dinfo1.vector(0).block(0), info1.fe_values(0), rhs);
+}
 
 }
 
