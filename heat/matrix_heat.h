@@ -236,6 +236,12 @@ Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
 
 if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-16)
 {
+//source: nitsche_matrix and nitsche_tangential_matrix in laplace.h
+/*
+std::ostringstream message;
+message << tensor << std::endl;
+deallog << message.str();
+*/
 for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 {
         const Tensor<1,dim> n = fe1.normal_vector(k);
