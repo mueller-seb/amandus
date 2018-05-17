@@ -51,7 +51,7 @@ double Conductivity<dim>::value(const Point<dim>& p, const unsigned int componen
   if (component == 1)
     {
     result = 0;
-    if ((abs(y) < 1e-16) && (abs(x) <= 0.5))
+    if ((abs(y) < 1e-8) && (abs(x) <= 1))
       result = 1;
     }
   return result;
@@ -222,6 +222,12 @@ FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
 FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe1 = info1.fe_values(0);
 const FEValuesBase<dim>& fe2 = info2.fe_values(0);
+const FiniteElement<dim>& fel1 = info1.finite_element();
+const FiniteElement<dim>& fel2 = info2.finite_element();
+const double x = 0.5;
+const double y = 0;
+const Point<dim> p1(-x, y);
+const Point<dim> p2(x, y);
 
 /*
 QPointsOut qptsout(fe1, fe2);
@@ -261,11 +267,11 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 		             tgradv = t*fe1.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-                 M1(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
+                 M1(i,j) += dx * dtu_dot_dtv;// + 2*(fel1.shape_value(i, p1)*p1(0)+fel1.shape_value(i, p2)*p2(0)); //negative sign causes error
                  }
 }
 }
-
+/*
 if (abs(fe2.quadrature_point(fe2.n_quadrature_points-1)(1)-fe2.quadrature_point(0)(1)) < 1e-16)
 {
 for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
@@ -291,7 +297,7 @@ for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
                  }
 }
 }
-
+*/
 }
 
 

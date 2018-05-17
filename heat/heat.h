@@ -40,15 +40,19 @@ Force<dim>::Force()
 
 template <int dim>
 double
-Force<dim>::value(const Point<dim>& p, const unsigned int) const
+Force<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
   double x = p(0);
   double y = p(1);
   double result = 0;
+  if ((component == 0) || (abs(y) < 1e-8))
+  {
   if (x < 0)
-	result = 10;
+	result = 1;
   if (x > 0)
-	result = -10;
+	result = -1;
+  }
+
   return result;
 }
 
@@ -116,7 +120,7 @@ template <int dim>
 RHS<dim>::RHS()
 {
   this->use_boundary = false;
-  this->use_face = false;
+  this->use_face = true;
 }
 
 template <int dim>
@@ -158,9 +162,16 @@ RHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 
 template <int dim>
 void
-RHS<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
+RHS<dim>::face(DoFInfo<dim>& dinfo, DoFInfo<dim>&, IntegrationInfo<dim>& info,
                        IntegrationInfo<dim>&) const
 {
+  std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
+  Force<dim> f;
+
+  for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
+    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 1);
+
+  L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
 
 //----------------------------------------------------------------------//
