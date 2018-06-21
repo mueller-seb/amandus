@@ -216,13 +216,13 @@ public:
   /**
    * \brief The object describing the constraints.
    */
-  const dealii::ConstraintMatrix& constraints() const;
+  const dealii::AffineConstraints<double>& constraints() const;
 
   /**
    * \brief The object describing the constraints for hanging nodes, not
    * for the boundary.
    */
-  const dealii::ConstraintMatrix& hanging_nodes() const;
+  const dealii::AffineConstraints<double>& hanging_nodes() const;
 
   /**
    * Set up hanging node constraints for leaf mesh and for level
@@ -339,10 +339,10 @@ protected:
   dealii::ComponentMask meanvalue_mask;
 
   /// The object holding the constraints for the active mesh
-  dealii::ConstraintMatrix constraint_matrix;
+  dealii::AffineConstraints<double> constraint_matrix;
 
   /// The object holding the hanging node constraints for the active mesh
-  dealii::ConstraintMatrix hanging_node_constraints;
+  dealii::AffineConstraints<double> hanging_node_constraints;
 
   dealii::SparsityPattern sparsity;
   std::vector<dealii::SparseMatrix<double>> matrix;
@@ -581,14 +581,14 @@ AmandusApplicationSparse<dim>::dofs() const
 }
 
 template <int dim>
-inline const dealii::ConstraintMatrix&
+inline const dealii::AffineConstraints<double>&
 AmandusApplicationSparse<dim>::constraints() const
 {
   return constraint_matrix;
 }
 
 template <int dim>
-inline const dealii::ConstraintMatrix&
+inline const dealii::AffineConstraints<double>&
 AmandusApplicationSparse<dim>::hanging_nodes() const
 {
   return hanging_node_constraints;

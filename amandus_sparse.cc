@@ -43,9 +43,11 @@ using namespace dealii;
 
 template <int dim>
 void
-make_meanvalue_constraints(const DoFHandler<dim>& dofh, const Mapping<dim>& mapping,
-                           const ConstraintMatrix& hanging_nodes, ConstraintMatrix& constraints,
-                           const ComponentMask& mask)
+make_meanvalue_constraints(const DoFHandler<dim>&           dofh,
+                           const Mapping<dim>&              mapping,
+                           const AffineConstraints<double>& hanging_nodes,
+                           AffineConstraints<double>&       constraints,
+                           const ComponentMask&             mask)
 {
   if (mask.n_selected_components(dofh.get_fe().n_components()) == 0)
   {
@@ -157,7 +159,7 @@ AmandusApplicationSparse<dim>::update_vector_inhom_boundary(
 {
   const unsigned int n_comp = this->dof_handler.get_fe().n_components();
   dealii::QGauss<dim - 1> q_boundary(this->dof_handler.get_fe().tensor_degree() + 1);
-  typename dealii::FunctionMap<dim>::type boundary_functions;
+  std::map<types::boundary_id, const Function<dim>*> boundary_functions;
   boundary_functions[0] = &inhom_boundary;
   std::map<dealii::types::global_dof_index, double> boundary_dofs;
   if (projection)

@@ -80,7 +80,7 @@ template <class VECTOR, int dim, int spacedim>
 void
 MassOutputOperator<VECTOR, dim, spacedim>::assemble_mean_operator()
 {
-  ConstraintMatrix hanging_node_constraints;
+  AffineConstraints<double> hanging_node_constraints;
   DoFTools::make_hanging_node_constraints(*(this->dof), hanging_node_constraints);
   hanging_node_constraints.close();
 

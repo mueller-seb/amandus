@@ -14,7 +14,7 @@
 #include <deal.II/fe/fe_raviart_thomas.h>
 #include <deal.II/fe/fe_system.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/lac/constraint_matrix.h>
+#include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/vector.h>
 #include <deal.II/numerics/fe_field_function.h>
 #include <deal.II/numerics/vector_tools.h>
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(postprocessor_test)
   solution_dofh.initialize(tr, solution_fe);
   Vector<double> solution(solution_dofh.n_dofs());
 
-  ConstraintMatrix solution_constraints;
+  AffineConstraints<double> solution_constraints;
   DoFTools::make_hanging_node_constraints(solution_dofh, solution_constraints);
   solution_constraints.close();
 
@@ -143,7 +143,7 @@ BOOST_AUTO_TEST_CASE(interpolator_test)
   input_dofh.initialize(tr, input_fe);
   Vector<double> input(input_dofh.n_dofs());
 
-  ConstraintMatrix input_constraints;
+  AffineConstraints<double> input_constraints;
   DoFTools::make_hanging_node_constraints(input_dofh, input_constraints);
   input_constraints.close();
 

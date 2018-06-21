@@ -167,7 +167,7 @@ output_function(const Function<dim>& function, const DoFHandler<dim>& dofh)
 {
   Vector<double> dofs;
   dofs.reinit(dofh.n_dofs());
-  ConstraintMatrix no_constraints;
+  AffineConstraints<double> no_constraints;
   no_constraints.close();
   QGauss<dim> quadrature(6);
   VectorTools::project(dofh, no_constraints, quadrature, function, dofs);

@@ -9,7 +9,7 @@
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/dofs/dof_tools.h>
-#include <deal.II/lac/constraint_matrix.h>
+#include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/vector.h>
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/numerics/vector_tools.h>
@@ -28,7 +28,7 @@ output_solution(const dealii::Function<dim>& function, const dealii::DoFHandler<
 {
   dealii::Vector<double> projection(dof_handler.n_dofs());
 
-  dealii::ConstraintMatrix constraints;
+  dealii::AffineConstraints<double> constraints;
   dealii::DoFTools::make_hanging_node_constraints(dof_handler, constraints);
   constraints.close();
 
