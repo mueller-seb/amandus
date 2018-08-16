@@ -7,6 +7,11 @@
 #ifndef __matrix_heat_heat_h
 #define __matrix_heat_heat_h
 
+/*
+ * \file
+ * \brief The local integrators for the Laplacian
+ * \ingroup Laplacegroup
+ */
 #include <amandus/integrator.h>
 #include <deal.II/integrators/divergence.h>
 #include <deal.II/integrators/l2.h>
@@ -17,13 +22,15 @@ using namespace dealii;
 using namespace LocalIntegrators;
 
 /**
- * Integrator for heat equation.
+ * Integrator for Laplace problems and heat equation.
  *
  * The distinction between stationary and instationary problems is
  * made by the variable AmandusIntegrator::timestep, which is
  * inherited from the base class. If this variable is zero, we solve a
  * stationary problem. If it is nonzero, we assemble for an implicit
  * scheme.
+ *
+ * @ingroup integrators
  */
 namespace HeatIntegrators
 {
@@ -32,9 +39,9 @@ class Conductivity : public dealii::Function<dim>
 {
 public:
   Conductivity();
-  virtual double value(const Point<dim>& p, const unsigned int component = 0) const;
+  virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const;
+                          const unsigned int component = 0) const override;
 };
 
 template <int dim>
@@ -70,22 +77,31 @@ void Conductivity<dim>::value_list(const std::vector<Point<dim>>& points, std::v
   }
 }
 
+/**
+ * \brief Integrator for the matrix of the Laplace operator.
+ */
 template <int dim>
 class Matrix : public AmandusIntegrator<dim>
 {
 public:
   Matrix();
-  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const;
+  /**
+   * \brief The bilinear form of the Laplacian.
+   */
+  virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
+  /**
+   * \brief The weak implementation of Dirichlet boundary conditions of Nitsche.
+  */
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
-                        MeshWorker::IntegrationInfo<dim>& info) const;
+                        MeshWorker::IntegrationInfo<dim>& info) const override;
+  /**
+   * \brief The interior penalty bilinear form of Arnold on interior faces.
+  */
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
-                    MeshWorker::IntegrationInfo<dim>& info2) const;
+                    MeshWorker::IntegrationInfo<dim>& info2) const override;
 };
 
-/**
- * \brief Integrator for the matrix of the differential operator.
- */
 
 template <int dim>
 Matrix<dim>::Matrix()

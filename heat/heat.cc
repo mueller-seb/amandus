@@ -6,10 +6,13 @@
  **********************************************************************/
 /**
  * @file
+ * \brief Example for Laplacian with manufactured solution on adaptive meshes
  * <ul>
  * <li> Stationary Poisson equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact solution</li>
+ * <li> Error computation</li>
+ * <li> Error estimation</li>
  * <li> Adaptive linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -22,7 +25,6 @@
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
 #include <amandus/heat/matrix_heat.h>
-//#include <amandus/heat/rhs_one.h>
 #include <amandus/heat/heat.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
@@ -30,10 +32,7 @@
 #include <deal.II/numerics/dof_output_operator.h>
 #include <deal.II/numerics/dof_output_operator.templates.h>
 
-
-
 #include <boost/scoped_ptr.hpp>
-
 
 //---------------------------------------------------------//
 

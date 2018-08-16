@@ -21,15 +21,20 @@ using namespace MeshWorker;
 
 namespace HeatIntegrators
 {
+/**
+ * Integrate the right hand side for a Laplace problem with zero right hand side.
+ *
+ * @ingroup integrators
+ */
 
 template <int dim>
 class Force : public dealii::Function<dim>
 {
 public:
   Force();
-  virtual double value(const Point<dim>& p, const unsigned int component) const;
+  virtual double value(const Point<dim>& p, const unsigned int component) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component) const;
+                          const unsigned int component) const override;
 };
 
 template <int dim>
@@ -82,10 +87,10 @@ class RHS : public AmandusIntegrator<dim>
 public:
   RHS();
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
+                    IntegrationInfo<dim>& info2) const override;
 };
 
 /**
@@ -101,11 +106,10 @@ class Estimate : public AmandusIntegrator<dim>
 public:
   Estimate();
 
-  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
-  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const;
+  virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
+  virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
-                    IntegrationInfo<dim>& info2) const;
-
+                    IntegrationInfo<dim>& info2) const override;
 };
 
 //----------------------------------------------------------------------//

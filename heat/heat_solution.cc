@@ -6,10 +6,13 @@
  **********************************************************************/
 /**
  * @file
+ * \brief Example for Laplacian with manufactured solution on adaptive meshes
  * <ul>
  * <li> Stationary Poisson equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact solution</li>
+ * <li> Error computation</li>
+ * <li> Error estimation</li>
  * <li> Adaptive linear solver</li>
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
@@ -22,7 +25,6 @@
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
 #include <amandus/heat/matrix_heat.h>
-//#include <amandus/heat/rhs_one.h>
 #include <amandus/heat/heat_solution.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
@@ -38,13 +40,13 @@ class Solution : public Function<2>
 public:
   Solution(const double eps = 1e-5);
 
-  virtual double value(const Point<2>& p, const unsigned int component = 0) const;
+  virtual double value(const Point<2>& p, const unsigned int component = 0) const override;
 
   virtual void value_list(const std::vector<Point<2>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const;
-  virtual Tensor<1, 2> gradient(const Point<2>& p, const unsigned int component = 0) const;
+                          const unsigned int component = 0) const override;
+  virtual Tensor<1, 2> gradient(const Point<2>& p, const unsigned int component = 0) const override;
 
-  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const ;
+  virtual double laplacian(const Point<2>& p, const unsigned int component = 0) const override;
 
 private:
   const double eps;
@@ -138,8 +140,8 @@ main(int argc, const char** argv)
   HeatIntegrators::Matrix<d> matrix_integrator;
   HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
   HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
-  HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
 
+  HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
@@ -148,7 +150,6 @@ main(int argc, const char** argv)
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
   //RefineStrategy::MarkUniform<d> refine_strategy(tr);
-
   adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,
                                   tr,
