@@ -28,7 +28,7 @@ namespace HeatIntegrators
  */
 
 template <int dim>
-class Force : public dealii::Function<dim>
+class Force : public Function<dim>
 {
 public:
   Force();
@@ -39,7 +39,6 @@ public:
 
 template <int dim>
 Force<dim>::Force()
-  : Function<dim>()
 {
 }
 
@@ -52,10 +51,11 @@ Force<dim>::value(const Point<dim>& p, const unsigned int component) const
   double result = 0;
   if ((component == 0) || (abs(y) < 1e-8))
   {
-  if (x < 0)
-	result = 1;
-  if (x > 0)
-	result = -1;
+  //if (x < 0)
+//	result = 1;
+  //if (x > 0)
+//	result = -1;
+result = x;
   }
 
   return result;
@@ -194,7 +194,7 @@ void
 Estimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
-Force<dim> f;
+  Force<dim> f;
 
   const std::vector<Tensor<2, dim>>& DDuh = info.hessians[0][0];
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
@@ -261,8 +261,7 @@ Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<
     {
       double diff1 = uh1[k] - uh2[k];
       double diff2 = fe.normal_vector(k) * Duh1[k] - fe.normal_vector(k) * Duh2[k];
-      dinfo1.value(0) += (penalty * diff1*diff1 + h * diff2*diff2)
-                         * fe.JxW(k);
+      dinfo1.value(0) += (penalty * diff1*diff1 + h * diff2*diff2) * fe.JxW(k);
     }
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);

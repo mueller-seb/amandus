@@ -35,7 +35,7 @@ using namespace LocalIntegrators;
 namespace HeatIntegrators
 {
 template <int dim>
-class Conductivity : public dealii::Function<dim>
+class Conductivity : public Function<dim>
 {
 public:
   Conductivity();
@@ -45,7 +45,7 @@ public:
 };
 
 template <int dim>
-Conductivity<dim>::Conductivity() : Function<dim>()
+Conductivity<dim>::Conductivity()
 {
 }
 
