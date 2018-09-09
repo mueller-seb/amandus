@@ -58,8 +58,8 @@ double Conductivity<dim>::value(const Point<dim>& p, const unsigned int componen
   if (component == 1)
     {
     result = 0;
-    if ((abs(y) < 1e-8) && (abs(x) <= 1))
-      result = 1;
+    if ((abs(y) < 1e-8) && (abs(x) <= 0.5))
+      	result = 1;
     }
   return result;
 }
@@ -123,7 +123,7 @@ void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationI
 
       for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
          {
-              const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
+           const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
            for (unsigned int i=0; i<n_dofs; ++i)
               {
                double Mii = 0.0;
@@ -134,7 +134,7 @@ void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationI
                  M(i,i) += Mii;
    
                  for (unsigned int j=i+1; j<n_dofs; ++j)
-{
+		{
                      double Mij = 0.0;
                      for (unsigned int d=0; d<n_components; ++d)
                         Mij += dx *
@@ -256,7 +256,7 @@ const unsigned int n_comp = fe1.get_fe().n_components();
 Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
 Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
 
-if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-16)
+if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-8)
 {
 //source: nitsche_matrix and nitsche_tangential_matrix in laplace.h
 /*
@@ -283,41 +283,26 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 		             tgradv = t*fe1.shape_grad_component(i,k,d);
 			     dtu_dot_dtv += tgradu * tgradv;
 		          } 
-                 M1(i,j) += dx * dtu_dot_dtv;// + 2*(fel1.shape_value(i, p1)*p1(0)+fel1.shape_value(i, p2)*p2(0)); //negative sign causes error
+                 M1(i,j) += dx * dtu_dot_dtv;
                  }
 }
-}
+
 /*
-if (abs(fe2.quadrature_point(fe2.n_quadrature_points-1)(1)-fe2.quadrature_point(0)(1)) < 1e-16)
-{
-for (unsigned int k=0; k<fe2.n_quadrature_points; ++k)
-{
-        const Tensor<1,dim> n = fe1.normal_vector(k);
-	AssertDimension(2, dim);
+const Point<dim>& p12 = fe1.get_mapping().transform_real_to_unit_cell(f1, p1);
+const Point<dim>& p22 = fe1.get_mapping().transform_real_to_unit_cell(f1, p2);
+for (unsigned int i=0; i<n_dofs; ++i)
+	for (unsigned int j=0; j<n_dofs; ++j)
+	{
+        const Tensor<1,dim> n = fe1.normal_vector(0);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	const double dx = fe2.JxW(k)*kappa.value(fe2.quadrature_point(k), 1);
-	for (unsigned int i=0; i<n_dofs; ++i)
-		for (unsigned int j=0; j<n_dofs; ++j)
-		{
-		double tgradu = 0.;
-		double tgradv = 0.;
-		double dtu_dot_dtv = 0.;
-		         for (unsigned int d=0; d<n_comp; ++d)
-		         {
-		             tgradu = t*fe2.shape_grad_component(j,k,d);
-		             tgradv = t*fe2.shape_grad_component(i,k,d);
-			     dtu_dot_dtv += tgradu * tgradv;
-		          } 
-		 M2(i,j) += dx * dtu_dot_dtv * 0.5; //negative sign causes error
-                 }
-}
-}
+	M1(i,j) += + kappa.value(p12, 1) * (t*fel1.shape_grad(i, p12)) * fel1.shape_value(j, p12);
+	M1(i,j) += - kappa.value(p22, 1) * (t*fel1.shape_grad(i, p22)) * fel1.shape_value(j, p22);
+	}
 */
-}
-
 
 }
-
+}
+}
 
 #endif
