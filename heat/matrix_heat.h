@@ -286,10 +286,9 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
                  M1(i,j) += dx * dtu_dot_dtv;
                  }
 }
-
 /*
-const Point<dim>& p12 = fe1.get_mapping().transform_real_to_unit_cell(f1, p1);
-const Point<dim>& p22 = fe1.get_mapping().transform_real_to_unit_cell(f1, p2);
+const Point<dim>& p12 = fe1.get_mapping().transform_real_to_unit_cell(dinfo1.face, p1);
+const Point<dim>& p22 = fe1.get_mapping().transform_real_to_unit_cell(dinfo1.face, p2);
 for (unsigned int i=0; i<n_dofs; ++i)
 	for (unsigned int j=0; j<n_dofs; ++j)
 	{
@@ -300,7 +299,6 @@ for (unsigned int i=0; i<n_dofs; ++i)
 	M1(i,j) += - kappa.value(p22, 1) * (t*fel1.shape_grad(i, p22)) * fel1.shape_value(j, p22);
 	}
 */
-
 }
 }
 }
