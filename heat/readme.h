@@ -1,20 +1,18 @@
 /**
- * @defgroup Laplacegroup Laplace
+ * @defgroup Heatgroup Heat
  * @ingroup Examples
  *
- * This module describes the subdirectory `laplace` of amandus. This
- * is the most basic application we can solve with Amandus. Therefore,
- * let us discuss the most important files in here
+ * This module describes the subdirectory `heat` of amandus.
  *
- * The are:
+ * There are:
  * <ol>
- * <li>laplace/matrix.h containing the definition of the bilinear form</li>
- * <li>laplace/laplace.cc: the driver program solving a simple Poisson problem</li>
- * <li>laplace/solution.cc: solve the Poisson equation with manufactured solution</li>
+ * <li>heat/matrix_heat.h containing the definition of the bilinear forms on cell and face level</li>
+ * <li>heat/heat.cc: the driver program solving a simple heat problem</li>
+ * <li>heat/heat_solution.cc: solve the heat equation with manufactured solution</li>
  * </ol>
  *
  *
- * <h3>laplace/matrix.h: the local contributions of the linear operator</h3>
+ * <h3>heat/matrix_heat.h: the local contributions of the linear operator</h3>
  *
  * This file contains a single class LaplaceIntegrators::Matrix and the
  * definitions of its functions. Local integrators are derived from

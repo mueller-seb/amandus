@@ -21,11 +21,6 @@ using namespace MeshWorker;
 
 namespace HeatIntegrators
 {
-/**
- * Integrate the right hand side for a Laplace problem with zero right hand side.
- *
- * @ingroup integrators
- */
 
 template <int dim>
 class Force : public Function<dim>
@@ -74,11 +69,6 @@ Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double
   }
 }
 
-/**
- * Integrate the right hand side
- *
- * @ingroup integrators
- */
 
 template <int dim>
 class RHS : public AmandusIntegrator<dim>
@@ -91,13 +81,6 @@ public:
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                     IntegrationInfo<dim>& info2) const override;
 };
-
-/**
- * Integrate the residual for a Laplace problem, where the
- * solution is given.
- *
- * @ingroup integrators
- */
 
 template <int dim>
 class Estimate : public AmandusIntegrator<dim>
