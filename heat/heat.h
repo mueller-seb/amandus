@@ -49,13 +49,12 @@ Force<dim>::value(const Point<dim>& p, const unsigned int component) const
   double x = p(0);
   double y = p(1);
   double result = 0;
-  if ((component == 0) || (abs(y) < 1e-8))
+  if ((component == 0) || (abs(y) < 1e-6))
   {
-  //if (x < 0)
-//	result = 1;
-  //if (x > 0)
-//	result = -1;
-result = x;
+  if (x < 0)
+	result = 1;
+  if (x > 0)
+	result = -1;
   }
 
   return result;

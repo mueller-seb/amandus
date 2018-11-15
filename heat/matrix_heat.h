@@ -54,11 +54,11 @@ double Conductivity<dim>::value(const Point<dim>& p, const unsigned int componen
 {
   double x = p(0);
   double y = p(1);
-  double result = 1e-5;
+  double result = 1e-3;
   if (component == 1)
     {
     result = 0;
-    if ((abs(y) < 1e-8) && (abs(x) <= 0.5))
+    if ((abs(y) < 1e-5) && (abs(x) <= 1))
       	result = 1;
     }
   return result;
@@ -238,12 +238,7 @@ FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
 FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe1 = info1.fe_values(0);
 const FEValuesBase<dim>& fe2 = info2.fe_values(0);
-const FiniteElement<dim>& fel1 = info1.finite_element();
-const FiniteElement<dim>& fel2 = info2.finite_element();
-const double x = 0.5;
-const double y = 0;
-const Point<dim> p1(-x, y);
-const Point<dim> p2(x, y);
+
 
 /*
 QPointsOut qptsout(fe1, fe2);
@@ -256,14 +251,10 @@ const unsigned int n_comp = fe1.get_fe().n_components();
 Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
 Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
 
-if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-8)
+if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-5)
 {
 //source: nitsche_matrix and nitsche_tangential_matrix in laplace.h
-/*
-std::ostringstream message;
-message << tensor << std::endl;
-deallog << message.str();
-*/
+
 for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
 {
         const Tensor<1,dim> n = fe1.normal_vector(k);
@@ -286,7 +277,19 @@ for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
                  M1(i,j) += dx * dtu_dot_dtv;
                  }
 }
-/*
+/* HOW TO PRINT TENSORS (for testing)
+std::ostringstream message;
+message << tensor << std::endl;
+deallog << message.str();
+*/
+/* ATTEMPT TO EVALUATE SHAPE FUNCTIONS AT BOUNDARY POINTS (doesn't work)
+const FiniteElement<dim>& fel1 = info1.finite_element();
+const FiniteElement<dim>& fel2 = info2.finite_element();
+const double x = 0.5;
+const double y = 0;
+const Point<dim> p1(-x, y);
+const Point<dim> p2(x, y);
+
 const Point<dim>& p12 = fe1.get_mapping().transform_real_to_unit_cell(dinfo1.face, p1);
 const Point<dim>& p22 = fe1.get_mapping().transform_real_to_unit_cell(dinfo1.face, p2);
 for (unsigned int i=0; i<n_dofs; ++i)
