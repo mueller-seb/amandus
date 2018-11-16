@@ -6,13 +6,13 @@
  *
  * There are:
  * <ol>
- * <li>heat/matrix_heat.h containing the definition of the bilinear forms on cell and face level</li>
+ * <li>heat/matrix.h containing the definition of the bilinear forms on cell and face level</li>
  * <li>heat/heat.cc: the driver program solving a simple heat problem</li>
- * <li>heat/heat_solution.cc: solve the heat equation with manufactured solution</li>
+ * <li>heat/solution.cc: solve the heat equation with manufactured solution</li>
  * </ol>
  *
  *
- * <h3>heat/matrix_heat.h: the local contributions of the linear operator</h3>
+ * <h3>heat/matrix.h: the local contributions of the linear operator</h3>
  *
  * This file contains a single class Heat::Matrix and the
  * definitions of its functions. Local integrators are derived from
@@ -24,11 +24,12 @@
  * differential equation over a single cell. Using the predefined
  * integrators from deal.II, it is actually a modified Laplace::cell_matrix:.
  *
- * \dontinclude heat/matrix_heat.h
+ * \dontinclude heat/matrix.h
  * \skip };
  * \skip template
  * \until }
  *
+ * LAPLACE EXAMPLE FROM HERE ON; STILL TO DO
  * Since we also consider a 1-dimensional hyperplane, we also
  * provide for integrators on boundary and interior faces. On the
  * boundary, all terms vanish. If the finite element is
