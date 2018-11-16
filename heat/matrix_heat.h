@@ -77,7 +77,7 @@ class Matrix : public AmandusIntegrator<dim>
 public:
   Matrix();
   /**
-   * \brief The bilinear form of the Heat equation.
+   * \brief The bilinear form of the Heat equation on the domain
    */
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   /**
@@ -86,13 +86,12 @@ public:
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const override;
   /**
-   * \brief The bilinear form of .
+   * \brief The bilinear form of Heat equation on the low dimensional embedding
   */
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
                     MeshWorker::IntegrationInfo<dim>& info2) const override;
 };
-
 
 template <int dim>
 Matrix<dim>::Matrix()
@@ -104,37 +103,33 @@ Matrix<dim>::Matrix()
 template <int dim>
 void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const
 {
-  AssertDimension(dinfo.n_matrices(), 1);
+AssertDimension(dinfo.n_matrices(), 1);
 
-  Conductivity<dim> kappa;
-  FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
-  const FEValuesBase<dim>& fe = info.fe_values(0);
-  const unsigned int n_dofs = fe.dofs_per_cell;
-  const unsigned int n_components = fe.get_fe().n_components();
+Conductivity<dim> kappa;
+FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
+const FEValuesBase<dim>& fe = info.fe_values(0);
+const unsigned int n_dofs = fe.dofs_per_cell;
+const unsigned int n_components = fe.get_fe().n_components();
 
-      for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
-         {
-           const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
-           for (unsigned int i=0; i<n_dofs; ++i)
-              {
-               double Mii = 0.0;
-               for (unsigned int d=0; d<n_components; ++d)
-                   Mii += dx *
-                           (fe.shape_grad_component(i,k,d) * fe.shape_grad_component(i,k,d));
+   for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
+   {
+      const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
+      for (unsigned int i=0; i<n_dofs; ++i)
+      {
+         double Mii = 0.0;
+         for (unsigned int d=0; d<n_components; ++d)
+            Mii += dx * (fe.shape_grad_component(i,k,d) * fe.shape_grad_component(i,k,d));
+         M(i,i) += Mii;
    
-                 M(i,i) += Mii;
-   
-                 for (unsigned int j=i+1; j<n_dofs; ++j)
-		{
-                     double Mij = 0.0;
-                     for (unsigned int d=0; d<n_components; ++d)
-                        Mij += dx *
-                              (fe.shape_grad_component(j,k,d) * fe.shape_grad_component(i,k,d));
-  
-                    M(i,j) += Mij;
-                    M(j,i) += Mij;
-  		 }
-        }
+         for (unsigned int j=i+1; j<n_dofs; ++j)
+	 {
+            double Mij = 0.0;
+            for (unsigned int d=0; d<n_components; ++d)
+               Mij += dx * (fe.shape_grad_component(j,k,d) * fe.shape_grad_component(i,k,d));
+            M(i,j) += Mij;
+            M(j,i) += Mij;
+         }
+      }
    }
 }
 
@@ -143,14 +138,14 @@ template <int dim>
 void Matrix<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                       typename MeshWorker::IntegrationInfo<dim>& info) const
 {
-/*  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;
+/*SOURCE
+  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+  return;
 
   const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
   Laplace::nitsche_matrix(dinfo.matrix(0, false).matrix,
                           info.fe_values(0),
-                          Laplace::compute_penalty(dinfo, dinfo, deg, deg));
-*/
+                          Laplace::compute_penalty(dinfo, dinfo, deg, deg));*/
 }
 
 template <int dim>
@@ -164,8 +159,8 @@ private:
 	const double eps = 1e-5;
 	bool y0 = true;
 public:
-  QPointsOut(const FEValuesBase<dim>& fe1, const FEValuesBase<dim>& fe2);
-  void write();
+	QPointsOut(const FEValuesBase<dim>& fe1, const FEValuesBase<dim>& fe2);
+	void write();
 };
 
 template <int dim>
@@ -177,13 +172,12 @@ qp1(fe1.get_quadrature_points()), qp2(fe2.get_quadrature_points())
 	Assert((n1 == n2), ExcInternalError());
 }
 
-
 template <int dim>
 void QPointsOut<dim>::write()
 {
 std::vector<double> x1(n1), x2(n2), y1(n1), y2(n2);
-
-for (int i = 0; i < n1; i++) {
+for (int i = 0; i < n1; i++)
+	{
 	//Point<dim> pt = qp1[i];
 	y1[i] = qp1[i](1);
 	y2[i] = qp2[i](1);
@@ -191,17 +185,16 @@ for (int i = 0; i < n1; i++) {
 	x2[i] = qp2[i](0);
 	if ((abs(y1[i])>eps) or (abs(y2[i])>eps))
 		{ y0 = false; }
-}
-if (y0) {
-std::ostringstream message;
-message << "new face with quadrature points" << std::endl;
+	}
+if (y0)
+	{
+	std::ostringstream message;
+	message << "new face with quadrature points" << std::endl;
 
-for (int i = 0; i < n1; i++) {
-message << "(" << x1[i] << ", " << y1[i] << ") - (" << x2[i] << ", " << y2[i] << ")" << std::endl;
-}
-
-deallog << message.str();
-}
+	for (int i = 0; i < n1; i++)
+		message << "(" << x1[i] << ", " << y1[i] << ") - (" << x2[i] << ", " << y2[i] << ")" << std::endl;
+	deallog << message.str();
+	}
 }
 
 
@@ -211,9 +204,11 @@ void Matrix<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim
                   MeshWorker::IntegrationInfo<dim>& info1,
                   MeshWorker::IntegrationInfo<dim>& info2) const
 {
-if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H2)) //H1 original, H2 due to non-DGQ?
-    return;
-/*
+/* FOR DG WITH INTERIOR PENALTY
+if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
+    return;*/
+
+/*SOURCE
   const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
   Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,
                      dinfo1.matrix(0, true).matrix,
@@ -241,38 +236,37 @@ if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(
 {
 //SOURCE: Laplace::nitsche_matrix() and Laplace::nitsche_tangential_matrix() in laplace.h
 
-for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
-{
-        const Tensor<1,dim> n = fe1.normal_vector(k);
-        Tensor<1,dim> t = cross_product_2d(n);
-        t = (1/t.norm())*t;
-	const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 1);
-	for (unsigned int i=0; i<n_dofs; ++i)
-		for (unsigned int j=0; j<n_dofs; ++j)
-		{
-		double tgradu = 0.;
-		double tgradv = 0.;
-		double dtu_dot_dtv = 0.;
-		         for (unsigned int d=0; d<n_comp; ++d)
-		         {
-		             tgradu = t*fe1.shape_grad_component(j,k,d);
-		             tgradv = t*fe1.shape_grad_component(i,k,d);
-			     dtu_dot_dtv += tgradu * tgradv;
-		          } 
-                 M1(i,j) += dx * dtu_dot_dtv;
-                 }
-}
+   for (unsigned int k=0; k<fe1.n_quadrature_points; ++k)
+   {
+      const Tensor<1,dim> n = fe1.normal_vector(k);
+      Tensor<1,dim> t = cross_product_2d(n);
+      t = (1/t.norm())*t;
+      const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 1);
+      for (unsigned int i=0; i<n_dofs; ++i)
+         for (unsigned int j=0; j<n_dofs; ++j)
+         {
+            double tgradu = 0.;
+            double tgradv = 0.;
+            double dtu_dot_dtv = 0.;
+               for (unsigned int d=0; d<n_comp; ++d)
+               {
+                  tgradu = t*fe1.shape_grad_component(j,k,d);
+                  tgradv = t*fe1.shape_grad_component(i,k,d);
+                  dtu_dot_dtv += tgradu * tgradv;
+               } 
+               M1(i,j) += dx * dtu_dot_dtv;
+         }
+      }
+   }
 
 /* PRINT QUADRATURE POINTS OF FACES (for testing)
 QPointsOut qptsout(fe1, fe2);
-qptsout.write();
-*/
+qptsout.write();*/
 
 /* HOW TO PRINT TENSORS (for testing)
 std::ostringstream message;
 message << tensor << std::endl;
-deallog << message.str();
-*/
+deallog << message.str();*/
 
 /* 1st ATTEMPT OF EVALUATING SHAPE FUNCTIONS AT BOUNDARY POINTS (doesn't work)
 const FiniteElement<dim>& fel1 = info1.finite_element();
@@ -292,9 +286,7 @@ for (unsigned int i=0; i<n_dofs; ++i)
         t = (1/t.norm())*t;
 	M1(i,j) += + kappa.value(p12, 1) * (t*fel1.shape_grad(i, p12)) * fel1.shape_value(j, p12);
 	M1(i,j) += - kappa.value(p22, 1) * (t*fel1.shape_grad(i, p22)) * fel1.shape_value(j, p22);
-	}
-*/
-}
+	}*/
 }
 }
 
