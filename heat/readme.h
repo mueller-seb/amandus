@@ -14,7 +14,7 @@
  *
  * <h3>heat/matrix_heat.h: the local contributions of the linear operator</h3>
  *
- * This file contains a single class LaplaceIntegrators::Matrix and the
+ * This file contains a single class Heat::Matrix and the
  * definitions of its functions. Local integrators are derived from
  * AmandusIntegrator which in turn inherits
  * dealii::MeshWorker::LocalIntegrator. Its main purpose is the
@@ -22,17 +22,16 @@
  *
  * The cell integrator function integrates the bilinear form of the
  * differential equation over a single cell. Using the predefined
- * integrators from deal.II, it is actually a one-liner here.
+ * integrators from deal.II, it is actually a modified Laplace::cell_matrix:.
  *
- * \dontinclude laplace/matrix.h
+ * \dontinclude heat/matrix_heat.h
  * \skip };
  * \skip template
  * \until }
  *
- * Since we are allowing for discontinuous Galerkin methods, we also
+ * Since we also consider a 1-dimensional hyperplane, we also
  * provide for integrators on boundary and interior faces. On the
- * boundary, we use Nitsche's method of weak boundary conditions,
- * already implemented in deal.II. If the finite element is
+ * boundary, all terms vanish. If the finite element is
  * <i>H<sup>1</sup></i>-conforming, we skip the boundary integral. The
  * penalty parameter needed is computed automatically based on the
  * polynomial degree and cell geometry. Note that this is reliable
