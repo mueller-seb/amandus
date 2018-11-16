@@ -6,8 +6,8 @@
  *
  **********************************************************************/
 
-#ifndef __heat_rhs_heat_h
-#define __heat_rhs_heat_h
+#ifndef __heat_rhs_h
+#define __heat_rhs_h
 
 #include <amandus/integrator.h>
 #include <deal.II/base/smartpointer.h>

@@ -4,8 +4,8 @@
  *
  * See the files AUTHORS and LICENSE in the project root directory
  **********************************************************************/
-#ifndef __matrix_heat_heat_h
-#define __matrix_heat_heat_h
+#ifndef __matrix_heat_h
+#define __matrix_heat_h
 
 /*
  * \file
