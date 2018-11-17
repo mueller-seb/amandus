@@ -22,7 +22,7 @@ using namespace MeshWorker;
 namespace HeatIntegrators
 {
 /**
- * Integrate the right hand side for a Laplace problem, where the
+ * Integrate the right hand side for the Heat problem, where the
  * solution is given.
  *
  * @ingroup integrators
@@ -32,7 +32,6 @@ class SolutionRHS : public AmandusIntegrator<dim>
 {
 public:
   SolutionRHS(Function<dim>& solution);
-
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
@@ -43,7 +42,7 @@ private:
 };
 
 /**
- * Integrate the residual for a Laplace problem, where the
+ * Integrate the error for the Heat problem, where the
  * solution is given.
  *
  * @ingroup integrators
@@ -54,7 +53,6 @@ class SolutionError : public AmandusIntegrator<dim>
 {
 public:
   SolutionError(Function<dim>& solution);
-
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
@@ -69,7 +67,6 @@ class SolutionEstimate : public AmandusIntegrator<dim>
 {
 public:
   SolutionEstimate(Function<dim>& solution);
-
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
@@ -85,13 +82,12 @@ template <int dim>
 SolutionRHS<dim>::SolutionRHS(Function<dim>& solution)
   : solution(&solution)
 {
-  this->use_boundary = false;//true
-  this->use_face = true;//false
+  this->use_boundary = false;//SOURCE: true
+  this->use_face = true;//SOURCE: false
 }
 
 template <int dim>
-void
-SolutionRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void SolutionRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
 
@@ -102,9 +98,9 @@ SolutionRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 }
 
 template <int dim>
-void
-SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
+/*SOURCE
   if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;
 
@@ -121,15 +117,15 @@ SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) cons
     for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
       local_vector(i) += (penalty * fe.shape_value(i, k) * boundary_values[k] -
                           (fe.normal_vector(k) * fe.shape_grad(i, k)) * boundary_values[k]) *
-                         fe.JxW(k);
+                         fe.JxW(k);*/
 }
 
 template <int dim>
-void
-SolutionRHS<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+void SolutionRHS<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                        IntegrationInfo<dim>& info2) const
 {
-  /*const FEValuesBase<dim>& fe = info1.fe_values();
+/*ALTERNATIVE IMPLEMENTATION
+  const FEValuesBase<dim>& fe = info1.fe_values();
   Vector<double>& local_vector = dinfo1.vector(0).block(0);
 
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
@@ -138,14 +134,13 @@ SolutionRHS<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationIn
 
   std::vector<double> rhs(info1.fe_values(0).n_quadrature_points, 0.);
 
-if (abs(info1.fe_values(0).quadrature_point(info1.fe_values(0).n_quadrature_points-1)(1) - info1.fe_values(0).quadrature_point(0)(1)) < 1e-16)
-{
-  for (unsigned int k = 0; k < info1.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = -solution->laplacian(info1.fe_values(0).quadrature_point(k), 1);
+  if (abs(info1.fe_values(0).quadrature_point(info1.fe_values(0).n_quadrature_points-1)(1) - info1.fe_values(0).quadrature_point(0)(1)) < 1e-16)
+     {
+     for (unsigned int k = 0; k < info1.fe_values(0).n_quadrature_points; ++k)
+        rhs[k] = -solution->laplacian(info1.fe_values(0).quadrature_point(k), 1);
 
-  L2::L2(dinfo1.vector(0).block(0), info1.fe_values(0), rhs);
-}
-
+     L2::L2(dinfo1.vector(0).block(0), info1.fe_values(0), rhs);
+     }
 }
 
 //----------------------------------------------------------------------//
@@ -162,8 +157,7 @@ SolutionError<dim>::SolutionError(Function<dim>& solution)
 }
 
 template <int dim>
-void
-SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
 
@@ -188,14 +182,12 @@ SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 }
 
 template <int dim>
-void
-SolutionError<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
+void SolutionError<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
 {
 }
 
 template <int dim>
-void
-SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
+void SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
                          IntegrationInfo<dim>&) const
 {
 }
@@ -212,8 +204,7 @@ SolutionEstimate<dim>::SolutionEstimate(Function<dim>& solution)
 }
 
 template <int dim>
-void
-SolutionEstimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void SolutionEstimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
 
@@ -228,8 +219,7 @@ SolutionEstimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) con
 }
 
 template <int dim>
-void
-SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
 
@@ -248,8 +238,7 @@ SolutionEstimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info)
 }
 
 template <int dim>
-void
-SolutionEstimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
+void SolutionEstimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                             IntegrationInfo<dim>& info2) const
 {
   const FEValuesBase<dim>& fe = info1.fe_values();

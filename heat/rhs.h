@@ -41,17 +41,20 @@ template <int dim>
 double
 Force<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
+  double margin = 0.0;
+
   double x = p(0);
   double y = p(1);
-  double result = 0;
-  if ((component == 0) || (abs(y) < 1e-6))
-  {
+  bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
+
+  double result = 0; //on face, but not on embedding
+  if ((component == 0) || onEmbedding)
+  { //beyond faces or on embedding
   if (x < 0)
 	result = 1;
   if (x > 0)
 	result = -1;
   }
-
   return result;
 }
 
@@ -75,7 +78,6 @@ class RHS : public AmandusIntegrator<dim>
 {
 public:
   RHS();
-
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
@@ -87,7 +89,6 @@ class Estimate : public AmandusIntegrator<dim>
 {
 public:
   Estimate();
-
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
@@ -145,6 +146,11 @@ void
 RHS<dim>::face(DoFInfo<dim>& dinfo, DoFInfo<dim>&, IntegrationInfo<dim>& info,
                        IntegrationInfo<dim>&) const
 {
+const FEValuesBase<dim>& fe = info.fe_values(0);
+double ydiff = fe.quadrature_point(fe.n_quadrature_points-1)(1)-fe.quadrature_point(0)(1);
+
+if (abs(ydiff) < 1e-5) //involve horizontal faces only
+  {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
   Force<dim> f;
 
@@ -152,6 +158,7 @@ RHS<dim>::face(DoFInfo<dim>& dinfo, DoFInfo<dim>&, IntegrationInfo<dim>& info,
     rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 1);
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
+  }
 }
 
 //----------------------------------------------------------------------//
@@ -187,7 +194,7 @@ Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
 
-  std::vector<double> boundary_values(fe.n_quadrature_points, 0.); //vector of zero, boundary values = 0
+  std::vector<double> boundary_values(fe.n_quadrature_points, 0.); //vector of zeros
   //solution->value_list(fe.get_quadrature_points(), boundary_values);
 
   const std::vector<double>& uh = info.values[0][0];
@@ -224,8 +231,7 @@ Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<
   if (dim == 3)
     h = std::sqrt(dinfo1.face->measure());
   else
-    h = dinfo1.face->measure();
- */
+    h = dinfo1.face->measure();*/
 
   const unsigned int deg = fe.get_fe().tensor_degree();
   const double penalty1 = deg * (deg+1) * dinfo1.face->measure() / dinfo1.cell->measure();
@@ -241,7 +247,6 @@ Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);
 }
-
 }
 
 #endif

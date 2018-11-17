@@ -47,14 +47,19 @@ Conductivity<dim>::Conductivity()
 template <int dim>
 double Conductivity<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
+  double margin = 0.0; //MARGIN between low dimensional embedding/pole and boundaries
+
   double x = p(0);
   double y = p(1);
-  double result = 1e-3;
-  if (component == 1)
+  bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
+  double result = 1e-3; //not on face
+
+  if (component == 1) //on face
     {
-    result = 0;
-    if ((abs(y) < 1e-5) && (abs(x) <= 1))
-      	result = 1;
+    if (onEmbedding)
+      result = 1e-3; //on embedding
+    else
+      result = 0; //not on embedding
     }
   return result;
 }
@@ -82,7 +87,7 @@ public:
    */
   virtual void cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationInfo<dim>& info) const override;
   /**
-   * \brief The weak implementation of Dirichlet boundary conditions (vanishes).
+   * \brief The weak implementation of Dirichlet boundary conditions (vanishing).
   */
   virtual void boundary(MeshWorker::DoFInfo<dim>& dinfo,
                         MeshWorker::IntegrationInfo<dim>& info) const override;
@@ -134,7 +139,8 @@ const unsigned int n_components = fe.get_fe().n_components();
    }
 }
 
-/*Boundary term of Green's formula in weak formulation vanishes due to shape functions v in H_0^1. Boundary term of Green's formular (partial integration) is part of the nitsche matrix.*/
+/*Boundary term of Green's formula in weak formulation vanishes due to shape functions v in H_0^1.
+  Boundary term of Green's formular (partial integration) occurs in nitsche matrix.*/
 template <int dim>
 void Matrix<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                       typename MeshWorker::IntegrationInfo<dim>& info) const
@@ -178,11 +184,12 @@ const FEValuesBase<dim>& fe2 = info2.fe_values(0);
 const unsigned int n_dofs = fe1.dofs_per_cell;
 const unsigned int n_comp = fe1.get_fe().n_components();
 
-AssertDimension(2, dim); //2d cross product
+AssertDimension(2, dim); //essential for 2d cross product
 Assert (M1.m() == n_dofs, ExcDimensionMismatch(M1.m(), n_dofs));
 Assert (M1.n() == n_dofs, ExcDimensionMismatch(M1.n(), n_dofs));
 
-if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1)) < 1e-5)
+double ydiff = fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(0)(1);
+if (abs(ydiff) < 1e-5) //involve horizontal faces only
 {
 //SOURCE: Laplace::nitsche_matrix() and Laplace::nitsche_tangential_matrix() in laplace.h
 
@@ -209,7 +216,7 @@ if (abs(fe1.quadrature_point(fe1.n_quadrature_points-1)(1)-fe1.quadrature_point(
       }
    }
 
-/* 1st ATTEMPT OF EVALUATING SHAPE FUNCTIONS AT THE BOUNDARY POINTS OF THE EMBEDDING (doesn't work properly)
+/* 1st ATTEMPT OF EVALUATING SHAPE FUNCTIONS AT THE ENDING POINTS OF THE EMBEDDING (doesn't work properly)
 const FiniteElement<dim>& fel1 = info1.finite_element();
 const FiniteElement<dim>& fel2 = info2.finite_element();
 const double x = 0.5;
