@@ -110,7 +110,8 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  Force<d> f;
+  const double margin = 0.0;
+  Force<d> f(margin);
   Conductivity<d> kappa;
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);

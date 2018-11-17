@@ -130,7 +130,8 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  Conductivity<d> kappa;
+  const double margin = 0.0;
+  Conductivity<d> kappa(margin);
   Solution<d> exact_solution(kappa);
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);

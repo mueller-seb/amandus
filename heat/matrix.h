@@ -102,14 +102,6 @@ template <int dim>
 void Matrix<dim>::boundary(MeshWorker::DoFInfo<dim>& dinfo,
                       typename MeshWorker::IntegrationInfo<dim>& info) const
 {
-/*SOURCE
-  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-  return;
-
-  const unsigned int deg = info.fe_values(0).get_fe().tensor_degree();
-  Laplace::nitsche_matrix(dinfo.matrix(0, false).matrix,
-                          info.fe_values(0),
-                          Laplace::compute_penalty(dinfo, dinfo, deg, deg));*/
 }
 
 template <int dim>
@@ -120,16 +112,6 @@ void Matrix<dim>::face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim
 /* FOR DG WITH INTERIOR PENALTY
 if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
     return;*/
-
-/*SOURCE
-  const unsigned int deg = info1.fe_values(0).get_fe().tensor_degree();
-  Laplace::ip_matrix(dinfo1.matrix(0, false).matrix,
-                     dinfo1.matrix(0, true).matrix,
-                     dinfo2.matrix(0, true).matrix,
-                     dinfo2.matrix(0, false).matrix,
-                     info1.fe_values(0),
-                     info2.fe_values(0),
-                     Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));*/
 
 FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
 FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;

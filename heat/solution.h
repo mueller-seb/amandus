@@ -99,24 +99,6 @@ void SolutionRHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) con
 template <int dim>
 void SolutionRHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
-/*SOURCE
-  if (info.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
-    return;
-
-  const FEValuesBase<dim>& fe = info.fe_values();
-  Vector<double>& local_vector = dinfo.vector(0).block(0);
-
-  std::vector<double> boundary_values(fe.n_quadrature_points, 0.);
-  solution->value_list(fe.get_quadrature_points(), boundary_values);
-
-  const unsigned int deg = fe.get_fe().tensor_degree();
-  const double penalty = 2. * Laplace::compute_penalty(dinfo, dinfo, deg, deg);
-
-  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
-    for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
-      local_vector(i) += (penalty * fe.shape_value(i, k) * boundary_values[k] -
-                          (fe.normal_vector(k) * fe.shape_grad(i, k)) * boundary_values[k]) *
-                         fe.JxW(k);*/
 }
 
 template <int dim>
