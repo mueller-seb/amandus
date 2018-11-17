@@ -1,6 +1,3 @@
-#ifndef __testing_heat_h
-#define __testing_heat_h
-
 using namespace dealii;
 
 template <int dim>
@@ -51,6 +48,3 @@ if (y0)
 	deallog << message.str();
 	}
 }
-
-
-#endif

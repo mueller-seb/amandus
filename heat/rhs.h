@@ -47,7 +47,7 @@ public:
                     IntegrationInfo<dim>& info2) const override;
 
 private:
-  SmartPointer<Function<dim>, RHS<dim>> f;
+  SmartPointer<Function<dim>, Estimate<dim>> f;
 };
 
 //----------------------------------------------------------------------//

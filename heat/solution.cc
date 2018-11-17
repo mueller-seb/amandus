@@ -34,38 +34,34 @@
 
 #include <boost/scoped_ptr.hpp>
 
+#include <amandus/heat/conductivity.h>
+
 template <int dim>
 class Solution : public Function<dim>
 {
 public:
-  Solution(const double eps = 1e-5);
-
+  Solution(Conductivity<dim>& kappa);
   virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
-
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component = 0) const override;
   virtual Tensor<1, dim> gradient(const Point<dim>& p, const unsigned int component = 0) const override;
-
   virtual double laplacian(const Point<dim>& p, const unsigned int component = 0) const override;
-
 private:
-  const double eps;
+  SmartPointer<Conductivity<dim>, Solution<dim>> kappa;
 };
 
 template <int dim>
-Solution<dim>::Solution(const double eps)
-  : eps(eps)
+Solution<dim>::Solution(Conductivity<dim>& kappa) : kappa(&kappa)
 {
 }
 template <int dim>
 double
 Solution<dim>::value(const Point<dim>& p, const unsigned int) const
 {
-  HeatIntegrators::Conductivity<dim> kappa;
   const double x = p[0];
   const double y = p[1];
 
-  return kappa.value(p, 0)*(x*x-1)*(y*y-1);
+  return kappa->value(p, 0)*(x*x-1)*(y*y-1);
 }
 template <int dim>
 void
@@ -84,15 +80,14 @@ template <int dim>
 double
 Solution<dim>::laplacian(const Point<dim>& p, const unsigned int component) const
 {
-  HeatIntegrators::Conductivity<dim> kappa;
   const double x = p[0];
   const double y = p[1];
   double val = 0;
 
 if (component == 0)
-  val = kappa.value(p, 0)*(2*(y*y-1)+2*(x*x-1));
+  val = kappa->value(p, 0)*(2*(y*y-1)+2*(x*x-1));
 if (component == 1)
-  val = -2*kappa.value(p, 1);
+  val = -2*kappa->value(p, 1);
 
   return val;
 }
@@ -100,13 +95,12 @@ template <int dim>
 Tensor<1, dim>
 Solution<dim>::gradient(const Point<dim>& p, const unsigned int) const
 {
-  HeatIntegrators::Conductivity<dim> kappa;
   Tensor<1, dim> val;
   const double x = p[0];
   const double y = p[1];
 
-  val[0] = kappa.value(p, 0)*2*x*(y*y-1);
-  val[1] = kappa.value(p, 0)*2*y*(x*x-1);
+  val[0] = kappa->value(p, 0)*2*x*(y*y-1);
+  val[1] = kappa->value(p, 0)*2*y*(x*x-1);
 
   return val;
 }
@@ -136,9 +130,10 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
-  Solution<d> exact_solution;
+  Conductivity<d> kappa;
+  Solution<d> exact_solution(kappa);
 
-  HeatIntegrators::Matrix<d> matrix_integrator;
+  HeatIntegrators::Matrix<d> matrix_integrator(kappa);
   HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
   HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
 

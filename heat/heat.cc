@@ -34,18 +34,22 @@
 
 #include <boost/scoped_ptr.hpp>
 
+#include <amandus/heat/conductivity.h>
+
 template <int dim>
 class Force : public Function<dim>
 {
 public:
-  Force();
+  Force(const double margin = 0.0);
   virtual double value(const Point<dim>& p, const unsigned int component) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component) const override;
+  private:
+    const double margin; //MARGIN between low dimensional embedding/pole and boundaries
 };
 
 template <int dim>
-Force<dim>::Force()
+Force<dim>::Force(const double margin) : margin(margin)
 {
 }
 
@@ -53,8 +57,6 @@ template <int dim>
 double
 Force<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
-  double margin = 0.0;
-
   double x = p(0);
   double y = p(1);
   bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
@@ -109,8 +111,9 @@ main(int argc, const char** argv)
   param.leave_subsection();
 
   Force<d> f;
+  Conductivity<d> kappa;
 
-  HeatIntegrators::Matrix<d> matrix_integrator;
+  HeatIntegrators::Matrix<d> matrix_integrator(kappa);
   HeatIntegrators::RHS<d> rhs_integrator(f);
   HeatIntegrators::Estimate<d> estimate_integrator(f);
   AmandusIntegrator<d>* error_integrator = 0;

@@ -17,6 +17,7 @@
 #include <deal.II/integrators/l2.h>
 #include <deal.II/integrators/laplace.h>
 #include <deal.II/meshworker/integration_info.h>
+
 #include <amandus/heat/testing.h> //HELPING FUNCTIONS FOR CODE TESTING
 
 using namespace dealii;
@@ -29,60 +30,13 @@ using namespace LocalIntegrators;
  */
 namespace HeatIntegrators
 {
-template <int dim>
-class Conductivity : public Function<dim>
-{
-public:
-  Conductivity(const double margin = 0.0);
-  virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
-  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const override;
 
-  private:
-    const double margin; //MARGIN between low dimensional embedding/pole and boundaries
-};
-
-template <int dim>
-Conductivity<dim>::Conductivity(const double margin) : margin(margin)
-{
-}
-
-template <int dim>
-double Conductivity<dim>::value(const Point<dim>& p, const unsigned int component) const
-{
-  double x = p(0);
-  double y = p(1);
-  bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
-  double result = 1e-3; //not on face
-
-  if (component == 1) //on face
-    {
-    if (onEmbedding)
-      result = 1e-3; //on embedding
-    else
-      result = 0; //not on embedding
-    }
-  return result;
-}
-
-template <int dim>
-void Conductivity<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                         const unsigned int) const
-{
-  AssertDimension(points.size(), values.size());
-
-  for (unsigned int k = 0; k < points.size(); ++k)
-  {
-    const Point<dim>& p = points[k];
-    values[k] = 1. * p(0);
-  }
-}
 
 template <int dim>
 class Matrix : public AmandusIntegrator<dim>
 {
 public:
-  Matrix();
+  Matrix(Function<dim>& kappa);
   /**
    * \brief The bilinear form of the Heat equation on the domain
    */
@@ -98,10 +52,13 @@ public:
   virtual void face(MeshWorker::DoFInfo<dim>& dinfo1, MeshWorker::DoFInfo<dim>& dinfo2,
                     MeshWorker::IntegrationInfo<dim>& info1,
                     MeshWorker::IntegrationInfo<dim>& info2) const override;
+
+private:
+  SmartPointer<Function<dim>, Matrix<dim>> kappa;
 };
 
 template <int dim>
-Matrix<dim>::Matrix()
+Matrix<dim>::Matrix(Function<dim>& kappa) : kappa(&kappa)
 {
   this->use_boundary = false;
   this->use_face = true;
@@ -112,7 +69,6 @@ void Matrix<dim>::cell(MeshWorker::DoFInfo<dim>& dinfo, MeshWorker::IntegrationI
 {
 AssertDimension(dinfo.n_matrices(), 1);
 
-Conductivity<dim> kappa;
 FullMatrix<double>& M = dinfo.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe = info.fe_values(0);
 const unsigned int n_dofs = fe.dofs_per_cell;
@@ -120,7 +76,7 @@ const unsigned int n_components = fe.get_fe().n_components();
 
    for (unsigned int k=0; k<fe.n_quadrature_points; ++k)
    {
-      const double dx = fe.JxW(k) * kappa.value(fe.quadrature_point(k), 0);
+      const double dx = fe.JxW(k) * kappa->value(fe.quadrature_point(k), 0);
       for (unsigned int i=0; i<n_dofs; ++i)
       {
          double Mii = 0.0;
@@ -175,8 +131,6 @@ if (info1.fe_values(0).get_fe().conforms(FiniteElementData<dim>::H1))
                      info2.fe_values(0),
                      Laplace::compute_penalty(dinfo1, dinfo2, deg, deg));*/
 
-Conductivity<dim> kappa;
-
 FullMatrix<double>& M1 = dinfo1.matrix(0, false).matrix;
 FullMatrix<double>& M2 = dinfo2.matrix(0, false).matrix;
 const FEValuesBase<dim>& fe1 = info1.fe_values(0);
@@ -199,7 +153,7 @@ if (abs(ydiff) < 1e-5) //involve horizontal faces only
       const Tensor<1,dim> n = fe1.normal_vector(k);
       Tensor<1,dim> t = cross_product_2d(n);
       t = (1/t.norm())*t;
-      const double dx = fe1.JxW(k)*kappa.value(fe1.quadrature_point(k), 1);
+      const double dx = fe1.JxW(k)*kappa->value(fe1.quadrature_point(k), 1);
       for (unsigned int i=0; i<n_dofs; ++i)
          for (unsigned int j=0; j<n_dofs; ++j)
          {
@@ -233,8 +187,8 @@ for (unsigned int i=0; i<n_dofs; ++i)
         const Tensor<1,dim> n = fe1.normal_vector(0);
         Tensor<1,dim> t = cross_product_2d(n);
         t = (1/t.norm())*t;
-	M1(i,j) += + kappa.value(p12, 1) * (t*fel1.shape_grad(i, p12)) * fel1.shape_value(j, p12);
-	M1(i,j) += - kappa.value(p22, 1) * (t*fel1.shape_grad(i, p22)) * fel1.shape_value(j, p22);
+	M1(i,j) += + kappa->value(p12, 1) * (t*fel1.shape_grad(i, p12)) * fel1.shape_value(j, p12);
+	M1(i,j) += - kappa->value(p22, 1) * (t*fel1.shape_grad(i, p22)) * fel1.shape_value(j, p22);
 	}*/
 
 /* PRINT QUADRATURE POINTS OF CURRENT FACE (FOR TESTING)
