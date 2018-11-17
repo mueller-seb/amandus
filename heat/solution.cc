@@ -25,7 +25,7 @@
 #include <amandus/adaptivity.h>
 #include <amandus/apps.h>
 #include <amandus/heat/matrix.h>
-#include <amandus/heat/solution.h>
+#include <amandus/heat/rhs.h>
 #include <amandus/refine_strategy.h>
 #include <deal.II/algorithms/newton.h>
 #include <deal.II/fe/fe_tools.h>
@@ -35,7 +35,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <amandus/heat/conductivity.h>
-#include <amandus/heat/u.h>
+#include <amandus/heat/solution.h>
 
 template <int dim>
 class RHSWrapper : public Function<dim>
