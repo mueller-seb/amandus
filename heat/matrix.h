@@ -33,22 +33,23 @@ template <int dim>
 class Conductivity : public Function<dim>
 {
 public:
-  Conductivity();
+  Conductivity(const double margin = 0.0);
   virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component = 0) const override;
+
+  private:
+    const double margin; //MARGIN between low dimensional embedding/pole and boundaries
 };
 
 template <int dim>
-Conductivity<dim>::Conductivity()
+Conductivity<dim>::Conductivity(const double margin) : margin(margin)
 {
 }
 
 template <int dim>
 double Conductivity<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
-  double margin = 0.0; //MARGIN between low dimensional embedding/pole and boundaries
-
   double x = p(0);
   double y = p(1);
   bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));

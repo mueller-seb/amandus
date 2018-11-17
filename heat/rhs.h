@@ -23,82 +23,38 @@ namespace HeatIntegrators
 {
 
 template <int dim>
-class Force : public Function<dim>
-{
-public:
-  Force();
-  virtual double value(const Point<dim>& p, const unsigned int component) const override;
-  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component) const override;
-};
-
-template <int dim>
-Force<dim>::Force()
-{
-}
-
-template <int dim>
-double
-Force<dim>::value(const Point<dim>& p, const unsigned int component) const
-{
-  double margin = 0.0;
-
-  double x = p(0);
-  double y = p(1);
-  bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
-
-  double result = 0; //on face, but not on embedding
-  if ((component == 0) || onEmbedding)
-  { //beyond faces or on embedding
-  if (x < 0)
-	result = 1;
-  if (x > 0)
-	result = -1;
-  }
-  return result;
-}
-
-template <int dim>
-void
-Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                         const unsigned int) const
-{
-  AssertDimension(points.size(), values.size());
-
-  for (unsigned int k = 0; k < points.size(); ++k)
-  {
-    const Point<dim>& p = points[k];
-    values[k] = 1. * p(0);
-  }
-}
-
-
-template <int dim>
 class RHS : public AmandusIntegrator<dim>
 {
 public:
-  RHS();
+  RHS(Function<dim>& f);
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                     IntegrationInfo<dim>& info2) const override;
+
+private:
+  SmartPointer<Function<dim>, RHS<dim>> f;
 };
 
 template <int dim>
 class Estimate : public AmandusIntegrator<dim>
 {
 public:
-  Estimate();
+  Estimate(Function<dim>& f);
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                     IntegrationInfo<dim>& info2) const override;
+
+private:
+  SmartPointer<Function<dim>, RHS<dim>> f;
 };
 
 //----------------------------------------------------------------------//
 
 template <int dim>
-RHS<dim>::RHS()
+RHS<dim>::RHS(Function<dim>& f)
+     : f(&f)
 {
   this->use_boundary = false;
   this->use_face = true;
@@ -109,10 +65,9 @@ void
 RHS<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-  Force<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 0);
+    rhs[k] = f->value(info.fe_values(0).quadrature_point(k), 0);
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
 }
@@ -129,7 +84,7 @@ RHS<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   Vector<double>& local_vector = dinfo.vector(0).block(0);
 
   std::vector<double> boundary_values(fe.n_quadrature_points);
-  solution->value_list(fe.get_quadrature_points(), boundary_values);
+  f->value_list(fe.get_quadrature_points(), boundary_values);
 
   const unsigned int deg = fe.get_fe().tensor_degree();
   const double penalty = 2. * Laplace::compute_penalty(dinfo, dinfo, deg, deg);
@@ -152,10 +107,9 @@ double ydiff = fe.quadrature_point(fe.n_quadrature_points-1)(1)-fe.quadrature_po
 if (abs(ydiff) < 1e-5) //involve horizontal faces only
   {
   std::vector<double> rhs(info.fe_values(0).n_quadrature_points, 0.);
-  Force<dim> f;
 
   for (unsigned int k = 0; k < info.fe_values(0).n_quadrature_points; ++k)
-    rhs[k] = f.value(info.fe_values(0).quadrature_point(k), 1);
+    rhs[k] = f->value(info.fe_values(0).quadrature_point(k), 1);
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
   }
@@ -164,7 +118,8 @@ if (abs(ydiff) < 1e-5) //involve horizontal faces only
 //----------------------------------------------------------------------//
 
 template <int dim>
-Estimate<dim>::Estimate()
+Estimate<dim>::Estimate(Function<dim>& f)
+   : f(&f)
 {
   this->use_boundary = true;
   this->use_face = true;
@@ -176,13 +131,12 @@ void
 Estimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   const FEValuesBase<dim>& fe = info.fe_values();
-  Force<dim> f;
 
   const std::vector<Tensor<2, dim>>& DDuh = info.hessians[0][0];
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
   {
     const double t = dinfo.cell->diameter() *
-                     (trace(DDuh[k]) + f.value(info.fe_values(0).quadrature_point(k), 0));
+                     (trace(DDuh[k]) + f->value(info.fe_values(0).quadrature_point(k), 0));
     dinfo.value(0) += t * t * fe.JxW(k);
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
@@ -195,7 +149,7 @@ Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   const FEValuesBase<dim>& fe = info.fe_values();
 
   std::vector<double> boundary_values(fe.n_quadrature_points, 0.); //vector of zeros
-  //solution->value_list(fe.get_quadrature_points(), boundary_values);
+  //f->value_list(fe.get_quadrature_points(), boundary_values);
 
   const std::vector<double>& uh = info.values[0][0];
 

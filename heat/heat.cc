@@ -34,6 +34,56 @@
 
 #include <boost/scoped_ptr.hpp>
 
+template <int dim>
+class Force : public Function<dim>
+{
+public:
+  Force();
+  virtual double value(const Point<dim>& p, const unsigned int component) const override;
+  virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                          const unsigned int component) const override;
+};
+
+template <int dim>
+Force<dim>::Force()
+{
+}
+
+template <int dim>
+double
+Force<dim>::value(const Point<dim>& p, const unsigned int component) const
+{
+  double margin = 0.0;
+
+  double x = p(0);
+  double y = p(1);
+  bool onEmbedding = (abs(y) < 1e-5) && (abs(x) <= (1-margin));
+
+  double result = 0; //on face, but not on embedding
+  if ((component == 0) || onEmbedding)
+  { //beyond faces or on embedding
+  if (x < 0)
+	result = 1;
+  if (x > 0)
+	result = -1;
+  }
+  return result;
+}
+
+template <int dim>
+void
+Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int) const
+{
+  AssertDimension(points.size(), values.size());
+
+  for (unsigned int k = 0; k < points.size(); ++k)
+  {
+    const Point<dim>& p = points[k];
+    values[k] = 1. * p(0);
+  }
+}
+
 //---------------------------------------------------------//
 
 int
@@ -58,10 +108,11 @@ main(int argc, const char** argv)
   tr.refine_global(param.get_integer("Refinement"));
   param.leave_subsection();
 
+  Force<d> f;
 
   HeatIntegrators::Matrix<d> matrix_integrator;
-  HeatIntegrators::RHS<d> rhs_integrator;
-  HeatIntegrators::Estimate<d> estimate_integrator;
+  HeatIntegrators::RHS<d> rhs_integrator(f);
+  HeatIntegrators::Estimate<d> estimate_integrator(f);
   AmandusIntegrator<d>* error_integrator = 0;
 
 

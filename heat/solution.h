@@ -47,7 +47,6 @@ private:
  *
  * @ingroup integrators
  */
-
 template <int dim>
 class SolutionError : public AmandusIntegrator<dim>
 {
