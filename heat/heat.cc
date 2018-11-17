@@ -75,14 +75,14 @@ Force<dim>::value(const Point<dim>& p, const unsigned int component) const
 template <int dim>
 void
 Force<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                         const unsigned int) const
+                         const unsigned int component) const
 {
   AssertDimension(points.size(), values.size());
 
   for (unsigned int k = 0; k < points.size(); ++k)
   {
     const Point<dim>& p = points[k];
-    values[k] = 1. * p(0);
+    values[k] = value(p, component);
   }
 }
 

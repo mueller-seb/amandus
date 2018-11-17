@@ -35,74 +35,44 @@
 #include <boost/scoped_ptr.hpp>
 
 #include <amandus/heat/conductivity.h>
+#include <amandus/heat/u.h>
 
 template <int dim>
-class Solution : public Function<dim>
+class RHSWrapper : public Function<dim>
 {
 public:
-  Solution(Conductivity<dim>& kappa);
-  virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
+  RHSWrapper(Solution<dim>& u);
+  virtual double value(const Point<dim>& p, const unsigned int component) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                          const unsigned int component = 0) const override;
-  virtual Tensor<1, dim> gradient(const Point<dim>& p, const unsigned int component = 0) const override;
-  virtual double laplacian(const Point<dim>& p, const unsigned int component = 0) const override;
+                          const unsigned int component) const override;
 private:
-  SmartPointer<Conductivity<dim>, Solution<dim>> kappa;
+  SmartPointer<Solution<dim>, RHSWrapper<dim>> u;
 };
 
 template <int dim>
-Solution<dim>::Solution(Conductivity<dim>& kappa) : kappa(&kappa)
+RHSWrapper<dim>::RHSWrapper(Solution<dim>& u) : u(&u)
 {
 }
+
 template <int dim>
 double
-Solution<dim>::value(const Point<dim>& p, const unsigned int) const
+RHSWrapper<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
-  const double x = p[0];
-  const double y = p[1];
-
-  return kappa->value(p, 0)*(x*x-1)*(y*y-1);
+  return -u->laplacian(p, component);
 }
+
 template <int dim>
 void
-Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                      const unsigned int) const
+RHSWrapper<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                         const unsigned int component) const
 {
-  Assert(values.size() == points.size(), ExcDimensionMismatch(values.size(), points.size()));
+  AssertDimension(points.size(), values.size());
 
-  for (unsigned int i = 0; i < points.size(); ++i)
+  for (unsigned int k = 0; k < points.size(); ++k)
   {
-    const Point<dim>& p = points[i];
-    values[i] = value(p);
+    const Point<dim>& p = points[k];
+    values[k] = -u->laplacian(p, component);
   }
-}
-template <int dim>
-double
-Solution<dim>::laplacian(const Point<dim>& p, const unsigned int component) const
-{
-  const double x = p[0];
-  const double y = p[1];
-  double val = 0;
-
-if (component == 0)
-  val = kappa->value(p, 0)*(2*(y*y-1)+2*(x*x-1));
-if (component == 1)
-  val = -2*kappa->value(p, 1);
-
-  return val;
-}
-template <int dim>
-Tensor<1, dim>
-Solution<dim>::gradient(const Point<dim>& p, const unsigned int) const
-{
-  Tensor<1, dim> val;
-  const double x = p[0];
-  const double y = p[1];
-
-  val[0] = kappa->value(p, 0)*2*x*(y*y-1);
-  val[1] = kappa->value(p, 0)*2*y*(x*x-1);
-
-  return val;
 }
 
 
@@ -131,8 +101,10 @@ main(int argc, const char** argv)
   param.leave_subsection();
 
   const double margin = 0.0;
+
   Conductivity<d> kappa(margin);
   Solution<d> exact_solution(kappa);
+  RHSWrapper<d> f(exact_solution);
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);
   HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
