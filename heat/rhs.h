@@ -51,14 +51,14 @@ template <int dim>
 class Error : public AmandusIntegrator<dim>
 {
 public:
-  Error(Function<dim>& f);
+  Error(Function<dim>& solution);
   virtual void cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const override;
   virtual void face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, IntegrationInfo<dim>& info1,
                     IntegrationInfo<dim>& info2) const override;
 
 private:
-  SmartPointer<Function<dim>, Error<dim>> f;
+  SmartPointer<Function<dim>, Error<dim>> solution;
 };
 
 /*
@@ -78,7 +78,7 @@ public:
 
 private:
   SmartPointer<Function<dim>, Estimate<dim>> f;
-
+};
 /*
  * This ist the (Kelly?)-Estimator presented in deal.ii Tutorial 39
  *
@@ -149,8 +149,8 @@ if (abs(ydiff) < 1e-5) //involve horizontal faces only
 
 
 template <int dim>
-Error<dim>::Error(Function<dim>& f)
-  : f(&f)
+Error<dim>::Error(Function<dim>& solution)
+  : solution(&solution)
 {
   this->use_boundary = false;
   this->use_face = false;
@@ -159,7 +159,7 @@ Error<dim>::Error(Function<dim>& f)
 }
 
 template <int dim>
-void SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
+void Error<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
 {
   Assert(dinfo.n_values() >= 2, ExcDimensionMismatch(dinfo.n_values(), 4));
 
@@ -184,12 +184,12 @@ void SolutionError<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) c
 }
 
 template <int dim>
-void SolutionError<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
+void Error<dim>::boundary(DoFInfo<dim>&, IntegrationInfo<dim>&) const
 {
 }
 
 template <int dim>
-void SolutionError<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
+void Error<dim>::face(DoFInfo<dim>&, DoFInfo<dim>&, IntegrationInfo<dim>&,
                          IntegrationInfo<dim>&) const
 {
 }
@@ -214,7 +214,7 @@ void Estimate<dim>::cell(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) const
   for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
   {
     const double t = dinfo.cell->diameter() *
-                     (trace(DDuh[k]) - solution->laplacian(info.fe_values(0).quadrature_point(k), 0));
+                     (trace(DDuh[k]) - f->value(info.fe_values(0).quadrature_point(k), 0));
     dinfo.value(0) += t * t * fe.JxW(k);
   }
   dinfo.value(0) = std::sqrt(dinfo.value(0));
@@ -226,7 +226,7 @@ void Estimate<dim>::boundary(DoFInfo<dim>& dinfo, IntegrationInfo<dim>& info) co
   const FEValuesBase<dim>& fe = info.fe_values();
 
   std::vector<double> boundary_values(fe.n_quadrature_points, 0.);
-  solution->value_list(fe.get_quadrature_points(), boundary_values);
+  //solution->value_list(fe.get_quadrature_points(), boundary_values);
 
   const std::vector<double>& uh = info.values[0][0];
 
@@ -268,7 +268,7 @@ void Estimate<dim>::face(DoFInfo<dim>& dinfo1, DoFInfo<dim>& dinfo2, Integration
   dinfo1.value(0) = std::sqrt(dinfo1.value(0));
   dinfo2.value(0) = dinfo1.value(0);
 }
-}
+
 
 //----------------------------------------------------------------------//
 

@@ -28,7 +28,7 @@ double Conductivity<dim>::value(const Point<dim>& p, const unsigned int componen
   if (component == 1) //on face
     {
     if (onEmbedding)
-      result = 1e-3; //on embedding
+      result = 1; //on embedding
     else
       result = 0; //not on embedding
     }

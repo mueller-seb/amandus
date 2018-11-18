@@ -107,10 +107,9 @@ main(int argc, const char** argv)
   RHSWrapper<d> f(exact_solution);
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);
-  HeatIntegrators::SolutionRHS<d> rhs_integrator(exact_solution);
-  HeatIntegrators::SolutionError<d> error_integrator(exact_solution);
-
-  HeatIntegrators::SolutionEstimate<d> estimate_integrator(exact_solution);
+  HeatIntegrators::RHS<d> rhs_integrator(f);
+  HeatIntegrators::Estimate<d> estimate_integrator(f);
+  HeatIntegrators::Error<d> error_integrator(exact_solution);
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);

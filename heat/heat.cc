@@ -112,13 +112,12 @@ main(int argc, const char** argv)
 
   const double margin = 0.0;
   Force<d> f(margin);
-  Conductivity<d> kappa;
+  Conductivity<d> kappa(margin);
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);
   HeatIntegrators::RHS<d> rhs_integrator(f);
   HeatIntegrators::Estimate<d> estimate_integrator(f);
   AmandusIntegrator<d>* error_integrator = 0;
-
 
   AmandusApplication<d> app(tr, *fe);
   app.parse_parameters(param);
@@ -127,12 +126,12 @@ main(int argc, const char** argv)
   AmandusResidual<d> residual(app, rhs_integrator);
   RefineStrategy::MarkBulk<d> refine_strategy(tr, 0.5);
   //RefineStrategy::MarkUniform<d> refine_strategy(tr);
-
   adaptive_refinement_linear_loop(param.get_integer("MaxDofs"),
                                   app,
                                   tr,
                                   solver,
                                   residual,
                                   estimate_integrator,
-                                  refine_strategy, error_integrator);
+                                  refine_strategy,
+                                  error_integrator);
 }
