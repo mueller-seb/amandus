@@ -6,9 +6,9 @@
  **********************************************************************/
 /**
  * @file
- * \brief Example for Laplacian with manufactured solution on adaptive meshes
+ * \brief Example for Heat with manufactured solution on adaptive meshes
  * <ul>
- * <li> Stationary Poisson equations</li>
+ * <li> Stationary Heat equations</li>
  * <li> Homogeneous Dirichlet boundary condition</li>
  * <li> Exact solution</li>
  * <li> Error computation</li>
@@ -17,9 +17,8 @@
  * <li> Multigrid preconditioner with Schwarz-smoother</li>
  * </ul>
  *
- * @author Joscha Gedicke
  *
- * @ingroup Laplacegroup
+ * @ingroup Heatgroup
  */
 
 #include <amandus/adaptivity.h>
