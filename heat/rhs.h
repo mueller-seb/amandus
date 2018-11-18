@@ -143,6 +143,14 @@ if (abs(ydiff) < 1e-5) //involve horizontal faces only
 
   L2::L2(dinfo.vector(0).block(0), info.fe_values(0), rhs);
   }
+
+/*ALTERNATIVE IMPLEMENTATION
+  const FEValuesBase<dim>& fe = info1.fe_values();
+  Vector<double>& local_vector = dinfo1.vector(0).block(0);
+
+  for (unsigned k = 0; k < fe.n_quadrature_points; ++k)
+    for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
+      local_vector(i) += f->value(info1.fe_values(0).quadrature_point(k), 1) * fe.shape_value(i, k) * fe.JxW(k);*/
 }
 
 //----------------------------------------------------------------------//
