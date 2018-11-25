@@ -40,16 +40,17 @@ template <int dim>
 class RHSWrapper : public Function<dim>
 {
 public:
-  RHSWrapper(Solution<dim>& u);
+  RHSWrapper(Solution<dim>& u, Conductivity<dim>& kappa);
   virtual double value(const Point<dim>& p, const unsigned int component) const override;
   virtual void value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
                           const unsigned int component) const override;
 private:
   SmartPointer<Solution<dim>, RHSWrapper<dim>> u;
+  SmartPointer<Conductivity<dim>, RHSWrapper<dim>> kappa;
 };
 
 template <int dim>
-RHSWrapper<dim>::RHSWrapper(Solution<dim>& u) : u(&u)
+RHSWrapper<dim>::RHSWrapper(Solution<dim>& u, Conductivity<dim>& kappa) : u(&u), kappa(&kappa)
 {
 }
 
@@ -57,7 +58,7 @@ template <int dim>
 double
 RHSWrapper<dim>::value(const Point<dim>& p, const unsigned int component) const
 {
-  return -u->laplacian(p, component);
+  return (-1)*kappa->value(p, component) * u->laplacian(p, component);
 }
 
 template <int dim>
@@ -70,7 +71,7 @@ RHSWrapper<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<d
   for (unsigned int k = 0; k < points.size(); ++k)
   {
     const Point<dim>& p = points[k];
-    values[k] = -u->laplacian(p, component);
+    values[k] = value(p, component);
   }
 }
 
@@ -102,8 +103,8 @@ main(int argc, const char** argv)
   const double margin = 0.0;
 
   Conductivity<d> kappa(margin);
-  Solution<d> exact_solution(kappa);
-  RHSWrapper<d> f(exact_solution);
+  Solution<d> exact_solution;
+  RHSWrapper<d> f(exact_solution, kappa);
 
   HeatIntegrators::Matrix<d> matrix_integrator(kappa);
   HeatIntegrators::RHS<d> rhs_integrator(f);
