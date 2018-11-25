@@ -28,20 +28,6 @@ Solution<dim>::value(const Point<dim>& p, const unsigned int) const
 }
 
 template <int dim>
-void
-Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
-                      const unsigned int) const
-{
-  Assert(values.size() == points.size(), ExcDimensionMismatch(values.size(), points.size()));
-
-  for (unsigned int i = 0; i < points.size(); ++i)
-  {
-    const Point<dim>& p = points[i];
-    values[i] = value(p);
-  }
-}
-
-template <int dim>
 double
 Solution<dim>::laplacian(const Point<dim>& p, const unsigned int component) const
 {
@@ -73,4 +59,19 @@ else if (component == 1)
   val[1] = 0;
 
   return val;
+}
+
+
+template <int dim>
+void
+Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
+                      const unsigned int) const
+{
+  Assert(values.size() == points.size(), ExcDimensionMismatch(values.size(), points.size()));
+
+  for (unsigned int i = 0; i < points.size(); ++i)
+  {
+    const Point<dim>& p = points[i];
+    values[i] = value(p);
+  }
 }
