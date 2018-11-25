@@ -16,6 +16,7 @@ template <int dim>
 Solution<dim>::Solution()
 {
 }
+
 template <int dim>
 double
 Solution<dim>::value(const Point<dim>& p, const unsigned int) const
@@ -25,6 +26,7 @@ Solution<dim>::value(const Point<dim>& p, const unsigned int) const
 
   return (x*x-1)*(y*y-1);
 }
+
 template <int dim>
 void
 Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
@@ -38,6 +40,7 @@ Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<dou
     values[i] = value(p);
   }
 }
+
 template <int dim>
 double
 Solution<dim>::laplacian(const Point<dim>& p, const unsigned int component) const
@@ -53,6 +56,7 @@ else if (component == 1)
 
   return val;
 }
+
 template <int dim>
 Tensor<1, dim>
 Solution<dim>::gradient(const Point<dim>& p, const unsigned int component) const
