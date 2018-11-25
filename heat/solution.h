@@ -61,7 +61,6 @@ else if (component == 1)
   return val;
 }
 
-
 template <int dim>
 void
 Solution<dim>::value_list(const std::vector<Point<dim>>& points, std::vector<double>& values,
